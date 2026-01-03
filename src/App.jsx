@@ -88,7 +88,7 @@ const JANUARY_FOCUS = [
   { day: 31, title: "Вечность", verse: "Бог вложил вечность в сердца их.", desc: "Живи с перспективой неба.", action: "Поблагодари за прожитый месяц." }
 ];
 
-// --- ПЛЕЕР ---
+// --- ПЛЕЕР С ВЫБОРОМ ПЕСНИ ---
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -223,7 +223,7 @@ export default function App() {
     await addDoc(collection(db, "prayers"), {
         text, type, privacy, 
         userId: user.uid,
-        authorName: isAnon ? "Аноним" : (user.displayName || "Путник"),
+        authorName: isAnon ? "Аноним" : (user.displayName || user.email?.split('@')[0] || "Путник"),
         createdAt: serverTimestamp(),
         likes: [],
         comments: [],
@@ -254,7 +254,7 @@ export default function App() {
     if(!text.trim()) return;
     const comment = {
         text,
-        author: user.displayName || "Путник",
+        author: user.displayName || user.email?.split('@')[0] || "Путник",
         uid: user.uid,
         createdAt: new Date().toISOString()
     };
@@ -282,6 +282,7 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
+      {/* ФОН */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <motion.img 
             key={theme.id}
@@ -291,23 +292,32 @@ export default function App() {
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
+      {/* ХЕДЕР */}
       <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-16 pb-4 flex justify-between items-center ${theme.text}`}>
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
          </div>
-         <button onClick={() => setMenuOpen(true)} className={`p-3 rounded-full backdrop-blur-xl border border-white/10 shadow-sm ${theme.border} ${theme.card}`}>
+         
+         <button 
+            onClick={() => setMenuOpen(true)} 
+            className={`p-3 rounded-full backdrop-blur-xl border border-white/10 shadow-sm ${theme.border} ${theme.card}`}
+         >
             <Menu size={22} strokeWidth={1.5} />
          </button>
       </header>
 
+      {/* МЕНЮ */}
       <AnimatePresence>
         {menuOpen && (
             <motion.div initial={{x: '100%'}} animate={{x: 0}} exit={{x: '100%'}} transition={{type:'spring', damping:25}} className={`fixed inset-0 z-[60] backdrop-blur-3xl bg-black/60 p-8 flex flex-col justify-center gap-4 ${theme.text}`}>
                 <button onClick={()=>setMenuOpen(false)} className="absolute top-16 right-6 p-2 rounded-full border border-white/20"><X size={28}/></button>
+                
                 <h2 className="text-4xl font-thin mb-12 opacity-50 tracking-wider">Меню</h2>
+                
                 <MenuLink label="Поток" onClick={()=>{setActiveTab('flow'); setMenuOpen(false)}} />
                 <MenuLink label="Личный Дневник" onClick={()=>{setActiveTab('feed'); setFeedFilter('diary'); setMenuOpen(false)}} />
                 <MenuLink label="Профиль" onClick={()=>{setActiveTab('profile'); setMenuOpen(false)}} />
+                
                 <div className="mt-12">
                     <button onClick={()=>setShowAddModal(true)} className={`w-full py-4 rounded-xl font-medium flex items-center justify-center gap-2 ${theme.btn}`}>
                         <Plus size={18}/> Создать запись
@@ -317,8 +327,10 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* КОНТЕНТ */}
       <main className="relative z-10 pt-32 pb-32 px-4 w-full max-w-3xl mx-auto min-h-screen">
          
+         {/* ПОТОК */}
          {activeTab === 'flow' && (
              <div className="space-y-12">
                  <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
@@ -327,12 +339,21 @@ export default function App() {
                             {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
                         </span>
                     </div>
+                    
                     <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
+                    
                     <div className="mb-10 pl-6 border-l border-current opacity-70">
                         <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
                     </div>
-                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
-                    <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
+
+                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">
+                        {currentFocus.desc}
+                    </p>
+
+                    <button 
+                        onClick={() => setShowAddModal(true)} 
+                        className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}
+                    >
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
                             <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
@@ -342,51 +363,87 @@ export default function App() {
                  </motion.div>
 
                  <div className="space-y-8">
-                    <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Стена Единства</h2>
+                    <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
+                        Стена Единства
+                    </h2>
+
                     {publicPrayers.length === 0 && (
                         <div className={`text-center py-10 opacity-40 ${theme.text}`}>
                             <p className="font-light text-lg">Здесь пока тихо...</p>
                         </div>
                     )}
+
                     {publicPrayers.map(p => (
                         <PrayerCard 
-                            key={p.id} prayer={p} user={user} isAdmin={isAdmin} theme={theme}
-                            onLike={toggleLike} onDelete={deletePrayer} onEdit={saveEdit} onComment={addComment}
-                            activeCommentId={commentingId} setCommentingId={setCommentingId} activeEditId={editingId} setEditingId={setEditingId}
+                            key={p.id} 
+                            prayer={p} 
+                            user={user} 
+                            isAdmin={isAdmin} 
+                            theme={theme}
+                            onLike={toggleLike}
+                            onDelete={deletePrayer}
+                            onEdit={saveEdit}
+                            onComment={addComment}
+                            activeCommentId={commentingId}
+                            setCommentingId={setCommentingId}
+                            activeEditId={editingId}
+                            setEditingId={setEditingId}
                         />
                     ))}
                  </div>
              </div>
          )}
 
+         {/* ДНЕВНИК */}
          {activeTab === 'feed' && feedFilter === 'diary' && (
             <div className="space-y-8">
-                <button onClick={()=>setShowAddModal(true)} className={`w-full py-6 rounded-[2rem] border border-white/20 shadow-xl flex items-center justify-center gap-3 font-medium text-lg transition-transform active:scale-95 ${theme.card} ${theme.text}`}>
-                    <Plus size={24} /> Создать запись
+                <button 
+                    onClick={()=>setShowAddModal(true)} 
+                    className={`w-full py-6 rounded-[2rem] border border-white/20 shadow-xl flex items-center justify-center gap-3 font-medium text-lg transition-transform active:scale-95 ${theme.card} ${theme.text}`}
+                >
+                    <Plus size={24} />
+                    Создать запись
                 </button>
-                <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Мой Дневник</h2>
+
+                <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
+                    Мой Дневник
+                </h2>
+
                 {myPrayers.length === 0 && (
                     <div className={`text-center py-20 opacity-40 ${theme.text}`}>
                         <p className="font-light text-lg">Ваш дневник пуст.</p>
                     </div>
                 )}
+
                 {myPrayers.map(p => (
                     <PrayerCard 
-                        key={p.id} prayer={p} user={user} isAdmin={isAdmin} theme={theme}
-                        onLike={toggleLike} onDelete={deletePrayer} onEdit={saveEdit} onComment={addComment}
-                        activeCommentId={commentingId} setCommentingId={setCommentingId} activeEditId={editingId} setEditingId={setEditingId}
+                        key={p.id} 
+                        prayer={p} 
+                        user={user} 
+                        isAdmin={isAdmin} 
+                        theme={theme}
+                        onLike={toggleLike}
+                        onDelete={deletePrayer}
+                        onEdit={saveEdit}
+                        onComment={addComment}
+                        activeCommentId={commentingId}
+                        setCommentingId={setCommentingId}
+                        activeEditId={editingId}
+                        setEditingId={setEditingId}
                     />
                 ))}
             </div>
          )}
 
+         {/* ПРОФИЛЬ */}
          {activeTab === 'profile' && (
              <div className="space-y-6">
                 <div className={`p-10 rounded-[2rem] text-center backdrop-blur-3xl border shadow-xl ${theme.card} ${theme.border}`}>
                     <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl font-light mb-8 shadow-inner ${theme.btn}`}>
-                        {user.displayName?.[0] || <User strokeWidth={1}/>}
+                        {user.displayName?.[0] || user.email?.[0]?.toUpperCase() || <User strokeWidth={1}/>}
                     </div>
                     <h2 className={`text-2xl font-normal mb-2 ${theme.text}`}>{user.displayName || "Путник"}</h2>
+                    <p className={`text-sm opacity-50 mb-10 ${theme.text}`}>{user.email || "Анонимный доступ"}</p>
                     
                     <div className="grid grid-cols-3 gap-4 mb-16 mt-10">
                         {Object.values(THEMES).map(t => (
@@ -408,6 +465,7 @@ export default function App() {
       </main>
 
       <MusicPlayer theme={theme} />
+
       <AddModal isOpen={showAddModal} onClose={()=>setShowAddModal(false)} onAdd={handleAdd} theme={theme} />
       <FeedbackModal isOpen={showFeedback} onClose={()=>setShowFeedback(false)} theme={theme} />
       <RulesModal isOpen={showDisclaimer} onClose={()=>setShowDisclaimer(false)} theme={theme} />
@@ -415,7 +473,7 @@ export default function App() {
   );
 }
 
-// --- AUTH SCREEN ---
+// --- AUTH SCREEN (LOGIN/PASS ONLY) ---
 
 function AuthScreen({ theme, onShowRules }) {
     const [isLogin, setIsLogin] = useState(true);
@@ -427,6 +485,7 @@ function AuthScreen({ theme, onShowRules }) {
         e.preventDefault();
         setError('');
         const fakeEmail = `${username.toLowerCase().replace(/\s/g, '')}@amen.internal`;
+        
         try {
             if (isLogin) {
                 await signInWithEmailAndPassword(auth, fakeEmail, password);
@@ -436,9 +495,9 @@ function AuthScreen({ theme, onShowRules }) {
             }
         } catch (err) {
             if (err.code === 'auth/invalid-credential') setError('Неверный логин или пароль');
-            else if (err.code === 'auth/email-already-in-use') setError('Логин занят');
-            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой');
-            else setError(err.message);
+            else if (err.code === 'auth/email-already-in-use') setError('Этот логин уже занят');
+            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой (мин. 6 символов)');
+            else setError('Ошибка входа. Проверьте данные.');
         }
     };
 
@@ -450,36 +509,63 @@ function AuthScreen({ theme, onShowRules }) {
             <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm">
                 <h1 className="text-7xl font-thin mb-4 tracking-[0.2em] uppercase opacity-90">Amen</h1>
                 <p className="text-sm font-light mb-12 opacity-60 tracking-[0.3em] uppercase">Пространство тишины</p>
+                
                 <form onSubmit={handleAuth} className="w-full space-y-4 backdrop-blur-2xl bg-white/10 p-8 rounded-[2rem] border border-white/10 shadow-2xl">
                     <div className="space-y-4">
                         <div className="relative">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
-                            <input type="text" placeholder="Логин" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"/>
+                            <input 
+                                type="text" 
+                                placeholder="Придумайте логин" 
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
+                            />
                         </div>
                         <div className="relative">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
-                            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"/>
+                            <input 
+                                type="password" 
+                                placeholder="Пароль" 
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
+                            />
                         </div>
                     </div>
+
                     {error && <p className="text-red-300 text-xs mt-2">{error}</p>}
+
                     <button className="w-full py-4 rounded-xl bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all mt-6 shadow-lg">
                         {isLogin ? 'Войти' : 'Создать аккаунт'}
                     </button>
                 </form>
+
                 <div className="mt-8 flex flex-col gap-4 text-xs opacity-60 uppercase tracking-widest">
                     <button onClick={() => setIsLogin(!isLogin)} className="hover:opacity-100 transition-opacity">
                         {isLogin ? 'Нет аккаунта? Создать' : 'Уже есть? Войти'}
                     </button>
+                    
                     <div className="w-10 h-px bg-white/20 mx-auto my-2"/>
-                    <button onClick={() => signInAnonymously(auth)} className="hover:opacity-100 transition-opacity">Войти как гость</button>
+                    
+                    <button onClick={() => signInAnonymously(auth)} className="hover:opacity-100 transition-opacity">
+                        Войти как гость
+                    </button>
                 </div>
+
                 <button onClick={onShowRules} className="mt-12 text-[9px] opacity-30 hover:opacity-70 uppercase tracking-widest">Правила</button>
             </div>
         </div>
     );
 }
 
-function MenuLink({ label, onClick }) { return <button onClick={onClick} className="w-full text-left p-5 text-2xl font-thin hover:pl-8 transition-all border-b border-white/5 tracking-wide">{label}</button> }
+function MenuLink({ label, onClick }) {
+    return (
+        <button onClick={onClick} className="w-full text-left p-5 text-2xl font-thin hover:pl-8 transition-all border-b border-white/5 tracking-wide">
+            {label}
+        </button>
+    )
+}
 
 function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, onComment, activeCommentId, setCommentingId, activeEditId, setEditingId }) {
     const isEditing = activeEditId === prayer.id;
@@ -491,27 +577,50 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
         <motion.div initial={{y:10, opacity:0}} animate={{y:0, opacity:1}} className={`p-8 rounded-[2rem] border backdrop-blur-3xl shadow-lg ${theme.card} ${theme.border}`}>
             <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm ${theme.btn}`}>{prayer.authorName?.[0]?.toUpperCase() || "A"}</div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm ${theme.btn}`}>
+                        {prayer.authorName?.[0]?.toUpperCase() || "A"}
+                    </div>
                     <div>
                         <h3 className={`font-medium text-sm ${theme.text}`}>{prayer.authorName}</h3>
-                        <div className="flex gap-2 text-[10px] opacity-40 uppercase font-bold tracking-widest mt-1"><span>{prayer.type === 'miracle' ? 'Чудо' : 'Молитва'}</span></div>
+                        <div className="flex gap-2 text-[10px] opacity-40 uppercase font-bold tracking-widest mt-1">
+                            <span>{prayer.type === 'miracle' ? 'Чудо' : 'Молитва'}</span>
+                        </div>
                     </div>
                 </div>
+                
                 <div className="flex gap-4 opacity-40">
-                    {prayer.userId === user.uid && <button onClick={()=>{setEditingId(isEditing ? null : prayer.id); setEditText(prayer.text)}} className={`${theme.text} hover:opacity-100`}><Edit2 size={16} strokeWidth={1.5}/></button>}
-                    {(prayer.userId === user.uid || isAdmin) && <button onClick={()=>onDelete(prayer.id)} className="text-red-400 hover:text-red-500 hover:opacity-100"><Trash2 size={16} strokeWidth={1.5}/></button>}
+                    {prayer.userId === user.uid && (
+                        <button onClick={()=>{setEditingId(isEditing ? null : prayer.id); setEditText(prayer.text)}} className={`${theme.text} hover:opacity-100`}>
+                            <Edit2 size={16} strokeWidth={1.5}/>
+                        </button>
+                    )}
+                    {(prayer.userId === user.uid || isAdmin) && (
+                        <button onClick={()=>onDelete(prayer.id)} className="text-red-400 hover:text-red-500 hover:opacity-100"><Trash2 size={16} strokeWidth={1.5}/></button>
+                    )}
                 </div>
             </div>
+
             {isEditing ? (
                 <div className="mb-4">
                     <textarea value={editText} onChange={e=>setEditText(e.target.value)} className={`w-full p-4 rounded-xl bg-black/5 outline-none ${theme.text}`} rows={4}/>
                     <button onClick={()=>onEdit(prayer.id, editText)} className="mt-3 px-6 py-2 bg-green-500/10 text-green-600 rounded-lg text-xs font-bold uppercase tracking-widest">Сохранить</button>
                 </div>
-            ) : (<p className={`text-lg font-light leading-relaxed mb-8 whitespace-pre-wrap ${theme.textDim || theme.text}`}>{prayer.text}</p>)}
+            ) : (
+                <p className={`text-lg font-light leading-relaxed mb-8 whitespace-pre-wrap ${theme.textDim || theme.text}`}>{prayer.text}</p>
+            )}
+
             <div className="flex gap-6 pt-6 border-t border-current/10">
-                <button onClick={()=>onLike(prayer.id, prayer.likes||[])} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent ${prayer.likes?.includes(user.uid) ? 'bg-rose-500/10 text-rose-500' : 'hover:bg-black/5 opacity-50'} ${theme.text}`}><Heart size={18} strokeWidth={1.5} className={prayer.likes?.includes(user.uid) ? "fill-current" : ""}/><span className="text-xs font-medium">{prayer.amens || 0}</span></button>
-                <button onClick={()=>setCommentingId(isCommenting ? null : prayer.id)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent hover:bg-black/5 opacity-50 ${theme.text}`}><MessageCircle size={18} strokeWidth={1.5}/><span className="text-xs font-medium">{prayer.comments?.length || 0}</span></button>
+                <button onClick={()=>onLike(prayer.id, prayer.likes||[])} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent ${prayer.likes?.includes(user.uid) ? 'bg-rose-500/10 text-rose-500' : 'hover:bg-black/5 opacity-50'} ${theme.text}`}>
+                    <Heart size={18} strokeWidth={1.5} className={prayer.likes?.includes(user.uid) ? "fill-current" : ""}/>
+                    <span className="text-xs font-medium">{prayer.amens || 0}</span>
+                </button>
+                
+                <button onClick={()=>setCommentingId(isCommenting ? null : prayer.id)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent hover:bg-black/5 opacity-50 ${theme.text}`}>
+                    <MessageCircle size={18} strokeWidth={1.5}/>
+                    <span className="text-xs font-medium">{prayer.comments?.length || 0}</span>
+                </button>
             </div>
+
             <AnimatePresence>
                 {isCommenting && (
                     <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden mt-6 pt-6 border-t border-current/5">
@@ -521,7 +630,10 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
                         </div>
                         <div className="space-y-4 pl-2">
                             {prayer.comments?.map((c, i) => (
-                                <div key={i} className={`text-sm ${theme.text}`}><span className="font-bold opacity-50 block mb-1 text-xs">{c.author}</span><span className="opacity-80 font-light">{c.text}</span></div>
+                                <div key={i} className={`text-sm ${theme.text}`}>
+                                    <span className="font-bold opacity-50 block mb-1 text-xs">{c.author}</span>
+                                    <span className="opacity-80 font-light">{c.text}</span>
+                                </div>
                             ))}
                         </div>
                     </motion.div>
@@ -537,22 +649,32 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
     const [privacy, setPrivacy] = useState('public');
     const [anon, setAnon] = useState(false);
     const [status, setStatus] = useState('idle');
+    
     if(!isOpen) return null;
+
     const handleSubmit = async () => {
         setStatus('sending');
         setTimeout(async () => {
             await onAdd(text, type, privacy, anon);
             setStatus('success');
-            setTimeout(() => { setStatus('idle'); setText(''); onClose(); }, 2000);
+            setTimeout(() => {
+                setStatus('idle');
+                setText('');
+                onClose();
+            }, 2000);
         }, 1500);
     };
+    
     return (
         <>
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md" onClick={onClose}/>
         <motion.div initial={{y:'100%'}} animate={{y:0}} className={`fixed bottom-0 left-0 right-0 z-[70] rounded-t-[2.5rem] p-10 border-t border-white/20 shadow-2xl ${theme.card} ${theme.text}`}>
+            
             {status === 'success' ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center">
-                    <motion.div initial={{scale:0}} animate={{scale:1}} className="mb-4 text-green-500"><CheckCircle2 size={64} strokeWidth={1}/></motion.div>
+                    <motion.div initial={{scale:0}} animate={{scale:1}} className="mb-4 text-green-500">
+                        <CheckCircle2 size={64} strokeWidth={1}/>
+                    </motion.div>
                     <h3 className="text-2xl font-thin tracking-widest uppercase">Услышано</h3>
                 </div>
             ) : status === 'sending' ? (
@@ -563,17 +685,27 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
             ) : (
                 <>
                     <h3 className="text-xl font-light mb-8 tracking-widest uppercase opacity-70">Новая запись</h3>
+                    
                     <div className="flex gap-4 mb-6 text-sm">
                         <button onClick={()=>setType('prayer')} className={`flex-1 py-4 rounded-2xl border transition-colors ${type==='prayer' ? 'border-current opacity-100 font-medium' : 'border-current/10 opacity-40'}`}>Молитва</button>
                         <button onClick={()=>setType('miracle')} className={`flex-1 py-4 rounded-2xl border transition-colors ${type==='miracle' ? 'border-current opacity-100 font-medium' : 'border-current/10 opacity-40'}`}>Чудо</button>
                     </div>
+
                     <div className="flex gap-4 mb-8 text-xs">
-                        <button onClick={()=>setPrivacy('public')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='public' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>На стену</button>
-                        <button onClick={()=>setPrivacy('private')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='private' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>В дневник</button>
+                        <button onClick={()=>setPrivacy('public')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='public' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>
+                            На стену
+                        </button>
+                        <button onClick={()=>setPrivacy('private')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='private' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>
+                            В дневник
+                        </button>
                     </div>
+
                     <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="О чем болит сердце?" className="w-full h-40 bg-transparent rounded-xl p-0 resize-none outline-none text-xl font-light mb-8 placeholder:opacity-20 border-none"/>
+                    
                     <div className="flex justify-between items-center border-t border-current/10 pt-6">
-                        <button onClick={()=>setAnon(!anon)} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs transition-opacity ${anon ? 'opacity-100' : 'opacity-30'}`}>{anon ? "Анонимно" : "От имени"}</button>
+                        <button onClick={()=>setAnon(!anon)} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs transition-opacity ${anon ? 'opacity-100' : 'opacity-30'}`}>
+                            {anon ? "Анонимно" : "От имени"}
+                        </button>
                         <button onClick={handleSubmit} disabled={!text.trim()} className={`px-10 py-4 rounded-2xl font-bold shadow-lg text-sm tracking-widest uppercase ${theme.btn} disabled:opacity-50`}>Amen</button>
                     </div>
                 </>
