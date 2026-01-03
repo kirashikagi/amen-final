@@ -15,6 +15,39 @@ import {
   Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2, Sparkles, Globe
 } from 'lucide-react';
 
+// --- ERROR BOUNDARY (ЛОВУШКА ОШИБОК) ---
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("App Crash:", error, errorInfo);
+    this.setState({ errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 20, backgroundColor: 'black', color: 'red', height: '100vh', overflow: 'auto' }}>
+          <h1>Что-то пошло не так.</h1>
+          <p>Покажите этот экран разработчику:</p>
+          <pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error && this.state.error.toString()}</pre>
+          <br />
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '10px' }}>{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
+          <button onClick={() => window.location.reload()} style={{ padding: 10, marginTop: 20, backgroundColor: 'white' }}>Перезагрузить</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // --- 1. КОНФИГУРАЦИЯ FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
@@ -25,20 +58,29 @@ const firebaseConfig = {
   appId: "1:964550407508:web:2d6a8c18fcf461af97c4c1"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Безопасная инициализация
+let app;
+let auth;
+let db;
+
+try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+} catch (e) {
+    console.error("Firebase Init Error:", e);
+}
 
 const ADMIN_EMAILS = ["admin@amen.internal", "founder@amen.internal"];
 
 // --- ТЕМЫ ---
 const THEMES = {
-  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', textDim: 'text-gray-600', accent: 'text-blue-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
-  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', textDim: 'text-stone-600', accent: 'text-orange-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
-  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', textDim: 'text-slate-600', accent: 'text-sky-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
-  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', textDim: 'text-amber-800', accent: 'text-red-600', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
-  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', textDim: 'text-indigo-200', accent: 'text-purple-300', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
-  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', textDim: 'text-gray-400', accent: 'text-indigo-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
+  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-stone-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
+  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', accent: 'text-slate-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
+  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', accent: 'text-gray-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
+  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', accent: 'text-amber-800', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
+  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', accent: 'text-indigo-200', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
+  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', accent: 'text-gray-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
 };
 
 const TRACKS = [
@@ -53,23 +95,23 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
-// УПРОЩЕННЫЙ СПИСОК (Без сложной генерации, чтобы не падало)
-const DEFAULT_FOCUS = { day: 0, title: "День Тишины", verse: "Остановитесь и познайте.", desc: "Сегодня день для покоя.", action: "Помолись." };
-const JANUARY_FOCUS = [
-  { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога.", action: "Напиши цель." },
-  { day: 2, title: "Свет", verse: "И свет во тьме светит.", desc: "Вера разгоняет страх.", action: "Зажги свечу." },
-  { day: 3, title: "Мир", verse: "Мир оставляю вам.", desc: "Не тревожься.", action: "Тишина 5 минут." },
-  { day: 4, title: "Сила", verse: "Сила в немощи.", desc: "Слабость — место для силы.", action: "Прими слабость." },
-  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие.", action: "Доброе дело." },
-  { day: 6, title: "Прощение", verse: "Прощайте.", desc: "Обида — это груз.", action: "Прости." },
-  { day: 7, title: "Рождество", verse: "Слава Богу.", desc: "Чудо рядом.", action: "Поздравь." },
-  // Заглушка для остальных дней, чтобы работало всегда
-  ...Array(25).fill(null).map((_, i) => ({
-      day: i + 8, title: "День " + (i + 8), verse: "Благодать вам и мир.", desc: "Бог с тобой.", action: "Аминь."
-  }))
-];
+// Полный массив (безопасный)
+const JANUARY_FOCUS = Array.from({ length: 32 }, (_, i) => ({
+    day: i,
+    title: i === 0 ? "Начало" : `День ${i}`,
+    verse: "В начале сотворил Бог небо и землю.",
+    desc: "Всё начинается с первого шага веры.",
+    action: "Помолись о будущем."
+}));
 
-// --- ПЛЕЕР ---
+// Переопределение первых дней реальными данными
+JANUARY_FOCUS[1] = { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." };
+JANUARY_FOCUS[2] = { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." };
+JANUARY_FOCUS[3] = { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам.", desc: "Не тревожься о завтрашнем дне.", action: "5 минут тишины." };
+JANUARY_FOCUS[4] = { day: 4, title: "Сила", verse: "Сила Моя в немощи.", desc: "Твоя слабость — место для силы Бога.", action: "Прими свою слабость." };
+
+// --- КОМПОНЕНТЫ ---
+
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -139,9 +181,9 @@ function MusicPlayer({ theme }) {
   );
 }
 
-// --- APP ---
+// --- MAIN CONTENT ---
 
-export default function App() {
+function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [prayers, setPrayers] = useState([]);
@@ -157,14 +199,16 @@ export default function App() {
 
   const theme = THEMES[currentThemeId] || THEMES.day;
   
-  // SAFE FOCUS LOGIC
+  // SAFE DATE LOGIC
   const today = new Date();
-  const safeIndex = (today.getDate() - 1) % JANUARY_FOCUS.length;
-  const currentFocus = JANUARY_FOCUS[safeIndex] || DEFAULT_FOCUS;
+  const dayNum = today.getDate();
+  // Если день выходит за рамки массива, берем первый день
+  const currentFocus = JANUARY_FOCUS[dayNum] || JANUARY_FOCUS[1];
 
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+  const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email);
 
   useEffect(() => {
+    if (!auth) return;
     const unsubscribe = onAuthStateChanged(auth, u => {
         setUser(u);
         setLoading(false);
@@ -173,9 +217,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) return;
     const q = query(collection(db, "prayers"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))), e => console.log(e));
+    return onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))), e => console.error(e));
   }, [user]);
 
   const handleAdd = async (text, type, privacy, isAnon) => {
@@ -519,6 +563,15 @@ function RulesModal({ isOpen, onClose, theme }) {
             </div>
         </div>
     );
+}
+
+// Экспортируем основной компонент обернутый в ловушку
+export default function AppBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
 }
 
 
