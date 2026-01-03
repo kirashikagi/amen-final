@@ -53,27 +53,20 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
-// Базовые дни
-const MANUAL_FOCUS = [
-  { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
-  { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит, и тьма не объяла его.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
-  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам, мир Мой даю вам.", desc: "Не тревожься о завтрашнем дне. Живи сейчас.", action: "Посиди 5 минут в тишине." },
-  { day: 4, title: "Сила в слабости", verse: "Сила Моя совершается в немощи.", desc: "Твоя слабость — место для Божьей силы.", action: "Признайся в одной слабости Богу." },
-  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие, а не чувство.", action: "Сделай доброе дело тайно." },
-  { day: 6, title: "Прощение", verse: "Прощайте, и прощены будете.", desc: "Обида — это яд, который ты пьешь сам.", action: "Напиши имя того, кого нужно простить." },
-  { day: 7, title: "Рождество", verse: "Слава в вышних Богу.", desc: "Чудо приходит, когда его ждут.", action: "Поздравь близкого человека." }
-];
-
-// Генератор остальных дней, чтобы приложение не падало
+// УПРОЩЕННЫЙ СПИСОК (Без сложной генерации, чтобы не падало)
+const DEFAULT_FOCUS = { day: 0, title: "День Тишины", verse: "Остановитесь и познайте.", desc: "Сегодня день для покоя.", action: "Помолись." };
 const JANUARY_FOCUS = [
-    ...MANUAL_FOCUS,
-    ...Array.from({ length: 24 }, (_, i) => ({
-        day: i + 8,
-        title: "День " + (i + 8),
-        verse: "Все могу в укрепляющем меня Иисусе Христе.",
-        desc: "Каждый новый день — это дар и возможность начать сначала. Будь светом.",
-        action: "Напиши слова благодарности."
-    }))
+  { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога.", action: "Напиши цель." },
+  { day: 2, title: "Свет", verse: "И свет во тьме светит.", desc: "Вера разгоняет страх.", action: "Зажги свечу." },
+  { day: 3, title: "Мир", verse: "Мир оставляю вам.", desc: "Не тревожься.", action: "Тишина 5 минут." },
+  { day: 4, title: "Сила", verse: "Сила в немощи.", desc: "Слабость — место для силы.", action: "Прими слабость." },
+  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие.", action: "Доброе дело." },
+  { day: 6, title: "Прощение", verse: "Прощайте.", desc: "Обида — это груз.", action: "Прости." },
+  { day: 7, title: "Рождество", verse: "Слава Богу.", desc: "Чудо рядом.", action: "Поздравь." },
+  // Заглушка для остальных дней, чтобы работало всегда
+  ...Array(25).fill(null).map((_, i) => ({
+      day: i + 8, title: "День " + (i + 8), verse: "Благодать вам и мир.", desc: "Бог с тобой.", action: "Аминь."
+  }))
 ];
 
 // --- ПЛЕЕР ---
@@ -83,14 +76,10 @@ function MusicPlayer({ theme }) {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [error, setError] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
-    if (audioRef.current) {
-        audioRef.current.volume = 0.4;
-        audioRef.current.muted = isMuted;
-    }
-  }, [isMuted]);
+    if (audioRef.current) audioRef.current.volume = 0.5;
+  }, []);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -116,11 +105,9 @@ function MusicPlayer({ theme }) {
           onEnded={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)}
           onError={() => setError(true)}
         />
-        
         <button onClick={togglePlay} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${theme.btn} ${error ? 'bg-red-500' : ''}`}>
           {error ? <AlertTriangle size={18}/> : isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-1"/>}
         </button>
-
         {isPlaying && (
           <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 pr-2">
               <div className="flex flex-col w-32">
@@ -132,7 +119,6 @@ function MusicPlayer({ theme }) {
           </div>
         )}
       </div>
-
       <AnimatePresence>
         {showPlaylist && (
           <>
@@ -159,25 +145,22 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [prayers, setPrayers] = useState([]);
-  const [activeTab, setActiveTab] = useState('flow'); 
+  const [activeTab, setActiveTab] = useState('flow');
   const [feedFilter, setFeedFilter] = useState('all'); 
   const [currentThemeId, setCurrentThemeId] = useState('day');
   const [menuOpen, setMenuOpen] = useState(false);
-  
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
-
   const [editingId, setEditingId] = useState(null);
   const [commentingId, setCommentingId] = useState(null);
 
-  const theme = THEMES[currentThemeId];
+  const theme = THEMES[currentThemeId] || THEMES.day;
   
-  // SAFE FOCUS LOGIC (Защита от вылета за пределы массива)
+  // SAFE FOCUS LOGIC
   const today = new Date();
-  const date = today.getDate(); 
-  const safeIndex = Math.max(0, Math.min(date - 1, JANUARY_FOCUS.length - 1));
-  const currentFocus = JANUARY_FOCUS[safeIndex] || JANUARY_FOCUS[0]; // Двойная защита
+  const safeIndex = (today.getDate() - 1) % JANUARY_FOCUS.length;
+  const currentFocus = JANUARY_FOCUS[safeIndex] || DEFAULT_FOCUS;
 
   const isAdmin = user && ADMIN_EMAILS.includes(user.email);
 
@@ -192,7 +175,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "prayers"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    return onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))), e => console.log(e));
   }, [user]);
 
   const handleAdd = async (text, type, privacy, isAnon) => {
@@ -202,24 +185,19 @@ export default function App() {
         userId: user.uid,
         authorName: isAnon ? "Аноним" : (user.displayName || user.email?.split('@')[0] || "Путник"),
         createdAt: serverTimestamp(),
-        likes: [],
-        comments: [],
-        amens: 0
+        likes: [], comments: [], amens: 0
     });
   };
 
   const toggleLike = async (id, likes) => {
     if(!user) return;
     const ref = doc(db, "prayers", id);
-    if(likes.includes(user.uid)) {
-        await updateDoc(ref, { likes: arrayRemove(user.uid), amens: likes.length - 1 });
-    } else {
-        await updateDoc(ref, { likes: arrayUnion(user.uid), amens: likes.length + 1 });
-    }
+    if(likes.includes(user.uid)) await updateDoc(ref, { likes: arrayRemove(user.uid), amens: likes.length - 1 });
+    else await updateDoc(ref, { likes: arrayUnion(user.uid), amens: likes.length + 1 });
   };
 
   const deletePrayer = async (id) => {
-    if(confirm("Удалить запись?")) await deleteDoc(doc(db, "prayers", id));
+    if(confirm("Удалить?")) await deleteDoc(doc(db, "prayers", id));
   };
 
   const saveEdit = async (id, newText) => {
@@ -229,15 +207,8 @@ export default function App() {
 
   const addComment = async (id, text) => {
     if(!text.trim()) return;
-    const comment = {
-        text,
-        author: user.displayName || user.email?.split('@')[0] || "Путник",
-        uid: user.uid,
-        createdAt: new Date().toISOString()
-    };
-    await updateDoc(doc(db, "prayers", id), {
-        comments: arrayUnion(comment)
-    });
+    const comment = { text, author: user.displayName || "Путник", uid: user.uid, createdAt: new Date().toISOString() };
+    await updateDoc(doc(db, "prayers", id), { comments: arrayUnion(comment) });
   };
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white opacity-50" size={32} /></div>;
@@ -251,12 +222,7 @@ export default function App() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
       <div className="fixed inset-0 z-0 pointer-events-none bg-black">
-        <motion.img 
-            key={theme.id}
-            initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}}
-            src={theme.bg} className="w-full h-full object-cover opacity-90"
-            onError={(e) => e.target.style.display = 'none'} 
-        />
+        <motion.img key={theme.id} initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} src={theme.bg} className="w-full h-full object-cover opacity-90" onError={(e) => e.target.style.display = 'none'} />
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
@@ -290,28 +256,25 @@ export default function App() {
          
          {activeTab === 'flow' && (
              <div className="space-y-12">
-                 {/* КАРТОЧКА ФОКУСА С ЗАЩИТОЙ ОТ СБОЕВ */}
-                 {currentFocus && (
-                     <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
-                        <div className="flex justify-between items-start mb-8">
-                            <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
-                                {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
-                            </span>
+                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
+                    <div className="flex justify-between items-start mb-8">
+                        <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
+                            {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
+                        </span>
+                    </div>
+                    <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
+                    <div className="mb-10 pl-6 border-l border-current opacity-70">
+                        <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
+                    </div>
+                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
+                    <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
+                            <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
                         </div>
-                        <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
-                        <div className="mb-10 pl-6 border-l border-current opacity-70">
-                            <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
-                        </div>
-                        <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
-                        <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
-                                <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
-                            </div>
-                            <p className="font-normal text-lg">{currentFocus.action}</p>
-                        </button>
-                     </motion.div>
-                 )}
+                        <p className="font-normal text-lg">{currentFocus.action}</p>
+                    </button>
+                 </motion.div>
 
                  <div className="space-y-8">
                     <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Стена Единства</h2>
@@ -389,10 +352,7 @@ function AuthScreen({ theme, onShowRules }) {
                 await updateProfile(cred.user, { displayName: username });
             }
         } catch (err) {
-            if (err.code === 'auth/invalid-credential') setError('Неверный логин или пароль');
-            else if (err.code === 'auth/email-already-in-use') setError('Этот логин уже занят');
-            else if (err.code === 'auth/weak-password') setError('Пароль должен быть от 6 символов');
-            else setError(err.message);
+            setError("Ошибка: " + err.message);
         }
     };
 
