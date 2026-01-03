@@ -7,8 +7,7 @@ import {
   onAuthStateChanged,
   signOut,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  updateProfile
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { 
   getFirestore, 
@@ -22,20 +21,15 @@ import {
   deleteDoc, 
   serverTimestamp, 
   arrayUnion, 
-  arrayRemove,
-  limit,
-  where,
-  getDocs
+  arrayRemove 
 } from 'firebase/firestore';
 import { 
-  BookOpen, MessageCircle, Heart, User, Plus, Play, Pause, 
-  SkipForward, Trash2, CheckCircle2, Sparkles, Flame, Music, 
-  LogOut, ArrowLeft, Key, UserCircle, Edit2, Save, Info, Shield, ArrowRight,
-  ChevronDown, ChevronUp, Send, Menu, X, Palette, AlertTriangle, Lock, Globe,
-  MessageSquarePlus, Inbox, Calendar, ListMusic
+  Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
+  Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, Mail, ChevronRight
 } from 'lucide-react';
 
-// --- CONFIGURATION ---
+// --- 1. КОНФИГУРАЦИЯ FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
   authDomain: "amen-app-b0da2.firebaseapp.com",
@@ -49,17 +43,17 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// СПИСОК АДМИНОВ (Вставьте сюда свои email)
-const ADMIN_EMAILS = ["admin@amen.com", "founder@amen.com", "kirill@amen.com"];
+// АДМИНЫ (Видят кнопки удаления везде)
+const ADMIN_EMAILS = ["admin@amen.com", "founder@amen.com"];
 
-// --- THEMES (Matte Glass) ---
+// --- ТЕМЫ ---
 const THEMES = {
-  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', textDim: 'text-stone-600', card: 'bg-[#fffbf7]/70', btn: 'bg-stone-800 text-white', border: 'border-stone-800/10' },
-  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', textDim: 'text-slate-600', card: 'bg-white/70', btn: 'bg-slate-800 text-white', border: 'border-slate-800/10' },
-  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', textDim: 'text-gray-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-900/10' },
-  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', textDim: 'text-amber-800', card: 'bg-orange-50/70', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
-  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', textDim: 'text-indigo-100', card: 'bg-slate-900/50', btn: 'bg-white/20 text-white', border: 'border-white/10' },
-  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', textDim: 'text-gray-400', card: 'bg-black/50', btn: 'bg-white/10 text-white', border: 'border-white/10' },
+  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-stone-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
+  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', accent: 'text-slate-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
+  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', accent: 'text-gray-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
+  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', accent: 'text-amber-800', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
+  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', accent: 'text-indigo-200', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
+  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', accent: 'text-gray-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
 };
 
 const TRACKS = [
@@ -77,11 +71,11 @@ const TRACKS = [
 const JANUARY_FOCUS = [
   { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
   { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит, и тьма не объяла его.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
+  // ... (Остальной список дней будет работать автоматически)
   { day: 31, title: "Вечность", verse: "Бог вложил вечность в сердца их.", desc: "Живи с перспективой неба.", action: "Поблагодари за прожитый месяц." }
 ];
 
-// --- COMPONENTS ---
-
+// --- ПЛЕЕР ---
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -150,7 +144,7 @@ function MusicPlayer({ theme }) {
             <div className="fixed inset-0 z-40" onClick={() => setShowPlaylist(false)} />
             <motion.div 
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-                className={`fixed bottom-24 right-6 z-50 w-64 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-2xl border ${theme.border} ${theme.card}`}
+                className={`fixed bottom-24 right-6 z-50 w-64 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${theme.border} ${theme.card}`}
             >
                 <div className={`p-3 max-h-64 overflow-y-auto ${theme.text}`}>
                 {TRACKS.map((track, i) => (
@@ -214,13 +208,13 @@ export default function App() {
     await addDoc(collection(db, "prayers"), {
         text, type, privacy, 
         userId: user.uid,
-        authorName: isAnon ? "Аноним" : (user.displayName || "Путник"),
+        authorName: isAnon ? "Аноним" : (user.displayName || user.email?.split('@')[0] || "Путник"),
         createdAt: serverTimestamp(),
         likes: [],
         comments: [],
         amens: 0
     });
-    // Modal closes inside AddModal after delay
+    setShowAddModal(false);
   };
 
   const toggleLike = async (id, likes) => {
@@ -246,7 +240,7 @@ export default function App() {
     if(!text.trim()) return;
     const comment = {
         text,
-        author: user.displayName || "Путник",
+        author: user.displayName || user.email?.split('@')[0] || "Путник",
         uid: user.uid,
         createdAt: new Date().toISOString()
     };
@@ -255,6 +249,7 @@ export default function App() {
     });
   };
 
+  // Передаем theme и onShowRules в AuthScreen
   if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} loading={loading} />;
 
   const filteredPrayers = prayers.filter(p => {
@@ -274,7 +269,7 @@ export default function App() {
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
-      {/* ХЕДЕР (Увеличен отступ сверху pt-16 для обхода челки) */}
+      {/* ХЕДЕР */}
       <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-16 pb-4 flex justify-between items-center ${theme.text}`}>
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
@@ -312,10 +307,9 @@ export default function App() {
       {/* КОНТЕНТ */}
       <main className="relative z-10 pt-32 pb-32 px-4 w-full max-w-3xl mx-auto min-h-screen">
          
-         {/* ВКЛАДКА: ПОТОК */}
+         {/* ПОТОК */}
          {activeTab === 'flow' && (
              <div className="space-y-12">
-                 {/* ФОКУС ДНЯ - Матовое стекло */}
                  <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
                     <div className="flex justify-between items-start mb-8">
                         <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
@@ -345,7 +339,6 @@ export default function App() {
                     </button>
                  </motion.div>
 
-                 {/* СТЕНА ЕДИНСТВА */}
                  <div className="space-y-8">
                     <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
                         Стена Единства
@@ -378,7 +371,7 @@ export default function App() {
              </div>
          )}
 
-         {/* ВКЛАДКА: ДНЕВНИК */}
+         {/* ДНЕВНИК */}
          {activeTab === 'feed' && feedFilter === 'diary' && (
             <div className="space-y-8">
                 <button 
@@ -419,14 +412,15 @@ export default function App() {
             </div>
          )}
 
-         {/* ВКЛАДКА: ПРОФИЛЬ */}
+         {/* ПРОФИЛЬ */}
          {activeTab === 'profile' && (
              <div className="space-y-6">
                 <div className={`p-10 rounded-[2rem] text-center backdrop-blur-3xl border shadow-xl ${theme.card} ${theme.border}`}>
                     <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl font-light mb-8 shadow-inner ${theme.btn}`}>
-                        {user.displayName?.[0] || <User strokeWidth={1}/>}
+                        {user.displayName?.[0] || user.email?.[0]?.toUpperCase() || <User strokeWidth={1}/>}
                     </div>
-                    <h2 className={`text-2xl font-normal mb-12 ${theme.text}`}>{user.displayName || "Путник"}</h2>
+                    <h2 className={`text-2xl font-normal mb-2 ${theme.text}`}>{user.displayName || "Путник"}</h2>
+                    <p className={`text-sm opacity-50 mb-10 ${theme.text}`}>{user.email || "Анонимный доступ"}</p>
                     
                     <div className="grid grid-cols-3 gap-4 mb-16">
                         {Object.values(THEMES).map(t => (
@@ -459,24 +453,25 @@ export default function App() {
 // --- AUTH & SUB COMPONENTS ---
 
 function AuthScreen({ theme, onShowRules, loading }) {
-    const [mode, setMode] = useState('login'); // login, register, anon
+    const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
-    const [pass, setPass] = useState('');
-    const [name, setName] = useState('');
+    const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
     const handleAuth = async (e) => {
         e.preventDefault();
         setError('');
         try {
-            if (mode === 'login') {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } else if (mode === 'register') {
-                const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                await updateProfile(cred.user, { displayName: name });
+            if (isLogin) {
+                await signInWithEmailAndPassword(auth, email, password);
+            } else {
+                await createUserWithEmailAndPassword(auth, email, password);
             }
         } catch (err) {
-            setError(err.message);
+            if (err.code === 'auth/invalid-credential') setError('Неверный email или пароль');
+            else if (err.code === 'auth/email-already-in-use') setError('Этот email уже занят');
+            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой');
+            else setError('Ошибка входа. Проверьте данные.');
         }
     };
 
@@ -489,32 +484,47 @@ function AuthScreen({ theme, onShowRules, loading }) {
                 <h1 className="text-7xl font-thin mb-4 tracking-[0.2em] uppercase opacity-90">Amen</h1>
                 <p className="text-sm font-light mb-12 opacity-60 tracking-[0.3em] uppercase">Пространство тишины</p>
                 
-                {mode === 'anon' ? (
-                    <button onClick={() => signInAnonymously(auth)} className="w-full py-4 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 text-white font-medium text-sm uppercase tracking-widest backdrop-blur-md transition-all">
-                        Войти без регистрации
-                    </button>
-                ) : (
-                    <form onSubmit={handleAuth} className="w-full space-y-4 backdrop-blur-xl bg-black/40 p-6 rounded-3xl border border-white/10">
-                        {mode === 'register' && (
-                            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Имя" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:opacity-30 outline-none focus:border-white/40"/>
-                        )}
-                        <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email" type="email" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:opacity-30 outline-none focus:border-white/40"/>
-                        <input value={pass} onChange={e=>setPass(e.target.value)} placeholder="Пароль" type="password" className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:opacity-30 outline-none focus:border-white/40"/>
-                        
-                        {error && <p className="text-red-400 text-xs">{error}</p>}
+                <form onSubmit={handleAuth} className="w-full space-y-4 backdrop-blur-2xl bg-white/10 p-8 rounded-[2rem] border border-white/10 shadow-2xl">
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
+                            <input 
+                                type="email" 
+                                placeholder="Email" 
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
+                            />
+                        </div>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
+                            <input 
+                                type="password" 
+                                placeholder="Пароль" 
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
+                            />
+                        </div>
+                    </div>
 
-                        <button className="w-full py-4 rounded-xl bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all">
-                            {mode === 'login' ? 'Войти' : 'Создать'}
-                        </button>
-                    </form>
-                )}
+                    {error && <p className="text-red-300 text-xs mt-2">{error}</p>}
 
-                <div className="mt-6 flex gap-4 text-xs opacity-50 uppercase tracking-widest">
-                    <button onClick={()=>setMode(mode === 'login' ? 'register' : 'login')}>
-                        {mode === 'login' ? 'Регистрация' : 'Вход'}
+                    <button className="w-full py-4 rounded-xl bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all mt-6 shadow-lg">
+                        {isLogin ? 'Войти' : 'Создать аккаунт'}
                     </button>
-                    <span>|</span>
-                    <button onClick={()=>setMode('anon')}>Гость</button>
+                </form>
+
+                <div className="mt-8 flex flex-col gap-4 text-xs opacity-60 uppercase tracking-widest">
+                    <button onClick={() => setIsLogin(!isLogin)} className="hover:opacity-100 transition-opacity">
+                        {isLogin ? 'Нет аккаунта? Регистрация' : 'Есть аккаунт? Войти'}
+                    </button>
+                    
+                    <div className="w-10 h-px bg-white/20 mx-auto my-2"/>
+                    
+                    <button onClick={() => signInAnonymously(auth)} className="hover:opacity-100 transition-opacity">
+                        Войти как гость
+                    </button>
                 </div>
 
                 <button onClick={onShowRules} className="mt-12 text-[9px] opacity-30 hover:opacity-70 uppercase tracking-widest">Правила</button>
@@ -542,7 +552,7 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
             <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm ${theme.btn}`}>
-                        {prayer.authorName?.[0] || "A"}
+                        {prayer.authorName?.[0]?.toUpperCase() || "A"}
                     </div>
                     <div>
                         <h3 className={`font-medium text-sm ${theme.text}`}>{prayer.authorName}</h3>
@@ -570,7 +580,7 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
                     <button onClick={()=>onEdit(prayer.id, editText)} className="mt-3 px-6 py-2 bg-green-500/10 text-green-600 rounded-lg text-xs font-bold uppercase tracking-widest">Сохранить</button>
                 </div>
             ) : (
-                <p className={`text-lg font-light leading-relaxed mb-8 whitespace-pre-wrap ${theme.textDim}`}>{prayer.text}</p>
+                <p className={`text-lg font-light leading-relaxed mb-8 whitespace-pre-wrap ${theme.textDim || theme.text}`}>{prayer.text}</p>
             )}
 
             <div className="flex gap-6 pt-6 border-t border-current/10">
@@ -612,13 +622,12 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
     const [type, setType] = useState('prayer');
     const [privacy, setPrivacy] = useState('public');
     const [anon, setAnon] = useState(false);
-    const [status, setStatus] = useState('idle'); // idle, sending, success
+    const [status, setStatus] = useState('idle');
     
     if(!isOpen) return null;
 
     const handleSubmit = async () => {
         setStatus('sending');
-        // Имитация паузы 1.5 сек для "веса" молитвы
         setTimeout(async () => {
             await onAdd(text, type, privacy, anon);
             setStatus('success');
@@ -626,7 +635,7 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
                 setStatus('idle');
                 setText('');
                 onClose();
-            }, 2000); // Показываем "Услышано" 2 секунды
+            }, 2000);
         }, 1500);
     };
     
@@ -640,12 +649,12 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
                     <motion.div initial={{scale:0}} animate={{scale:1}} className="mb-4 text-green-500">
                         <CheckCircle2 size={64} strokeWidth={1}/>
                     </motion.div>
-                    <h3 className="text-3xl font-thin tracking-widest uppercase">Услышано</h3>
+                    <h3 className="text-2xl font-thin tracking-widest uppercase">Услышано</h3>
                 </div>
             ) : status === 'sending' ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center">
                     <div className="w-12 h-12 border-2 border-current border-t-transparent rounded-full animate-spin opacity-50 mb-4"/>
-                    <p className="text-sm uppercase tracking-widest opacity-50">Отправляем в небеса...</p>
+                    <p className="text-sm uppercase tracking-widest opacity-50">Отправляем...</p>
                 </div>
             ) : (
                 <>
