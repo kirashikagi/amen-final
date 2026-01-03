@@ -9,12 +9,12 @@ import {
   doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, arrayRemove 
 } from 'firebase/firestore';
 import { 
-  BookOpen, Heart, User, Plus, Trash2, Sparkles, Shield, 
-  Menu, X, MessageSquarePlus, LogOut, Users, Star, Info, 
+  Heart, User, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Lock, Globe, Edit2, MessageCircle, Send
+  Lock, Globe, Edit2, MessageCircle, Send, ListMusic, Sparkles
 } from 'lucide-react';
 
+// --- 1. КОНФИГУРАЦИЯ FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
   authDomain: "amen-app-b0da2.firebaseapp.com",
@@ -30,13 +30,14 @@ const db = getFirestore(app);
 
 const ADMIN_EMAILS = ["admin@amen.com", "founder@amen.com"];
 
+// --- ТЕМЫ (Строгий стиль) ---
 const THEMES = {
-  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-orange-600', card: 'bg-white/40', btn: 'bg-stone-900/80 text-white', border: 'border-white/40' },
-  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-gray-900', accent: 'text-sky-600', card: 'bg-white/50', btn: 'bg-sky-900/80 text-white', border: 'border-white/50' },
-  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-slate-900', accent: 'text-blue-600', card: 'bg-white/60', btn: 'bg-black/80 text-white', border: 'border-white/60' },
-  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', accent: 'text-red-600', card: 'bg-orange-50/40', btn: 'bg-amber-950/80 text-white', border: 'border-amber-900/10' },
-  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', accent: 'text-purple-300', card: 'bg-slate-900/40', btn: 'bg-white/20 text-white', border: 'border-white/10' },
-  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-200', accent: 'text-indigo-400', card: 'bg-black/40', btn: 'bg-white/10 text-white', border: 'border-white/10' },
+  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-stone-600', card: 'bg-[#fffbf7]/90', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
+  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', accent: 'text-slate-600', card: 'bg-white/95', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
+  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', accent: 'text-gray-600', card: 'bg-white/95', btn: 'bg-black text-white', border: 'border-gray-200' },
+  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', accent: 'text-amber-800', card: 'bg-orange-50/95', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
+  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', accent: 'text-indigo-200', card: 'bg-slate-900/80', btn: 'bg-white text-slate-900', border: 'border-white/10' },
+  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', accent: 'text-gray-400', card: 'bg-black/85', btn: 'bg-white/90 text-black', border: 'border-white/10' },
 };
 
 const TRACKS = [
@@ -85,10 +86,12 @@ const JANUARY_FOCUS = [
   { day: 31, title: "Вечность", verse: "Бог вложил вечность в сердца их.", desc: "Живи с перспективой неба.", action: "Поблагодари за прожитый месяц." }
 ];
 
+// --- ПЛЕЕР С ВЫБОРОМ ПЕСНИ ---
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [showPlaylist, setShowPlaylist] = useState(false);
   const [error, setError] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
@@ -106,40 +109,72 @@ function MusicPlayer({ theme }) {
     setIsPlaying(!isPlaying);
   };
 
-  const nextTrack = () => {
+  const selectTrack = (index) => {
+    setCurrentTrackIndex(index);
+    setIsPlaying(true);
+    setShowPlaylist(false);
     setError(false);
-    setCurrentTrackIndex((prev) => (prev + 1) % TRACKS.length);
   };
 
   return (
-    <div className={`fixed bottom-8 right-6 z-40 flex items-center gap-2 p-2 rounded-full shadow-2xl backdrop-blur-md border border-white/20 transition-all ${isPlaying ? 'pr-4' : ''} ${theme.card}`}>
-      <audio 
-        ref={audioRef} 
-        src={TRACKS[currentTrackIndex].url}
-        autoPlay={isPlaying}
-        onEnded={nextTrack}
-        onError={() => setError(true)}
-      />
-      
-      <button onClick={togglePlay} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md border border-white/20 ${theme.btn} ${error ? 'bg-red-500' : ''}`}>
-        {error ? <AlertTriangle size={18}/> : isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-1"/>}
-      </button>
+    <>
+      <div className={`fixed bottom-8 right-6 z-40 flex items-center gap-2 p-2 rounded-full shadow-2xl backdrop-blur-xl border ${theme.border} ${theme.card}`}>
+        <audio 
+          ref={audioRef} 
+          src={TRACKS[currentTrackIndex].url}
+          autoPlay={isPlaying}
+          onEnded={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)}
+          onError={() => setError(true)}
+        />
+        
+        <button onClick={togglePlay} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${theme.btn} ${error ? 'bg-red-500' : ''}`}>
+          {error ? <AlertTriangle size={18}/> : isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-1"/>}
+        </button>
 
-      {isPlaying && (
-        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-right-4">
-            <div className="flex flex-col w-24">
-                <span className={`text-[10px] font-bold uppercase opacity-60 ${theme.text}`}>Играет</span>
-                <span className={`text-xs truncate font-serif ${theme.text}`}>{TRACKS[currentTrackIndex].title}</span>
+        {isPlaying && (
+          <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 pr-2">
+              <div className="flex flex-col w-32">
+                  <span className={`text-[10px] font-medium uppercase opacity-60 ${theme.text}`}>Играет</span>
+                  <span className={`text-xs truncate font-medium ${theme.text}`}>{TRACKS[currentTrackIndex].title}</span>
+              </div>
+              
+              <button onClick={() => setShowPlaylist(!showPlaylist)} className={`p-2 opacity-70 hover:opacity-100 ${theme.text}`}>
+                  <ListMusic size={18}/>
+              </button>
+              
+              <button onClick={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)} className={`p-1 opacity-70 hover:opacity-100 ${theme.text}`}>
+                  <SkipForward size={18}/>
+              </button>
+          </div>
+        )}
+      </div>
+
+      {/* Плейлист (Модальное окно) */}
+      <AnimatePresence>
+        {showPlaylist && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className={`fixed bottom-24 right-6 z-50 w-64 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${theme.border} ${theme.card}`}
+          >
+            <div className={`p-3 max-h-64 overflow-y-auto ${theme.text}`}>
+              {TRACKS.map((track, i) => (
+                <button 
+                  key={track.id} 
+                  onClick={() => selectTrack(i)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium truncate mb-1 transition-colors ${i === currentTrackIndex ? 'bg-black/10 opacity-100' : 'opacity-60 hover:opacity-100 hover:bg-black/5'}`}
+                >
+                  {track.title}
+                </button>
+              ))}
             </div>
-            <button onClick={nextTrack} className={`p-1 opacity-70 hover:opacity-100 ${theme.text}`}><SkipForward size={16}/></button>
-            <button onClick={() => setIsMuted(!isMuted)} className={`p-1 opacity-70 hover:opacity-100 ${theme.text}`}>
-                {isMuted ? <VolumeX size={16}/> : <Volume2 size={16}/>}
-            </button>
-        </div>
-      )}
-    </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
+
+// --- ГЛАВНОЕ ПРИЛОЖЕНИЕ ---
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -233,93 +268,98 @@ export default function App() {
   });
 
   return (
-    <div className="relative min-h-screen overflow-hidden transition-colors duration-700 bg-black">
+    <div className="relative min-h-screen overflow-x-hidden transition-colors duration-700 bg-black font-sans">
+      {/* ФОН */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <motion.img 
             key={theme.id}
             initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}}
-            src={theme.bg} className="w-full h-full object-cover opacity-60" 
+            src={theme.bg} className="w-full h-full object-cover opacity-80" 
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/80" />
+        <div className="absolute inset-0 bg-black/20" /> 
       </div>
 
+      {/* ХЕДЕР */}
       <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-8 pb-4 flex justify-between items-center ${theme.text}`}>
-         <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2">
-            <h1 className="text-3xl font-serif font-bold tracking-wide drop-shadow-md cursor-pointer">Amen</h1>
+         <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
+            <h1 className="text-2xl font-medium tracking-widest uppercase">Amen</h1>
          </div>
          
          <button 
             onClick={() => setMenuOpen(true)} 
-            className={`mt-4 p-3 rounded-full backdrop-blur-xl border border-white/20 shadow-lg ${theme.card}`}
+            className={`mt-2 p-3 rounded-full backdrop-blur-xl border shadow-sm ${theme.border} ${theme.card}`}
          >
-            <Menu size={24} />
+            <Menu size={20} />
          </button>
       </header>
 
+      {/* МЕНЮ */}
       <AnimatePresence>
         {menuOpen && (
-            <motion.div initial={{x: '100%'}} animate={{x: 0}} exit={{x: '100%'}} transition={{type:'spring', damping:25}} className={`fixed inset-0 z-[60] backdrop-blur-xl bg-black/60 p-8 flex flex-col justify-center gap-6 ${theme.text}`}>
-                <button onClick={()=>setMenuOpen(false)} className="absolute top-8 right-6 p-2 rounded-full border border-white/20"><X size={32}/></button>
+            <motion.div initial={{x: '100%'}} animate={{x: 0}} exit={{x: '100%'}} transition={{type:'spring', damping:25}} className={`fixed inset-0 z-[60] backdrop-blur-2xl bg-black/40 p-8 flex flex-col justify-center gap-4 ${theme.text}`}>
+                <button onClick={()=>setMenuOpen(false)} className="absolute top-8 right-6 p-2 rounded-full border border-white/20"><X size={24}/></button>
                 
-                <h2 className="text-4xl font-serif font-bold mb-8 opacity-50">Навигация</h2>
+                <h2 className="text-3xl font-light mb-8 opacity-60 tracking-wider">Меню</h2>
                 
-                <MenuLink icon={<Star/>} label="Фокус Дня" onClick={()=>{setActiveTab('focus'); setMenuOpen(false)}} />
-                <MenuLink icon={<BookOpen/>} label="Стена Единства" onClick={()=>{setActiveTab('feed'); setFeedFilter('all'); setMenuOpen(false)}} />
-                <MenuLink icon={<Lock/>} label="Личный Дневник" onClick={()=>{setActiveTab('feed'); setFeedFilter('diary'); setMenuOpen(false)}} />
-                <MenuLink icon={<User/>} label="Профиль" onClick={()=>{setActiveTab('profile'); setMenuOpen(false)}} />
+                <MenuLink label="Фокус Дня" onClick={()=>{setActiveTab('focus'); setMenuOpen(false)}} />
+                <MenuLink label="Стена Единства" onClick={()=>{setActiveTab('feed'); setFeedFilter('all'); setMenuOpen(false)}} />
+                <MenuLink label="Личный Дневник" onClick={()=>{setActiveTab('feed'); setFeedFilter('diary'); setMenuOpen(false)}} />
+                <MenuLink label="Профиль" onClick={()=>{setActiveTab('profile'); setMenuOpen(false)}} />
                 
-                <div className="mt-auto flex gap-4">
-                    <button onClick={()=>setShowAddModal(true)} className={`flex-1 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 ${theme.btn}`}>
-                        <Plus size={20}/> Создать
+                <div className="mt-12">
+                    <button onClick={()=>setShowAddModal(true)} className={`w-full py-4 rounded-xl font-medium flex items-center justify-center gap-2 ${theme.btn}`}>
+                        <Plus size={18}/> Создать запись
                     </button>
                 </div>
             </motion.div>
         )}
       </AnimatePresence>
 
-      <main className="relative z-10 pt-32 pb-32 px-4 max-w-lg mx-auto min-h-screen">
+      {/* КОНТЕНТ */}
+      <main className="relative z-10 pt-32 pb-32 px-4 w-full max-w-3xl mx-auto min-h-screen">
          
+         {/* ФОКУС ДНЯ */}
          {activeTab === 'focus' && (
-             <motion.div initial={{opacity:0, scale:0.95}} animate={{opacity:1, scale:1}} className="h-full flex flex-col justify-center">
-                 <div className={`p-8 rounded-[2.5rem] backdrop-blur-xl border shadow-2xl ${theme.card} ${theme.border} ${theme.text}`}>
-                    <div className="flex justify-between items-start mb-6">
-                        <span className="px-4 py-1 rounded-full border border-current text-xs font-bold uppercase tracking-widest opacity-60">
+             <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="h-full flex flex-col justify-center">
+                 <div className={`p-8 rounded-[2rem] backdrop-blur-xl border shadow-xl ${theme.card} ${theme.border} ${theme.text}`}>
+                    <div className="flex justify-between items-start mb-8">
+                        <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
                             {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
                         </span>
                         <Sparkles className={theme.accent} />
                     </div>
                     
-                    <h2 className="text-4xl font-serif font-bold mb-6 leading-tight">{currentFocus.title}</h2>
+                    <h2 className="text-3xl font-light mb-6 leading-tight">{currentFocus.title}</h2>
                     
-                    <div className="mb-8 pl-4 border-l-2 border-current opacity-80">
-                        <p className="font-serif italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
+                    <div className="mb-8 pl-4 border-l border-current opacity-80">
+                        <p className="font-light italic text-lg leading-relaxed">"{currentFocus.verse}"</p>
                     </div>
 
-                    <p className="text-lg opacity-90 mb-8 leading-relaxed font-light">
+                    <p className="text-base font-normal opacity-90 mb-10 leading-relaxed">
                         {currentFocus.desc}
                     </p>
 
-                    <div className={`p-6 rounded-2xl border border-white/10 ${theme.btn}`}>
-                        <h3 className="text-xs font-bold uppercase tracking-widest mb-2 opacity-70">Действие сегодня</h3>
-                        <p className="font-bold text-lg">{currentFocus.action}</p>
+                    <div className={`p-6 rounded-xl border border-current/10 bg-current/5`}>
+                        <h3 className="text-[10px] font-bold uppercase tracking-widest mb-2 opacity-60">Действие</h3>
+                        <p className="font-medium text-base">{currentFocus.action}</p>
                     </div>
                  </div>
              </motion.div>
          )}
 
+         {/* ЛЕНТА */}
          {activeTab === 'feed' && (
             <div className="space-y-6">
-                
-                <div className="flex items-center justify-between mb-8 px-2">
-                    <h2 className={`text-3xl font-serif font-bold ${theme.text}`}>
+                <div className="flex items-center justify-between mb-6 px-2">
+                    <h2 className={`text-2xl font-light tracking-wide ${theme.text}`}>
                         {feedFilter === 'all' ? 'Стена Единства' : 'Личный Дневник'}
                     </h2>
-                    {feedFilter === 'all' ? <Globe className="opacity-50"/> : <Lock className="opacity-50"/>}
+                    {feedFilter === 'all' ? <Globe className="opacity-40" size={20}/> : <Lock className="opacity-40" size={20}/>}
                 </div>
 
                 {filteredPrayers.length === 0 && (
                     <div className={`text-center py-20 opacity-50 ${theme.text}`}>
-                        <p>Здесь пока пусто.</p>
+                        <p className="font-light">Здесь пока пусто.</p>
                     </div>
                 )}
 
@@ -343,26 +383,29 @@ export default function App() {
             </div>
          )}
 
+         {/* ПРОФИЛЬ */}
          {activeTab === 'profile' && (
              <div className="space-y-6">
-                <div className={`p-8 rounded-[2.5rem] text-center backdrop-blur-xl border shadow-2xl ${theme.card} ${theme.border}`}>
-                    <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl font-bold mb-6 shadow-2xl border-4 border-white/20 ${theme.btn}`}>
-                        {user.displayName?.[0] || <User/>}
+                <div className={`p-10 rounded-[2rem] text-center backdrop-blur-xl border shadow-xl ${theme.card} ${theme.border}`}>
+                    <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-6 shadow-inner ${theme.btn}`}>
+                        {user.displayName?.[0] || <User strokeWidth={1.5}/>}
                     </div>
-                    <h2 className={`text-3xl font-serif font-bold mb-8 ${theme.text}`}>{user.displayName || "Путник"}</h2>
+                    <h2 className={`text-2xl font-medium mb-10 ${theme.text}`}>{user.displayName || "Путник"}</h2>
                     
-                    <div className="grid grid-cols-3 gap-4 mb-8">
+                    <div className="grid grid-cols-3 gap-4 mb-12">
                         {Object.values(THEMES).map(t => (
-                            <button key={t.id} onClick={()=>setCurrentThemeId(t.id)} className={`h-16 rounded-2xl border-2 transition-all ${currentThemeId===t.id ? 'border-white scale-105 shadow-xl' : 'border-transparent opacity-60'}`} style={{backgroundImage: `url(${t.bg})`, backgroundSize: 'cover'}} />
+                            <button key={t.id} onClick={()=>setCurrentThemeId(t.id)} className={`h-14 rounded-xl border transition-all ${currentThemeId===t.id ? 'border-current scale-105 opacity-100' : 'border-transparent opacity-50'}`} style={{backgroundImage: `url(${t.bg})`, backgroundSize: 'cover'}} />
                         ))}
                     </div>
 
-                    <button onClick={()=>setShowFeedback(true)} className={`w-full p-4 mb-3 rounded-2xl flex items-center justify-center gap-3 font-bold border border-white/20 ${theme.text}`}>
-                        <MessageSquarePlus size={20}/> Написать автору
-                    </button>
-                    <button onClick={()=>auth.signOut()} className="w-full p-4 rounded-2xl flex items-center justify-center gap-3 font-bold text-red-400 bg-red-500/10 border border-red-500/20">
-                        <LogOut size={20}/> Выйти
-                    </button>
+                    <div className="space-y-3">
+                        <button onClick={()=>setShowFeedback(true)} className={`w-full p-4 rounded-xl flex items-center justify-center gap-3 font-medium border border-current/10 hover:bg-white/5 transition-colors ${theme.text}`}>
+                            <MessageSquarePlus size={18}/> Написать автору
+                        </button>
+                        <button onClick={()=>auth.signOut()} className="w-full p-4 rounded-xl flex items-center justify-center gap-3 font-medium text-red-400 hover:bg-red-500/10 transition-colors">
+                            <LogOut size={18}/> Выйти
+                        </button>
+                    </div>
                 </div>
              </div>
          )}
@@ -377,10 +420,12 @@ export default function App() {
   );
 }
 
-function MenuLink({ icon, label, onClick }) {
+// --- SUB COMPONENTS ---
+
+function MenuLink({ label, onClick }) {
     return (
-        <button onClick={onClick} className="flex items-center gap-6 p-4 rounded-2xl hover:bg-white/10 transition-colors text-2xl font-serif font-bold text-left">
-            {icon} {label}
+        <button onClick={onClick} className="w-full text-left p-4 text-xl font-light hover:pl-6 transition-all border-b border-white/5">
+            {label}
         </button>
     )
 }
@@ -392,67 +437,65 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
     const [commentText, setCommentText] = useState('');
 
     return (
-        <motion.div initial={{y:20, opacity:0}} animate={{y:0, opacity:1}} className={`p-6 rounded-[2rem] border backdrop-blur-xl shadow-lg ${theme.card} ${theme.border}`}>
+        <motion.div initial={{y:10, opacity:0}} animate={{y:0, opacity:1}} className={`p-6 rounded-[2rem] border backdrop-blur-xl shadow-md ${theme.card} ${theme.border}`}>
             <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg ${theme.btn}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm ${theme.btn}`}>
                         {prayer.authorName?.[0] || "A"}
                     </div>
                     <div>
-                        <h3 className={`font-bold text-sm ${theme.text}`}>{prayer.authorName}</h3>
-                        <div className="flex gap-2 text-[10px] opacity-60 uppercase font-bold tracking-wider">
+                        <h3 className={`font-medium text-sm ${theme.text}`}>{prayer.authorName}</h3>
+                        <div className="flex gap-2 text-[10px] opacity-50 uppercase font-bold tracking-wider">
                             <span>{prayer.type === 'miracle' ? 'Чудо' : 'Молитва'}</span>
-                            <span>•</span>
-                            <span>{prayer.privacy === 'private' ? 'Личное' : 'Публичное'}</span>
                         </div>
                     </div>
                 </div>
                 
-                <div className="flex gap-2">
+                <div className="flex gap-3 opacity-60">
                     {prayer.userId === user.uid && (
-                        <button onClick={()=>{setEditingId(isEditing ? null : prayer.id); setEditText(prayer.text)}} className={`opacity-50 hover:opacity-100 ${theme.text}`}>
-                            <Edit2 size={16}/>
+                        <button onClick={()=>{setEditingId(isEditing ? null : prayer.id); setEditText(prayer.text)}} className={`${theme.text} hover:opacity-100`}>
+                            <Edit2 size={14}/>
                         </button>
                     )}
                     {(prayer.userId === user.uid || isAdmin) && (
-                        <button onClick={()=>onDelete(prayer.id)} className="text-red-400 opacity-50 hover:opacity-100"><Trash2 size={16}/></button>
+                        <button onClick={()=>onDelete(prayer.id)} className="text-red-400 hover:text-red-500 hover:opacity-100"><Trash2 size={14}/></button>
                     )}
                 </div>
             </div>
 
             {isEditing ? (
                 <div className="mb-4">
-                    <textarea value={editText} onChange={e=>setEditText(e.target.value)} className={`w-full p-3 rounded-xl bg-black/10 outline-none ${theme.text}`} rows={4}/>
-                    <button onClick={()=>onEdit(prayer.id, editText)} className="mt-2 px-4 py-2 bg-green-500/20 text-green-500 rounded-lg text-xs font-bold uppercase">Сохранить</button>
+                    <textarea value={editText} onChange={e=>setEditText(e.target.value)} className={`w-full p-3 rounded-xl bg-black/5 outline-none ${theme.text}`} rows={4}/>
+                    <button onClick={()=>onEdit(prayer.id, editText)} className="mt-2 px-4 py-2 bg-green-500/20 text-green-600 rounded-lg text-xs font-bold uppercase">Сохранить</button>
                 </div>
             ) : (
-                <p className={`text-lg font-serif leading-relaxed mb-6 whitespace-pre-wrap ${theme.text}`}>{prayer.text}</p>
+                <p className={`text-base font-light leading-relaxed mb-6 whitespace-pre-wrap ${theme.text}`}>{prayer.text}</p>
             )}
 
-            <div className="flex gap-4 pt-4 border-t border-white/10">
-                <button onClick={()=>onLike(prayer.id, prayer.likes||[])} className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all active:scale-95 border border-transparent ${prayer.likes?.includes(user.uid) ? 'bg-rose-500/20 text-rose-500' : 'hover:border-white/20 opacity-70'} ${theme.text}`}>
-                    <Heart size={20} className={prayer.likes?.includes(user.uid) ? "fill-current" : ""}/>
-                    <span className="text-sm font-bold">{prayer.amens || 0}</span>
+            <div className="flex gap-4 pt-4 border-t border-current/10">
+                <button onClick={()=>onLike(prayer.id, prayer.likes||[])} className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all active:scale-95 border border-transparent ${prayer.likes?.includes(user.uid) ? 'bg-rose-500/10 text-rose-500' : 'hover:bg-black/5 opacity-60'} ${theme.text}`}>
+                    <Heart size={16} className={prayer.likes?.includes(user.uid) ? "fill-current" : ""}/>
+                    <span className="text-xs font-bold">{prayer.amens || 0}</span>
                 </button>
                 
-                <button onClick={()=>setCommentingId(isCommenting ? null : prayer.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all active:scale-95 border border-transparent hover:border-white/20 opacity-70 ${theme.text}`}>
-                    <MessageCircle size={20}/>
-                    <span className="text-sm font-bold">{prayer.comments?.length || 0}</span>
+                <button onClick={()=>setCommentingId(isCommenting ? null : prayer.id)} className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all active:scale-95 border border-transparent hover:bg-black/5 opacity-60 ${theme.text}`}>
+                    <MessageCircle size={16}/>
+                    <span className="text-xs font-bold">{prayer.comments?.length || 0}</span>
                 </button>
             </div>
 
             <AnimatePresence>
                 {isCommenting && (
-                    <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden mt-4 pt-4 border-t border-white/10">
+                    <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden mt-4 pt-4 border-t border-current/10">
                         <div className="flex gap-2 mb-4">
-                            <input value={commentText} onChange={e=>setCommentText(e.target.value)} placeholder="Написать..." className={`flex-1 bg-transparent border-b border-white/20 outline-none pb-2 text-sm ${theme.text} placeholder:opacity-40`}/>
-                            <button onClick={()=>{onComment(prayer.id, commentText); setCommentText('')}} disabled={!commentText.trim()} className={`opacity-50 hover:opacity-100 ${theme.text}`}><Send size={18}/></button>
+                            <input value={commentText} onChange={e=>setCommentText(e.target.value)} placeholder="Комментарий..." className={`flex-1 bg-transparent border-b border-current/20 outline-none pb-2 text-sm ${theme.text} placeholder:opacity-30`}/>
+                            <button onClick={()=>{onComment(prayer.id, commentText); setCommentText('')}} disabled={!commentText.trim()} className={`opacity-50 hover:opacity-100 ${theme.text}`}><Send size={16}/></button>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-3 pl-2">
                             {prayer.comments?.map((c, i) => (
-                                <div key={i} className={`text-sm ${theme.text}`}>
-                                    <span className="font-bold opacity-70">{c.author}: </span>
-                                    <span className="opacity-90">{c.text}</span>
+                                <div key={i} className={`text-xs ${theme.text}`}>
+                                    <span className="font-bold opacity-60 block mb-1">{c.author}</span>
+                                    <span className="opacity-90 font-light">{c.text}</span>
                                 </div>
                             ))}
                         </div>
@@ -473,31 +516,31 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
     
     return (
         <>
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={onClose}/>
-        <motion.div initial={{y:'100%'}} animate={{y:0}} className={`fixed bottom-0 left-0 right-0 z-[70] rounded-t-[2.5rem] p-8 border-t border-white/10 shadow-2xl ${theme.card} ${theme.text}`}>
-            <h3 className="text-2xl font-serif font-bold mb-6">Новая запись</h3>
+        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" onClick={onClose}/>
+        <motion.div initial={{y:'100%'}} animate={{y:0}} className={`fixed bottom-0 left-0 right-0 z-[70] rounded-t-[2rem] p-8 border-t border-white/20 shadow-2xl ${theme.card} ${theme.text}`}>
+            <h3 className="text-xl font-medium mb-6 tracking-wide">Новая запись</h3>
             
-            <div className="flex gap-2 mb-4">
-                <button onClick={()=>setType('prayer')} className={`flex-1 py-3 rounded-2xl font-bold border transition-colors ${type==='prayer' ? theme.btn : 'border-current opacity-40'}`}>Молитва</button>
-                <button onClick={()=>setType('miracle')} className={`flex-1 py-3 rounded-2xl font-bold border transition-colors ${type==='miracle' ? 'bg-yellow-500 text-black border-yellow-500' : 'border-current opacity-40'}`}>Чудо</button>
+            <div className="flex gap-3 mb-4 text-sm">
+                <button onClick={()=>setType('prayer')} className={`flex-1 py-3 rounded-xl border transition-colors ${type==='prayer' ? 'border-current opacity-100 font-medium' : 'border-current/20 opacity-50'}`}>Молитва</button>
+                <button onClick={()=>setType('miracle')} className={`flex-1 py-3 rounded-xl border transition-colors ${type==='miracle' ? 'border-current opacity-100 font-medium' : 'border-current/20 opacity-50'}`}>Чудо</button>
             </div>
 
-            <div className="flex gap-2 mb-6 text-sm">
-                <button onClick={()=>setPrivacy('public')} className={`flex items-center justify-center gap-2 flex-1 py-2 rounded-xl border ${privacy==='public' ? 'bg-white/10 border-white/30' : 'border-transparent opacity-40'}`}>
-                    <Globe size={16}/> На стену
+            <div className="flex gap-3 mb-6 text-xs">
+                <button onClick={()=>setPrivacy('public')} className={`flex items-center justify-center gap-2 flex-1 py-2 rounded-lg border ${privacy==='public' ? 'bg-current/5 border-current/30' : 'border-transparent opacity-40'}`}>
+                    <Globe size={14}/> На стену
                 </button>
-                <button onClick={()=>setPrivacy('private')} className={`flex items-center justify-center gap-2 flex-1 py-2 rounded-xl border ${privacy==='private' ? 'bg-white/10 border-white/30' : 'border-transparent opacity-40'}`}>
-                    <Lock size={16}/> В дневник
+                <button onClick={()=>setPrivacy('private')} className={`flex items-center justify-center gap-2 flex-1 py-2 rounded-lg border ${privacy==='private' ? 'bg-current/5 border-current/30' : 'border-transparent opacity-40'}`}>
+                    <Lock size={14}/> В дневник
                 </button>
             </div>
 
-            <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="О чем болит сердце?" className="w-full h-32 bg-black/10 rounded-2xl p-4 resize-none outline-none text-lg mb-6 placeholder:opacity-30 border border-white/5"/>
+            <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Напишите здесь..." className="w-full h-32 bg-transparent rounded-xl p-0 resize-none outline-none text-lg font-light mb-6 placeholder:opacity-30 border-none"/>
             
-            <div className="flex justify-between items-center">
-                <button onClick={()=>setAnon(!anon)} className={`flex items-center gap-2 px-4 py-2 rounded-xl ${anon ? 'bg-white/20' : 'opacity-40'}`}>
-                    {anon ? <Shield size={18}/> : <User size={18}/>} <span className="text-sm font-bold">{anon ? "Анонимно" : "Открыто"}</span>
+            <div className="flex justify-between items-center border-t border-current/10 pt-4">
+                <button onClick={()=>setAnon(!anon)} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-opacity ${anon ? 'opacity-100' : 'opacity-40'}`}>
+                    <User size={16}/> {anon ? "Анонимно" : "От имени"}
                 </button>
-                <button onClick={()=>onAdd(text, type, privacy, anon)} className={`px-8 py-3 rounded-2xl font-bold shadow-lg ${theme.btn}`}>Amen</button>
+                <button onClick={()=>onAdd(text, type, privacy, anon)} className={`px-8 py-3 rounded-xl font-bold shadow-lg text-sm ${theme.btn}`}>Amen</button>
             </div>
         </motion.div>
         </>
@@ -506,22 +549,21 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
 
 function AuthScreen({ onLogin, theme, onShowRules, loading }) {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden bg-black">
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 relative overflow-hidden bg-black text-white">
             <div className="absolute inset-0 z-0">
-                <img src="/dawn.jpg" className="w-full h-full object-cover opacity-60 animate-pulse" style={{animationDuration: '10s'}} />
+                <img src="/dawn.jpg" className="w-full h-full object-cover opacity-60 animate-pulse" style={{animationDuration: '15s'}} />
             </div>
-            <div className="relative z-10 flex flex-col items-center text-center text-stone-100">
-                <Sparkles size={64} className="mb-6 text-orange-400"/>
-                <h1 className="text-7xl font-serif mb-4 tracking-tighter">Amen</h1>
-                <p className="text-xl font-serif mb-12 opacity-80">Пространство тишины.</p>
+            <div className="relative z-10 flex flex-col items-center text-center">
+                <h1 className="text-6xl font-light mb-2 tracking-[0.2em] uppercase">Amen</h1>
+                <p className="text-sm font-light mb-12 opacity-70 tracking-widest uppercase">Пространство тишины</p>
                 {loading ? (
-                    <div className="text-sm opacity-50">Загрузка...</div>
+                    <div className="text-xs opacity-50 uppercase tracking-widest">Загрузка...</div>
                 ) : (
-                    <button onClick={onLogin} className="w-full max-w-xs py-5 rounded-2xl bg-white/90 text-black font-bold text-lg shadow-2xl backdrop-blur-md active:scale-95 transition-transform">
-                        Войти с миром
+                    <button onClick={onLogin} className="w-full max-w-xs py-4 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 text-white font-medium text-sm uppercase tracking-widest backdrop-blur-md transition-all">
+                        Войти
                     </button>
                 )}
-                <button onClick={onShowRules} className="mt-8 text-sm opacity-50 hover:opacity-100 underline">Правила и условия</button>
+                <button onClick={onShowRules} className="mt-8 text-[10px] opacity-40 hover:opacity-80 uppercase tracking-widest">Правила</button>
             </div>
         </div>
     );
@@ -531,11 +573,11 @@ function FeedbackModal({ isOpen, onClose, theme }) {
     if(!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}/>
-            <div className={`relative z-10 p-8 rounded-3xl w-full max-w-sm ${theme.card} ${theme.text} ${theme.border} border`}>
-                <h3 className="text-xl font-bold mb-4">Написать автору</h3>
-                <textarea placeholder="Ваше сообщение..." className="w-full h-32 bg-black/10 rounded-xl p-4 mb-4 resize-none outline-none"/>
-                <button onClick={()=>{alert("Отправлено!"); onClose();}} className={`w-full py-3 rounded-xl font-bold ${theme.btn}`}>Отправить</button>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}/>
+            <div className={`relative z-10 p-8 rounded-3xl w-full max-w-sm ${theme.card} ${theme.text} ${theme.border} border shadow-2xl`}>
+                <h3 className="text-lg font-medium mb-4">Написать автору</h3>
+                <textarea placeholder="Ваше сообщение..." className="w-full h-32 bg-transparent border border-current/20 rounded-xl p-4 mb-4 resize-none outline-none placeholder:opacity-30 font-light"/>
+                <button onClick={()=>{alert("Отправлено!"); onClose();}} className={`w-full py-3 rounded-xl font-bold shadow-lg ${theme.btn}`}>Отправить</button>
             </div>
         </div>
     );
@@ -545,16 +587,16 @@ function RulesModal({ isOpen, onClose, theme }) {
     if(!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}/>
-            <div className={`relative z-10 p-8 rounded-3xl w-full max-w-sm max-h-[80vh] overflow-y-auto ${theme.card} ${theme.text} ${theme.border} border`}>
-                <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Info/> Правила и Соглашение</h3>
-                <div className="space-y-4 text-sm opacity-80 leading-relaxed">
-                    <p><strong>1. Дисклеймер:</strong> Приложение создано для духовной поддержки. Мы не несем ответственности за контент пользователей.</p>
-                    <p><strong>2. Уважение:</strong> Оскорбления и ненависть запрещены.</p>
-                    <p><strong>3. Приватность:</strong> Мы не передаем данные третьим лицам.</p>
-                    <p><strong>4. Музыка:</strong> Все треки используются по лицензии Creative Commons.</p>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}/>
+            <div className={`relative z-10 p-8 rounded-3xl w-full max-w-sm max-h-[80vh] overflow-y-auto ${theme.card} ${theme.text} ${theme.border} border shadow-2xl`}>
+                <h3 className="text-lg font-medium mb-6 flex items-center gap-2"><Info size={20}/> Правила</h3>
+                <div className="space-y-4 text-sm opacity-80 leading-relaxed font-light">
+                    <p><strong>Дисклеймер:</strong> Приложение создано для духовной поддержки. Мы не несем ответственности за контент пользователей.</p>
+                    <p><strong>Уважение:</strong> Оскорбления и ненависть запрещены.</p>
+                    <p><strong>Приватность:</strong> Мы не передаем данные третьим лицам.</p>
+                    <p><strong>Музыка:</strong> Все треки используются по лицензии Creative Commons.</p>
                 </div>
-                <button onClick={onClose} className={`w-full mt-6 py-3 rounded-xl font-bold ${theme.btn}`}>Я принимаю</button>
+                <button onClick={onClose} className={`w-full mt-8 py-3 rounded-xl font-bold ${theme.btn}`}>Принимаю</button>
             </div>
         </div>
     );
