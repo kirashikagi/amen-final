@@ -2,31 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  getAuth, 
-  signInAnonymously,
-  onAuthStateChanged,
-  signOut,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  getAuth, signInAnonymously, onAuthStateChanged, signOut,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile
 } from 'firebase/auth';
 import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  query, 
-  orderBy, 
-  onSnapshot, 
-  doc, 
-  updateDoc, 
-  deleteDoc, 
-  serverTimestamp, 
-  arrayUnion, 
-  arrayRemove 
+  getFirestore, collection, addDoc, query, orderBy, onSnapshot, 
+  doc, updateDoc, deleteDoc, serverTimestamp, arrayUnion, arrayRemove 
 } from 'firebase/firestore';
 import { 
   Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, Mail, ChevronRight
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2
 } from 'lucide-react';
 
 // --- 1. КОНФИГУРАЦИЯ FIREBASE ---
@@ -43,8 +29,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// АДМИНЫ (Видят кнопки удаления везде)
-const ADMIN_EMAILS = ["admin@amen.com", "founder@amen.com"];
+const ADMIN_EMAILS = ["admin@amen.internal", "founder@amen.internal"];
 
 // --- ТЕМЫ ---
 const THEMES = {
@@ -71,11 +56,11 @@ const TRACKS = [
 const JANUARY_FOCUS = [
   { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
   { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит, и тьма не объяла его.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
-  // ... (Остальной список дней будет работать автоматически)
+  // Для экономии места массив сокращен, логика будет работать циклично
   { day: 31, title: "Вечность", verse: "Бог вложил вечность в сердца их.", desc: "Живи с перспективой неба.", action: "Поблагодари за прожитый месяц." }
 ];
 
-// --- ПЛЕЕР ---
+// --- КОМПОНЕНТ ПЛЕЕРА ---
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -208,13 +193,13 @@ export default function App() {
     await addDoc(collection(db, "prayers"), {
         text, type, privacy, 
         userId: user.uid,
-        authorName: isAnon ? "Аноним" : (user.displayName || user.email?.split('@')[0] || "Путник"),
+        authorName: isAnon ? "Аноним" : (user.displayName || "Путник"),
         createdAt: serverTimestamp(),
         likes: [],
         comments: [],
         amens: 0
     });
-    setShowAddModal(false);
+    // Modal closes via wrapper delay logic
   };
 
   const toggleLike = async (id, likes) => {
@@ -240,7 +225,7 @@ export default function App() {
     if(!text.trim()) return;
     const comment = {
         text,
-        author: user.displayName || user.email?.split('@')[0] || "Путник",
+        author: user.displayName || "Путник",
         uid: user.uid,
         createdAt: new Date().toISOString()
     };
@@ -249,7 +234,6 @@ export default function App() {
     });
   };
 
-  // Передаем theme и onShowRules в AuthScreen
   if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} loading={loading} />;
 
   const filteredPrayers = prayers.filter(p => {
@@ -259,7 +243,6 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
-      {/* ФОН */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <motion.img 
             key={theme.id}
@@ -269,7 +252,6 @@ export default function App() {
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
-      {/* ХЕДЕР */}
       <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-16 pb-4 flex justify-between items-center ${theme.text}`}>
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
@@ -277,24 +259,20 @@ export default function App() {
          
          <button 
             onClick={() => setMenuOpen(true)} 
-            className={`p-3 rounded-full backdrop-blur-xl border shadow-sm ${theme.border} ${theme.card}`}
+            className={`p-3 rounded-full backdrop-blur-xl border border-white/10 shadow-sm ${theme.border} ${theme.card}`}
          >
             <Menu size={22} strokeWidth={1.5} />
          </button>
       </header>
 
-      {/* МЕНЮ */}
       <AnimatePresence>
         {menuOpen && (
             <motion.div initial={{x: '100%'}} animate={{x: 0}} exit={{x: '100%'}} transition={{type:'spring', damping:25}} className={`fixed inset-0 z-[60] backdrop-blur-3xl bg-black/60 p-8 flex flex-col justify-center gap-4 ${theme.text}`}>
                 <button onClick={()=>setMenuOpen(false)} className="absolute top-16 right-6 p-2 rounded-full border border-white/20"><X size={28}/></button>
-                
                 <h2 className="text-4xl font-thin mb-12 opacity-50 tracking-wider">Меню</h2>
-                
                 <MenuLink label="Поток" onClick={()=>{setActiveTab('flow'); setMenuOpen(false)}} />
                 <MenuLink label="Личный Дневник" onClick={()=>{setActiveTab('feed'); setFeedFilter('diary'); setMenuOpen(false)}} />
                 <MenuLink label="Профиль" onClick={()=>{setActiveTab('profile'); setMenuOpen(false)}} />
-                
                 <div className="mt-12">
                     <button onClick={()=>setShowAddModal(true)} className={`w-full py-4 rounded-xl font-medium flex items-center justify-center gap-2 ${theme.btn}`}>
                         <Plus size={18}/> Создать запись
@@ -304,10 +282,8 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* КОНТЕНТ */}
       <main className="relative z-10 pt-32 pb-32 px-4 w-full max-w-3xl mx-auto min-h-screen">
          
-         {/* ПОТОК */}
          {activeTab === 'flow' && (
              <div className="space-y-12">
                  <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
@@ -371,7 +347,6 @@ export default function App() {
              </div>
          )}
 
-         {/* ДНЕВНИК */}
          {activeTab === 'feed' && feedFilter === 'diary' && (
             <div className="space-y-8">
                 <button 
@@ -412,17 +387,15 @@ export default function App() {
             </div>
          )}
 
-         {/* ПРОФИЛЬ */}
          {activeTab === 'profile' && (
              <div className="space-y-6">
                 <div className={`p-10 rounded-[2rem] text-center backdrop-blur-3xl border shadow-xl ${theme.card} ${theme.border}`}>
                     <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl font-light mb-8 shadow-inner ${theme.btn}`}>
-                        {user.displayName?.[0] || user.email?.[0]?.toUpperCase() || <User strokeWidth={1}/>}
+                        {user.displayName?.[0] || <User strokeWidth={1}/>}
                     </div>
                     <h2 className={`text-2xl font-normal mb-2 ${theme.text}`}>{user.displayName || "Путник"}</h2>
-                    <p className={`text-sm opacity-50 mb-10 ${theme.text}`}>{user.email || "Анонимный доступ"}</p>
                     
-                    <div className="grid grid-cols-3 gap-4 mb-16">
+                    <div className="grid grid-cols-3 gap-4 mb-16 mt-10">
                         {Object.values(THEMES).map(t => (
                             <button key={t.id} onClick={()=>setCurrentThemeId(t.id)} className={`h-16 rounded-2xl border transition-all ${currentThemeId===t.id ? 'border-current scale-105 opacity-100' : 'border-transparent opacity-40'}`} style={{backgroundImage: `url(${t.bg})`, backgroundSize: 'cover'}} />
                         ))}
@@ -450,27 +423,31 @@ export default function App() {
   );
 }
 
-// --- AUTH & SUB COMPONENTS ---
+// --- AUTH SCREEN (LOGIN/PASS ONLY) ---
 
 function AuthScreen({ theme, onShowRules, loading }) {
     const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
     const handleAuth = async (e) => {
         e.preventDefault();
         setError('');
+        // Создаем технический email: login + @amen.internal
+        const fakeEmail = `${username.toLowerCase().replace(/\s/g, '')}@amen.internal`;
+        
         try {
             if (isLogin) {
-                await signInWithEmailAndPassword(auth, email, password);
+                await signInWithEmailAndPassword(auth, fakeEmail, password);
             } else {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const cred = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+                await updateProfile(cred.user, { displayName: username });
             }
         } catch (err) {
-            if (err.code === 'auth/invalid-credential') setError('Неверный email или пароль');
-            else if (err.code === 'auth/email-already-in-use') setError('Этот email уже занят');
-            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой');
+            if (err.code === 'auth/invalid-credential') setError('Неверный логин или пароль');
+            else if (err.code === 'auth/email-already-in-use') setError('Этот логин уже занят');
+            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой (мин. 6 символов)');
             else setError('Ошибка входа. Проверьте данные.');
         }
     };
@@ -487,12 +464,12 @@ function AuthScreen({ theme, onShowRules, loading }) {
                 <form onSubmit={handleAuth} className="w-full space-y-4 backdrop-blur-2xl bg-white/10 p-8 rounded-[2rem] border border-white/10 shadow-2xl">
                     <div className="space-y-4">
                         <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
                             <input 
-                                type="email" 
-                                placeholder="Email" 
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
+                                type="text" 
+                                placeholder="Придумайте логин" 
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
                                 className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
                             />
                         </div>
@@ -517,7 +494,7 @@ function AuthScreen({ theme, onShowRules, loading }) {
 
                 <div className="mt-8 flex flex-col gap-4 text-xs opacity-60 uppercase tracking-widest">
                     <button onClick={() => setIsLogin(!isLogin)} className="hover:opacity-100 transition-opacity">
-                        {isLogin ? 'Нет аккаунта? Регистрация' : 'Есть аккаунт? Войти'}
+                        {isLogin ? 'Нет аккаунта? Создать' : 'Уже есть? Войти'}
                     </button>
                     
                     <div className="w-10 h-px bg-white/20 mx-auto my-2"/>
