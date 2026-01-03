@@ -15,7 +15,7 @@ import {
   Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2, Sparkles, Globe
 } from 'lucide-react';
 
-// --- 1. КОНФИГУРАЦИЯ (Ваши рабочие ключи) ---
+// --- 1. КОНФИГУРАЦИЯ ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
   authDomain: "amen-app-b0da2.firebaseapp.com",
@@ -25,14 +25,14 @@ const firebaseConfig = {
   appId: "1:964550407508:web:2d6a8c18fcf461af97c4c1"
 };
 
-// Инициализация с защитой от двойного запуска
+// Инициализация
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 const ADMIN_EMAILS = ["admin@amen.internal", "founder@amen.internal"];
 
-// --- 2. ДАННЫЕ (Статика) ---
+// --- 2. ДАННЫЕ (Safe Mode) ---
 
 const THEMES = {
   day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', textDim: 'text-gray-600', accent: 'text-blue-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
@@ -55,30 +55,45 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
-// Безопасный список данных (чтобы не было undefined ошибок)
-const SAFE_FOCUS_DATA = [
-  { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
-  { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
-  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам.", desc: "Не тревожься о завтрашнем дне. Живи сейчас.", action: "Посиди 5 минут в тишине." },
-  { day: 4, title: "Сила в слабости", verse: "Сила Моя совершается в немощи.", desc: "Твоя слабость — место для Божьей силы.", action: "Признайся в одной слабости Богу." },
-  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие, а не чувство.", action: "Сделай доброе дело тайно." },
-  { day: 6, title: "Прощение", verse: "Прощайте, и прощены будете.", desc: "Обида — это яд, который ты пьешь сам.", action: "Напиши имя того, кого нужно простить." },
-  { day: 7, title: "Рождество", verse: "Слава в вышних Богу.", desc: "Чудо приходит, когда его ждут.", action: "Поздравь близкого человека." }
+// Данные по умолчанию (если массив не сработает)
+const FALLBACK_FOCUS = { day: 0, title: "День Тишины", verse: "Остановитесь и познайте.", desc: "Вдохни глубоко. Бог рядом.", action: "Помолись." };
+
+// Безопасный массив (Гарантировано 31 элемент)
+const MANUAL_FOCUS = [
+  { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога.", action: "Напиши цель." },
+  { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит.", desc: "Вера разгоняет страх.", action: "Зажги свечу." },
+  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам.", desc: "Не тревожься о завтрашнем дне.", action: "5 минут тишины." },
+  { day: 4, title: "Сила", verse: "Сила в немощи.", desc: "Слабость — место для силы.", action: "Прими слабость." },
+  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие.", action: "Доброе дело." },
+  { day: 6, title: "Прощение", verse: "Прощайте.", desc: "Обида — это груз.", action: "Прости." },
+  { day: 7, title: "Рождество", verse: "Слава Богу.", desc: "Чудо рядом.", action: "Поздравь." },
+  { day: 8, title: "Мудрость", verse: "Начало мудрости — страх Господень.", desc: "Ищи совета свыше.", action: "Прочти Притчи." },
+  { day: 9, title: "Доверие", verse: "Надейся на Господа.", desc: "Отпусти контроль.", action: "Скажи: 'Я доверяю'." },
+  { day: 10, title: "Спасибо", verse: "За все благодарите.", desc: "Благодарность меняет всё.", action: "Напиши 3 благодарности." },
+  { day: 11, title: "Терпение", verse: "Претерпевший спасется.", desc: "Не торопи время.", action: "Сдержи гнев." },
+  { day: 12, title: "Слово", verse: "Слово Твое — светильник.", desc: "Библия — это карта.", action: "Выучи стих." },
+  { day: 13, title: "Молитва", verse: "Непрестанно молитесь.", desc: "Разговор меняет реальность.", action: "Молись за врага." },
+  { day: 14, title: "Радость", verse: "Радуйтесь всегда.", desc: "Радость — это выбор.", action: "Улыбнись прохожему." },
+  { day: 15, title: "Смирение", verse: "Бог гордым противится.", desc: "Признать ошибку — сила.", action: "Извинись первым." },
+  { day: 16, title: "Вера", verse: "Вера есть осуществление.", desc: "Видь невидимое.", action: "Сделай шаг веры." },
+  { day: 17, title: "Исцеление", verse: "Ранами Его мы исцелились.", desc: "Бог хочет целостности.", action: "Молись о больном." },
+  { day: 18, title: "Щедрость", verse: "Блаженнее давать.", desc: "Рука дающего не оскудеет.", action: "Пожертвуй." },
+  { day: 19, title: "Семья", verse: "Почитай отца и мать.", desc: "Семья — это важно.", action: "Позвони родным." },
+  { day: 20, title: "Дружба", verse: "Друг любит всегда.", desc: "Будь верным другом.", action: "Напиши другу." },
+  { day: 21, title: "Труд", verse: "Делайте от души.", desc: "Труд — это поклонение.", action: "Сделай работу отлично." },
+  { day: 22, title: "Покой", verse: "Остановитесь и познайте.", desc: "Покой — это оружие.", action: "Час без телефона." },
+  { day: 23, title: "Истина", verse: "Говорите истину.", desc: "Правда освобождает.", action: "Не лги сегодня." },
+  { day: 24, title: "Чистота", verse: "Блаженны чистые сердцем.", desc: "Береги глаза.", action: "Очисти соцсети." },
+  { day: 25, title: "Слух", verse: "Послушание лучше жертвы.", desc: "Слушай Бога.", action: "Сделай отложенное." },
+  { day: 26, title: "Надежда", verse: "Надежда не постыжает.", desc: "Лучшее впереди.", action: "Мечтай смело." },
+  { day: 27, title: "Смелость", verse: "Кто против нас?", desc: "Страх — это ложь.", action: "Сделай то, чего боялся." },
+  { day: 28, title: "Служение", verse: "Служите друг другу.", desc: "Величие в служении.", action: "Помоги просто так." },
+  { day: 29, title: "Единство", verse: "Да будут все едино.", desc: "Мы одно целое.", action: "Не спорь." },
+  { day: 30, title: "Новое", verse: "Се, творю все новое.", desc: "Новый шанс.", action: "Начни привычку." },
+  { day: 31, title: "Вечность", verse: "Вложил вечность в сердца.", desc: "Смотри в небо.", action: "Поблагодари за месяц." }
 ];
 
-// Заполнитель для остальных дней, чтобы массив был полным
-const JANUARY_FOCUS = [
-    ...SAFE_FOCUS_DATA,
-    ...Array.from({ length: 25 }, (_, i) => ({
-        day: i + 8,
-        title: "День " + (i + 8),
-        verse: "Все могу в укрепляющем меня Иисусе Христе.",
-        desc: "Каждый новый день — это дар и возможность начать сначала. Будь светом.",
-        action: "Напиши слова благодарности."
-    }))
-];
-
-// --- 3. КОМПОНЕНТЫ ---
+// --- КОМПОНЕНТЫ ---
 
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
@@ -86,7 +101,6 @@ function MusicPlayer({ theme }) {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
   
-  // Safe track access
   const currentTrack = TRACKS[currentTrackIndex] || TRACKS[0];
 
   useEffect(() => {
@@ -96,7 +110,7 @@ function MusicPlayer({ theme }) {
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(e => console.log("Audio Error:", e));
+    else audioRef.current.play().catch(e => console.log(e));
     setIsPlaying(!isPlaying);
   };
 
@@ -109,12 +123,7 @@ function MusicPlayer({ theme }) {
   return (
     <>
       <div className={`fixed bottom-8 right-6 z-40 flex items-center gap-2 p-2 rounded-full shadow-2xl backdrop-blur-xl border ${theme.border} ${theme.card}`}>
-        <audio 
-          ref={audioRef} 
-          src={currentTrack.url}
-          autoPlay={isPlaying}
-          onEnded={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)}
-        />
+        <audio ref={audioRef} src={currentTrack.url} onEnded={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)}/>
         <button onClick={togglePlay} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${theme.btn}`}>
           {isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-1"/>}
         </button>
@@ -149,7 +158,7 @@ function MusicPlayer({ theme }) {
   );
 }
 
-// --- MAIN APP ---
+// --- APP ---
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -167,20 +176,18 @@ export default function App() {
 
   const theme = THEMES[currentThemeId] || THEMES.day;
   
-  // SAFE FOCUS LOGIC (Защита от крашей)
+  // SAFE FOCUS LOGIC (Максимальная защита от undefined)
   const today = new Date();
   const dayNum = today.getDate();
-  const safeIndex = (dayNum - 1) % JANUARY_FOCUS.length;
-  // Fallback: Если что-то пошло не так, берем 1-й день. Гарантия от undefined.
-  const currentFocus = JANUARY_FOCUS[safeIndex] || JANUARY_FOCUS[0]; 
+  const focusIndex = (dayNum - 1);
+  const currentFocus = MANUAL_FOCUS[focusIndex] || DEFAULT_FOCUS;
 
   const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email);
 
   useEffect(() => {
-    // Слушатель Auth
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
+    const unsubscribe = onAuthStateChanged(auth, u => {
         setUser(u);
-        setLoading(false); // Загрузка завершена только когда Firebase ответил
+        setLoading(false);
     });
     return unsubscribe;
   }, []);
@@ -190,7 +197,7 @@ export default function App() {
     const q = query(collection(db, "prayers"), orderBy("createdAt", "desc"));
     return onSnapshot(q, 
         s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))),
-        e => console.error("Error loading prayers:", e)
+        e => console.error(e) // Logging error but not crashing
     );
   }, [user]);
 
@@ -227,16 +234,7 @@ export default function App() {
     await updateDoc(doc(db, "prayers", id), { comments: arrayUnion(comment) });
   };
 
-  // ЭКРАН ЗАГРУЗКИ (Критично для мобильных)
-  if (loading) {
-    return (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-            <Loader2 className="animate-spin text-white opacity-50" size={32} />
-        </div>
-    );
-  }
-
-  // ЭКРАН ВХОДА
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white opacity-50" size={32} /></div>;
   if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} />;
 
   const filteredPrayers = prayers.filter(p => {
@@ -246,11 +244,9 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
-      {/* ФОН */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-black">
         <motion.img 
-            key={theme.id} 
-            initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} 
+            key={theme.id} initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} 
             src={theme.bg} className="w-full h-full object-cover opacity-90" 
             onError={(e) => e.target.style.display = 'none'} 
         />
@@ -287,28 +283,25 @@ export default function App() {
          
          {activeTab === 'flow' && (
              <div className="space-y-12">
-                 {/* КАРТОЧКА ФОКУСА С ПРОВЕРКОЙ НА СУЩЕСТВОВАНИЕ */}
-                 {currentFocus && (
-                     <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
-                        <div className="flex justify-between items-start mb-8">
-                            <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
-                                {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
-                            </span>
+                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
+                    <div className="flex justify-between items-start mb-8">
+                        <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
+                            {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
+                        </span>
+                    </div>
+                    <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
+                    <div className="mb-10 pl-6 border-l border-current opacity-70">
+                        <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
+                    </div>
+                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
+                    <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
+                            <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
                         </div>
-                        <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
-                        <div className="mb-10 pl-6 border-l border-current opacity-70">
-                            <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
-                        </div>
-                        <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
-                        <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
-                                <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
-                            </div>
-                            <p className="font-normal text-lg">{currentFocus.action}</p>
-                        </button>
-                     </motion.div>
-                 )}
+                        <p className="font-normal text-lg">{currentFocus.action}</p>
+                    </button>
+                 </motion.div>
 
                  <div className="space-y-8">
                     <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Стена Единства</h2>
