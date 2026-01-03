@@ -12,10 +12,48 @@ import {
 import { 
   Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2, Globe, Sparkles
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2, Sparkles, Globe
 } from 'lucide-react';
 
-// --- 1. КОНФИГУРАЦИЯ (Ваши ключи) ---
+// --- 0. ЛОВУШКА ОШИБОК (ЧТОБЫ НЕ БЫЛО ЧЕРНОГО ЭКРАНА) ---
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("CRITICAL ERROR:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-black text-red-500 p-8 flex flex-col items-center justify-center text-center font-mono">
+          <AlertTriangle size={48} className="mb-4" />
+          <h2 className="text-xl font-bold mb-2">Приложение упало</h2>
+          <p className="text-xs opacity-70 mb-4">Пожалуйста, сделайте скриншот и отправьте разработчику.</p>
+          <div className="bg-red-900/20 p-4 rounded-xl border border-red-500/20 text-left w-full overflow-auto max-h-64 mb-6">
+            {this.state.error?.toString()}
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-6 py-3 bg-white text-black rounded-xl font-bold uppercase tracking-widest"
+          >
+            Перезагрузить
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// --- 1. КОНФИГУРАЦИЯ FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
   authDomain: "amen-app-b0da2.firebaseapp.com",
@@ -25,13 +63,19 @@ const firebaseConfig = {
   appId: "1:964550407508:web:2d6a8c18fcf461af97c4c1"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Инициализация (с проверкой)
+let app, auth, db;
+try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+} catch (e) {
+    console.error("Firebase init failed:", e);
+}
 
 const ADMIN_EMAILS = ["admin@amen.internal", "founder@amen.internal"];
 
-// --- 2. ДАННЫЕ ---
+// --- 2. ДАННЫЕ (SAFE MODE) ---
 
 const THEMES = {
   day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', textDim: 'text-gray-600', accent: 'text-blue-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
@@ -54,7 +98,7 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
-// Полный статический список на 31 день (НИКАКИХ undefined)
+// Полный безопасный список данных
 const JANUARY_FOCUS = [
   { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога.", action: "Напиши цель." },
   { day: 2, title: "Свет", verse: "И свет во тьме светит.", desc: "Вера разгоняет страх.", action: "Зажги свечу." },
@@ -62,7 +106,7 @@ const JANUARY_FOCUS = [
   { day: 4, title: "Сила", verse: "Сила в немощи.", desc: "Слабость — место для силы.", action: "Прими слабость." },
   { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие.", action: "Доброе дело." },
   { day: 6, title: "Прощение", verse: "Прощайте.", desc: "Обида — это груз.", action: "Прости." },
-  { day: 7, title: "Чудо", verse: "Слава Богу.", desc: "Чудо рядом.", action: "Поздравь." },
+  { day: 7, title: "Рождество", verse: "Слава Богу.", desc: "Чудо рядом.", action: "Поздравь." },
   { day: 8, title: "Мудрость", verse: "Начало мудрости.", desc: "Ищи совета.", action: "Читай Притчи." },
   { day: 9, title: "Доверие", verse: "Надейся на Господа.", desc: "Отпусти контроль.", action: "Доверяй." },
   { day: 10, title: "Спасибо", verse: "За все благодарите.", desc: "Благодарность — ключ.", action: "Скажи спасибо." },
@@ -75,7 +119,7 @@ const JANUARY_FOCUS = [
   { day: 17, title: "Исцеление", verse: "Ранами Его.", desc: "Будь здоров.", action: "Проси здоровья." },
   { day: 18, title: "Щедрость", verse: "Блаженнее давать.", desc: "Давай щедро.", action: "Подари." },
   { day: 19, title: "Семья", verse: "Почитай родителей.", desc: "Люби близких.", action: "Позвони." },
-  { day: 20, title: "Дружба", verse: "Друг любит всегда.", desc: "Будь другом.", action: "Напиши другу." },
+  { day: 20, title: "Дружба", verse: "Друг любит всегда.", desc: "Будь верным другом.", action: "Напиши другу." },
   { day: 21, title: "Труд", verse: "Делайте от души.", desc: "Труд свят.", action: "Работа." },
   { day: 22, title: "Покой", verse: "Остановитесь.", desc: "Найди покой.", action: "Отдохни." },
   { day: 23, title: "Истина", verse: "Говорите истину.", desc: "Не лги.", action: "Правда." },
@@ -89,7 +133,7 @@ const JANUARY_FOCUS = [
   { day: 31, title: "Вечность", verse: "Бог вечен.", desc: "Мы вечны.", action: "Славь Его." },
 ];
 
-// --- КОМПОНЕНТЫ ---
+// --- 3. КОМПОНЕНТЫ UI ---
 
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
@@ -97,7 +141,7 @@ function MusicPlayer({ theme }) {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
   
-  // Safe track access
+  // Безопасный доступ к треку
   const currentTrack = TRACKS[currentTrackIndex] || TRACKS[0];
 
   useEffect(() => {
@@ -107,7 +151,7 @@ function MusicPlayer({ theme }) {
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(e => console.log("Audio Error", e));
+    else audioRef.current.play().catch(e => console.log("Audio Error:", e));
     setIsPlaying(!isPlaying);
   };
 
@@ -160,9 +204,9 @@ function MusicPlayer({ theme }) {
   );
 }
 
-// --- MAIN APP ---
+// --- 4. ОСНОВНАЯ ЛОГИКА ---
 
-export default function App() {
+function AppContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [prayers, setPrayers] = useState([]);
@@ -178,16 +222,17 @@ export default function App() {
 
   const theme = THEMES[currentThemeId] || THEMES.day;
   
-  // ULTRA SAFE DATE LOGIC
+  // SAFE DATE LOGIC (Самое важное исправление)
   const today = new Date();
   const dayNum = today.getDate(); // 1-31
-  // Используем остаток от деления для безопасности
-  const safeIndex = (dayNum - 1) % JANUARY_FOCUS.length; 
-  const currentFocus = JANUARY_FOCUS[safeIndex];
+  // Берем по индексу (день - 1). Если дня нет в массиве, берем первый.
+  // Это предотвращает краш, если в массиве меньше элементов, чем дней.
+  const currentFocus = JANUARY_FOCUS[dayNum - 1] || JANUARY_FOCUS[0]; 
 
   const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email);
 
   useEffect(() => {
+    if (!auth) return;
     const unsubscribe = onAuthStateChanged(auth, u => {
         setUser(u);
         setLoading(false);
@@ -196,14 +241,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !db) return;
     try {
         const q = query(collection(db, "prayers"), orderBy("createdAt", "desc"));
-        const unsub = onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))), e => console.error("Firestore error:", e));
-        return unsub;
-    } catch (e) {
-        console.error("Query Error", e);
-    }
+        return onSnapshot(q, 
+            s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))),
+            e => console.error("Data error:", e)
+        );
+    } catch(e) { console.error(e) }
   }, [user]);
 
   const handleAdd = async (text, type, privacy, isAnon) => {
@@ -239,9 +284,17 @@ export default function App() {
     await updateDoc(doc(db, "prayers", id), { comments: arrayUnion(comment) });
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white opacity-50" size={32} /></div>;
-  if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} />;
+  // ЭКРАН ЗАГРУЗКИ (Показываем пока не знаем статус юзера)
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white opacity-50" size={32} /></div>;
+  }
 
+  // ЭКРАН ВХОДА (Если юзер не вошел)
+  if (!user) {
+      return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} />;
+  }
+
+  // ФИЛЬТРАЦИЯ
   const filteredPrayers = prayers.filter(p => {
     if (feedFilter === 'diary') return p.userId === user.uid;
     return p.privacy === 'public';
@@ -249,8 +302,13 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
+      {/* ФОН */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-black">
-        <motion.img key={theme.id} initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} src={theme.bg} className="w-full h-full object-cover opacity-90" onError={(e) => e.target.style.display = 'none'} />
+        <motion.img 
+            key={theme.id} initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} 
+            src={theme.bg} className="w-full h-full object-cover opacity-90" 
+            onError={(e) => e.target.style.display = 'none'} 
+        />
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
@@ -284,28 +342,26 @@ export default function App() {
          
          {activeTab === 'flow' && (
              <div className="space-y-12">
-                 {/* КАРТОЧКА ФОКУСА С ЗАЩИТОЙ */}
-                 {currentFocus && (
-                     <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
-                        <div className="flex justify-between items-start mb-8">
-                            <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
-                                {today.toLocaleDateString('ru-RU')}
-                            </span>
+                 {/* КАРТОЧКА ФОКУСА (ЗАЩИЩЕНА) */}
+                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
+                    <div className="flex justify-between items-start mb-8">
+                        <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
+                            {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
+                        </span>
+                    </div>
+                    <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
+                    <div className="mb-10 pl-6 border-l border-current opacity-70">
+                        <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
+                    </div>
+                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
+                    <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
+                            <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
                         </div>
-                        <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
-                        <div className="mb-10 pl-6 border-l border-current opacity-70">
-                            <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
-                        </div>
-                        <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
-                        <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
-                                <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
-                            </div>
-                            <p className="font-normal text-lg">{currentFocus.action}</p>
-                        </button>
-                     </motion.div>
-                 )}
+                        <p className="font-normal text-lg">{currentFocus.action}</p>
+                    </button>
+                 </motion.div>
 
                  <div className="space-y-8">
                     <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Стена Единства</h2>
@@ -364,6 +420,8 @@ export default function App() {
     </div>
   );
 }
+
+// --- SUB COMPONENTS ---
 
 function AuthScreen({ theme, onShowRules }) {
     const [isLogin, setIsLogin] = useState(true);
@@ -550,6 +608,27 @@ function RulesModal({ isOpen, onClose, theme }) {
             </div>
         </div>
     );
+}
+
+// Экспорт с ловушкой ошибок
+export default function AppBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+// --- ЛОВУШКА ОШИБОК ---
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+  static getDerivedStateFromError(error) { return { hasError: true, error }; }
+  render() {
+    if (this.state.hasError) {
+      return <div style={{padding:20, color:'red', background:'black', height:'100vh', display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center'}}><h1>Ошибка</h1><p>{this.state.error?.toString()}</p><button onClick={()=>window.location.reload()} style={{background:'white', color:'black', padding:'10px 20px', borderRadius:10, marginTop:20}}>ПЕРЕЗАГРУЗИТЬ</button></div>;
+    }
+    return this.props.children;
+  }
 }
 
 
