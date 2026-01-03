@@ -12,10 +12,10 @@ import {
 import { 
   Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Loader2
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2, Sparkles, Globe
 } from 'lucide-react';
 
-// --- 1. КОНФИГУРАЦИЯ FIREBASE (ВАШИ КЛЮЧИ) ---
+// --- 1. КОНФИГУРАЦИЯ FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
   authDomain: "amen-app-b0da2.firebaseapp.com",
@@ -25,22 +25,20 @@ const firebaseConfig = {
   appId: "1:964550407508:web:2d6a8c18fcf461af97c4c1"
 };
 
-// Инициализация (с проверкой, чтобы не дублировать)
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 const ADMIN_EMAILS = ["admin@amen.internal", "founder@amen.internal"];
 
-// --- 2. ДАННЫЕ ---
-
+// --- ТЕМЫ ---
 const THEMES = {
-  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', accent: 'text-gray-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
-  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-stone-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
-  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', accent: 'text-slate-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
-  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', accent: 'text-amber-800', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
-  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', accent: 'text-indigo-200', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
-  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', accent: 'text-gray-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
+  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', textDim: 'text-gray-600', accent: 'text-blue-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
+  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', textDim: 'text-stone-600', accent: 'text-orange-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
+  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', textDim: 'text-slate-600', accent: 'text-sky-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
+  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', textDim: 'text-amber-800', accent: 'text-red-600', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
+  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', textDim: 'text-indigo-200', accent: 'text-purple-300', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
+  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', textDim: 'text-gray-400', accent: 'text-indigo-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
 };
 
 const TRACKS = [
@@ -55,36 +53,44 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
-const JANUARY_FOCUS = [
+// Базовые дни
+const MANUAL_FOCUS = [
   { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
-  { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу." },
-  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам.", desc: "Не тревожься о завтрашнем дне.", action: "5 минут тишины." },
-  { day: 4, title: "Сила", verse: "Сила Моя в немощи.", desc: "Твоя слабость — место для силы Бога.", action: "Прими свою слабость." },
-  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие.", action: "Сделай добро тайно." },
-  // Заполнитель для безопасности, если дней не хватит
-  ...Array.from({ length: 30 }, (_, i) => ({
-      day: i + 6, 
-      title: "День " + (i + 6), 
-      verse: "Все могу в укрепляющем меня.", 
-      desc: "Бог с тобой в каждом дне.", 
-      action: "Помолись."
-  }))
+  { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит, и тьма не объяла его.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
+  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам, мир Мой даю вам.", desc: "Не тревожься о завтрашнем дне. Живи сейчас.", action: "Посиди 5 минут в тишине." },
+  { day: 4, title: "Сила в слабости", verse: "Сила Моя совершается в немощи.", desc: "Твоя слабость — место для Божьей силы.", action: "Признайся в одной слабости Богу." },
+  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие, а не чувство.", action: "Сделай доброе дело тайно." },
+  { day: 6, title: "Прощение", verse: "Прощайте, и прощены будете.", desc: "Обида — это яд, который ты пьешь сам.", action: "Напиши имя того, кого нужно простить." },
+  { day: 7, title: "Рождество", verse: "Слава в вышних Богу.", desc: "Чудо приходит, когда его ждут.", action: "Поздравь близкого человека." }
 ];
 
-// --- 3. КОМПОНЕНТЫ ---
+// Генератор остальных дней, чтобы приложение не падало
+const JANUARY_FOCUS = [
+    ...MANUAL_FOCUS,
+    ...Array.from({ length: 24 }, (_, i) => ({
+        day: i + 8,
+        title: "День " + (i + 8),
+        verse: "Все могу в укрепляющем меня Иисусе Христе.",
+        desc: "Каждый новый день — это дар и возможность начать сначала. Будь светом.",
+        action: "Напиши слова благодарности."
+    }))
+];
 
+// --- ПЛЕЕР ---
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [error, setError] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     if (audioRef.current) {
-        audioRef.current.volume = 0.5;
+        audioRef.current.volume = 0.4;
+        audioRef.current.muted = isMuted;
     }
-  }, []);
+  }, [isMuted]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -147,13 +153,13 @@ function MusicPlayer({ theme }) {
   );
 }
 
-// --- MAIN APP ---
+// --- APP ---
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [prayers, setPrayers] = useState([]);
-  const [activeTab, setActiveTab] = useState('flow');
+  const [activeTab, setActiveTab] = useState('flow'); 
   const [feedFilter, setFeedFilter] = useState('all'); 
   const [currentThemeId, setCurrentThemeId] = useState('day');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -167,10 +173,11 @@ export default function App() {
 
   const theme = THEMES[currentThemeId];
   
-  // SAFE FOCUS LOGIC
+  // SAFE FOCUS LOGIC (Защита от вылета за пределы массива)
   const today = new Date();
-  const safeIndex = (today.getDate() - 1) % JANUARY_FOCUS.length;
-  const currentFocus = JANUARY_FOCUS[safeIndex] || JANUARY_FOCUS[0];
+  const date = today.getDate(); 
+  const safeIndex = Math.max(0, Math.min(date - 1, JANUARY_FOCUS.length - 1));
+  const currentFocus = JANUARY_FOCUS[safeIndex] || JANUARY_FOCUS[0]; // Двойная защита
 
   const isAdmin = user && ADMIN_EMAILS.includes(user.email);
 
@@ -185,10 +192,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "prayers"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, 
-        s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))),
-        e => console.error("Error loading prayers:", e)
-    );
+    return onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))));
   }, [user]);
 
   const handleAdd = async (text, type, privacy, isAnon) => {
@@ -196,7 +200,7 @@ export default function App() {
     await addDoc(collection(db, "prayers"), {
         text, type, privacy, 
         userId: user.uid,
-        authorName: isAnon ? "Аноним" : (user.displayName || "Путник"),
+        authorName: isAnon ? "Аноним" : (user.displayName || user.email?.split('@')[0] || "Путник"),
         createdAt: serverTimestamp(),
         likes: [],
         comments: [],
@@ -215,7 +219,7 @@ export default function App() {
   };
 
   const deletePrayer = async (id) => {
-    if(confirm("Удалить?")) await deleteDoc(doc(db, "prayers", id));
+    if(confirm("Удалить запись?")) await deleteDoc(doc(db, "prayers", id));
   };
 
   const saveEdit = async (id, newText) => {
@@ -226,10 +230,14 @@ export default function App() {
   const addComment = async (id, text) => {
     if(!text.trim()) return;
     const comment = {
-        text, author: user.displayName || "Путник",
-        uid: user.uid, createdAt: new Date().toISOString()
+        text,
+        author: user.displayName || user.email?.split('@')[0] || "Путник",
+        uid: user.uid,
+        createdAt: new Date().toISOString()
     };
-    await updateDoc(doc(db, "prayers", id), { comments: arrayUnion(comment) });
+    await updateDoc(doc(db, "prayers", id), {
+        comments: arrayUnion(comment)
+    });
   };
 
   if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white opacity-50" size={32} /></div>;
@@ -242,8 +250,13 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <motion.img key={theme.id} initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} src={theme.bg} className="w-full h-full object-cover opacity-90" onError={(e) => e.target.style.display = 'none'} />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-black">
+        <motion.img 
+            key={theme.id}
+            initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}}
+            src={theme.bg} className="w-full h-full object-cover opacity-90"
+            onError={(e) => e.target.style.display = 'none'} 
+        />
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
@@ -277,25 +290,28 @@ export default function App() {
          
          {activeTab === 'flow' && (
              <div className="space-y-12">
-                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
-                    <div className="flex justify-between items-start mb-8">
-                        <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
-                            {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
-                        </span>
-                    </div>
-                    <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
-                    <div className="mb-10 pl-6 border-l border-current opacity-70">
-                        <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
-                    </div>
-                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
-                    <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
-                            <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
+                 {/* КАРТОЧКА ФОКУСА С ЗАЩИТОЙ ОТ СБОЕВ */}
+                 {currentFocus && (
+                     <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-3xl shadow-xl border ${theme.card} ${theme.border} ${theme.text}`}>
+                        <div className="flex justify-between items-start mb-8">
+                            <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
+                                {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
+                            </span>
                         </div>
-                        <p className="font-normal text-lg">{currentFocus.action}</p>
-                    </button>
-                 </motion.div>
+                        <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
+                        <div className="mb-10 pl-6 border-l border-current opacity-70">
+                            <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
+                        </div>
+                        <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
+                        <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
+                                <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
+                            </div>
+                            <p className="font-normal text-lg">{currentFocus.action}</p>
+                        </button>
+                     </motion.div>
+                 )}
 
                  <div className="space-y-8">
                     <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Стена Единства</h2>
@@ -313,7 +329,7 @@ export default function App() {
                     <Plus size={24} /> Создать запись
                 </button>
                 <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Мой Дневник</h2>
-                {myPrayers.length === 0 && <div className={`text-center py-20 opacity-40 ${theme.text}`}>Дневник пуст.</div>}
+                {myPrayers.length === 0 && <div className={`text-center py-20 opacity-40 ${theme.text}`}>Ваш дневник пуст.</div>}
                 {myPrayers.map(p => (
                     <PrayerCard key={p.id} prayer={p} user={user} isAdmin={isAdmin} theme={theme} onLike={toggleLike} onDelete={deletePrayer} onEdit={saveEdit} onComment={addComment} activeCommentId={commentingId} setCommentingId={setCommentingId} activeEditId={editingId} setEditingId={setEditingId} />
                 ))}
@@ -324,7 +340,7 @@ export default function App() {
              <div className="space-y-6">
                 <div className={`p-10 rounded-[2rem] text-center backdrop-blur-3xl border shadow-xl ${theme.card} ${theme.border}`}>
                     <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl font-light mb-8 shadow-inner ${theme.btn}`}>
-                        {user.displayName?.[0] || <User strokeWidth={1}/>}
+                        {user.displayName?.[0] || user.email?.[0]?.toUpperCase() || <User strokeWidth={1}/>}
                     </div>
                     <h2 className={`text-2xl font-normal mb-2 ${theme.text}`}>{user.displayName || "Путник"}</h2>
                     
@@ -373,7 +389,10 @@ function AuthScreen({ theme, onShowRules }) {
                 await updateProfile(cred.user, { displayName: username });
             }
         } catch (err) {
-            setError("Ошибка входа: " + err.message);
+            if (err.code === 'auth/invalid-credential') setError('Неверный логин или пароль');
+            else if (err.code === 'auth/email-already-in-use') setError('Этот логин уже занят');
+            else if (err.code === 'auth/weak-password') setError('Пароль должен быть от 6 символов');
+            else setError(err.message);
         }
     };
 
@@ -389,7 +408,7 @@ function AuthScreen({ theme, onShowRules }) {
                 <form onSubmit={handleAuth} className="w-full space-y-4 backdrop-blur-2xl bg-white/10 p-8 rounded-[2rem] border border-white/10 shadow-2xl">
                     <input type="text" placeholder="Логин" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white outline-none focus:border-white/30"/>
                     <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white outline-none focus:border-white/30"/>
-                    {error && <p className="text-red-300 text-xs">{error}</p>}
+                    {error && <p className="text-red-300 text-xs mt-2">{error}</p>}
                     <button className="w-full py-4 rounded-xl bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all mt-6 shadow-lg">
                         {isLogin ? 'Войти' : 'Создать'}
                     </button>
