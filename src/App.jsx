@@ -281,8 +281,8 @@ export default function App() {
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
-      {/* ХЕДЕР - Убрана "челка" (pt-12 заменен на pt-8 и отступы проверены) */}
-      <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-8 pb-4 flex justify-between items-center ${theme.text}`}>
+      {/* ХЕДЕР - Убрана "челка" (отступ уменьшен) */}
+      <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-4 pb-4 flex justify-between items-center ${theme.text}`}>
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
          </div>
@@ -307,6 +307,11 @@ export default function App() {
                 <MenuLink label="Личный Дневник" onClick={()=>{setActiveTab('diary'); setMenuOpen(false)}} />
                 <MenuLink label="Профиль" onClick={()=>{setActiveTab('profile'); setMenuOpen(false)}} />
                 
+                <div className="mt-12">
+                    <button onClick={()=>setShowAddModal(true)} className={`w-full py-4 rounded-xl font-medium flex items-center justify-center gap-2 ${theme.btn}`}>
+                        <Plus size={18}/> Создать запись
+                    </button>
+                </div>
             </motion.div>
         )}
       </AnimatePresence>
