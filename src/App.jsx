@@ -12,41 +12,8 @@ import {
 import { 
   Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2, Sparkles, Globe
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Loader2, Sparkles, Globe
 } from 'lucide-react';
-
-// --- ERROR BOUNDARY (ЛОВУШКА ОШИБОК) ---
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error("App Crash:", error, errorInfo);
-    this.setState({ errorInfo });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: 20, backgroundColor: 'black', color: 'red', height: '100vh', overflow: 'auto' }}>
-          <h1>Что-то пошло не так.</h1>
-          <p>Покажите этот экран разработчику:</p>
-          <pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error && this.state.error.toString()}</pre>
-          <br />
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '10px' }}>{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
-          <button onClick={() => window.location.reload()} style={{ padding: 10, marginTop: 20, backgroundColor: 'white' }}>Перезагрузить</button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 // --- 1. КОНФИГУРАЦИЯ FIREBASE ---
 const firebaseConfig = {
@@ -58,29 +25,22 @@ const firebaseConfig = {
   appId: "1:964550407508:web:2d6a8c18fcf461af97c4c1"
 };
 
-// Безопасная инициализация
-let app;
-let auth;
-let db;
-
-try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-} catch (e) {
-    console.error("Firebase Init Error:", e);
-}
+// Инициализация вне компонента для стабильности
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const ADMIN_EMAILS = ["admin@amen.internal", "founder@amen.internal"];
 
-// --- ТЕМЫ ---
+// --- 2. ДАННЫЕ ---
+
 const THEMES = {
-  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-stone-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
-  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', accent: 'text-slate-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
-  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', accent: 'text-gray-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
-  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', accent: 'text-amber-800', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
-  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', accent: 'text-indigo-200', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
-  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', accent: 'text-gray-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
+  day: { id: 'day', name: 'День', bg: '/day.jpg', text: 'text-gray-900', textDim: 'text-gray-600', card: 'bg-white/80', btn: 'bg-black text-white', border: 'border-gray-200' },
+  dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', textDim: 'text-stone-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
+  morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', textDim: 'text-slate-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
+  sunset: { id: 'sunset', name: 'Закат', bg: '/sunset.jpg', text: 'text-amber-950', textDim: 'text-amber-800', card: 'bg-orange-50/80', btn: 'bg-amber-950 text-white', border: 'border-amber-900/10' },
+  evening: { id: 'evening', name: 'Вечер', bg: '/evening.jpg', text: 'text-white', textDim: 'text-indigo-200', card: 'bg-slate-900/60', btn: 'bg-white/20 text-white', border: 'border-white/10' },
+  midnight: { id: 'midnight', name: 'Полночь', bg: '/midnight.jpg', text: 'text-gray-100', textDim: 'text-gray-400', card: 'bg-black/60', btn: 'bg-white/90 text-black', border: 'border-white/10' },
 };
 
 const TRACKS = [
@@ -95,29 +55,51 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
-// Полный массив (безопасный)
-const JANUARY_FOCUS = Array.from({ length: 32 }, (_, i) => ({
-    day: i,
-    title: i === 0 ? "Начало" : `День ${i}`,
-    verse: "В начале сотворил Бог небо и землю.",
-    desc: "Всё начинается с первого шага веры.",
-    action: "Помолись о будущем."
-}));
+// Полный безопасный список на 31 день
+const JANUARY_FOCUS = [
+  { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога.", action: "Напиши цель." },
+  { day: 2, title: "Свет", verse: "И свет во тьме светит.", desc: "Вера разгоняет страх.", action: "Зажги свечу." },
+  { day: 3, title: "Мир", verse: "Мир оставляю вам.", desc: "Не тревожься.", action: "Тишина 5 минут." },
+  { day: 4, title: "Сила", verse: "Сила в немощи.", desc: "Слабость — место для силы.", action: "Прими слабость." },
+  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие.", action: "Доброе дело." },
+  { day: 6, title: "Прощение", verse: "Прощайте.", desc: "Обида — это груз.", action: "Прости." },
+  { day: 7, title: "Чудо", verse: "Слава Богу.", desc: "Чудо рядом.", action: "Поздравь." },
+  { day: 8, title: "Мудрость", verse: "Начало мудрости — страх Господень.", desc: "Ищи совета свыше.", action: "Прочти Притчи." },
+  { day: 9, title: "Доверие", verse: "Надейся на Господа.", desc: "Отпусти контроль.", action: "Скажи: 'Я доверяю'." },
+  { day: 10, title: "Спасибо", verse: "За все благодарите.", desc: "Благодарность меняет всё.", action: "Напиши 3 благодарности." },
+  { day: 11, title: "Терпение", verse: "Претерпевший спасется.", desc: "Не торопи время.", action: "Сдержи гнев." },
+  { day: 12, title: "Слово", verse: "Слово Твое — светильник.", desc: "Библия — это карта.", action: "Выучи стих." },
+  { day: 13, title: "Молитва", verse: "Непрестанно молитесь.", desc: "Разговор меняет реальность.", action: "Молись за врага." },
+  { day: 14, title: "Радость", verse: "Радуйтесь всегда.", desc: "Радость — это выбор.", action: "Улыбнись прохожему." },
+  { day: 15, title: "Смирение", verse: "Бог гордым противится.", desc: "Признать ошибку — сила.", action: "Извинись первым." },
+  { day: 16, title: "Вера", verse: "Вера есть осуществление.", desc: "Видь невидимое.", action: "Сделай шаг веры." },
+  { day: 17, title: "Исцеление", verse: "Ранами Его мы исцелились.", desc: "Бог хочет целостности.", action: "Молись о больном." },
+  { day: 18, title: "Щедрость", verse: "Блаженнее давать.", desc: "Рука дающего не оскудеет.", action: "Пожертвуй." },
+  { day: 19, title: "Семья", verse: "Почитай отца и мать.", desc: "Семья — это важно.", action: "Позвони родным." },
+  { day: 20, title: "Дружба", verse: "Друг любит всегда.", desc: "Будь верным другом.", action: "Напиши другу." },
+  { day: 21, title: "Труд", verse: "Делайте от души.", desc: "Труд — это поклонение.", action: "Сделай работу отлично." },
+  { day: 22, title: "Покой", verse: "Остановитесь и познайте.", desc: "Покой — это оружие.", action: "Час без телефона." },
+  { day: 23, title: "Истина", verse: "Говорите истину.", desc: "Правда освобождает.", action: "Не лги сегодня." },
+  { day: 24, title: "Чистота", verse: "Блаженны чистые сердцем.", desc: "Береги глаза.", action: "Очисти соцсети." },
+  { day: 25, title: "Слух", verse: "Послушание лучше жертвы.", desc: "Слушай Бога.", action: "Сделай отложенное." },
+  { day: 26, title: "Надежда", verse: "Надежда не постыжает.", desc: "Лучшее впереди.", action: "Мечтай смело." },
+  { day: 27, title: "Смелость", verse: "Кто против нас?", desc: "Страх — это ложь.", action: "Сделай то, чего боялся." },
+  { day: 28, title: "Служение", verse: "Служите друг другу.", desc: "Величие в служении.", action: "Помоги просто так." },
+  { day: 29, title: "Единство", verse: "Да будут все едино.", desc: "Мы одно целое.", action: "Не спорь." },
+  { day: 30, title: "Новое", verse: "Се, творю все новое.", desc: "Новый шанс.", action: "Начни привычку." },
+  { day: 31, title: "Вечность", verse: "Вложил вечность в сердца.", desc: "Смотри в небо.", action: "Поблагодари за месяц." }
+];
 
-// Переопределение первых дней реальными данными
-JANUARY_FOCUS[1] = { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." };
-JANUARY_FOCUS[2] = { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." };
-JANUARY_FOCUS[3] = { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам.", desc: "Не тревожься о завтрашнем дне.", action: "5 минут тишины." };
-JANUARY_FOCUS[4] = { day: 4, title: "Сила", verse: "Сила Моя в немощи.", desc: "Твоя слабость — место для силы Бога.", action: "Прими свою слабость." };
-
-// --- КОМПОНЕНТЫ ---
+// --- 3. КОМПОНЕНТЫ UI ---
 
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [showPlaylist, setShowPlaylist] = useState(false);
-  const [error, setError] = useState(false);
+  
+  // Safe track access
+  const currentTrack = TRACKS[currentTrackIndex] || TRACKS[0];
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = 0.5;
@@ -126,7 +108,7 @@ function MusicPlayer({ theme }) {
   const togglePlay = () => {
     if (!audioRef.current) return;
     if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play().catch(() => setError(true));
+    else audioRef.current.play().catch(e => console.log("Audio Error:", e));
     setIsPlaying(!isPlaying);
   };
 
@@ -134,7 +116,6 @@ function MusicPlayer({ theme }) {
     setCurrentTrackIndex(index);
     setIsPlaying(true);
     setShowPlaylist(false);
-    setError(false);
   };
 
   return (
@@ -142,19 +123,18 @@ function MusicPlayer({ theme }) {
       <div className={`fixed bottom-8 right-6 z-40 flex items-center gap-2 p-2 rounded-full shadow-2xl backdrop-blur-xl border ${theme.border} ${theme.card}`}>
         <audio 
           ref={audioRef} 
-          src={TRACKS[currentTrackIndex].url}
+          src={currentTrack.url}
           autoPlay={isPlaying}
           onEnded={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)}
-          onError={() => setError(true)}
         />
-        <button onClick={togglePlay} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${theme.btn} ${error ? 'bg-red-500' : ''}`}>
-          {error ? <AlertTriangle size={18}/> : isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-1"/>}
+        <button onClick={togglePlay} className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${theme.btn}`}>
+          {isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-1"/>}
         </button>
         {isPlaying && (
           <div className="flex items-center gap-4 animate-in fade-in slide-in-from-right-4 pr-2">
               <div className="flex flex-col w-32">
                   <span className={`text-[10px] font-medium uppercase opacity-60 ${theme.text}`}>Играет</span>
-                  <span className={`text-xs truncate font-medium ${theme.text}`}>{TRACKS[currentTrackIndex].title}</span>
+                  <span className={`text-xs truncate font-medium ${theme.text}`}>{currentTrack.title}</span>
               </div>
               <button onClick={() => setShowPlaylist(!showPlaylist)} className={`p-2 opacity-70 hover:opacity-100 ${theme.text}`}><ListMusic size={18}/></button>
               <button onClick={() => selectTrack((currentTrackIndex + 1) % TRACKS.length)} className={`p-1 opacity-70 hover:opacity-100 ${theme.text}`}><SkipForward size={18}/></button>
@@ -168,7 +148,7 @@ function MusicPlayer({ theme }) {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className={`fixed bottom-24 right-6 z-50 w-64 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${theme.border} ${theme.card}`}>
                 <div className={`p-3 max-h-64 overflow-y-auto ${theme.text}`}>
                 {TRACKS.map((track, i) => (
-                    <button key={track.id} onClick={() => selectTrack(i)} className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium truncate mb-1 transition-colors ${i === currentTrackIndex ? 'bg-black/10 opacity-100' : 'opacity-60 hover:opacity-100 hover:bg-black/5'}`}>
+                    <button key={i} onClick={() => selectTrack(i)} className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium truncate mb-1 transition-colors ${i === currentTrackIndex ? 'bg-black/10 opacity-100' : 'opacity-60 hover:opacity-100 hover:bg-black/5'}`}>
                     {track.title}
                     </button>
                 ))}
@@ -181,11 +161,11 @@ function MusicPlayer({ theme }) {
   );
 }
 
-// --- MAIN CONTENT ---
+// --- MAIN APP ---
 
-function AppContent() {
+export default function App() {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [authChecking, setAuthChecking] = useState(true); // Отдельный флаг для Auth
   const [prayers, setPrayers] = useState([]);
   const [activeTab, setActiveTab] = useState('flow');
   const [feedFilter, setFeedFilter] = useState('all'); 
@@ -199,27 +179,34 @@ function AppContent() {
 
   const theme = THEMES[currentThemeId] || THEMES.day;
   
-  // SAFE DATE LOGIC
+  // Safe Focus Logic
   const today = new Date();
   const dayNum = today.getDate();
-  // Если день выходит за рамки массива, берем первый день
-  const currentFocus = JANUARY_FOCUS[dayNum] || JANUARY_FOCUS[1];
+  const safeIndex = (dayNum - 1) % JANUARY_FOCUS.length;
+  const currentFocus = JANUARY_FOCUS[safeIndex] || JANUARY_FOCUS[0];
 
   const isAdmin = user && user.email && ADMIN_EMAILS.includes(user.email);
 
+  // Auth Listener
   useEffect(() => {
-    if (!auth) return;
-    const unsubscribe = onAuthStateChanged(auth, u => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
         setUser(u);
-        setLoading(false);
+        setAuthChecking(false);
     });
     return unsubscribe;
   }, []);
 
+  // Data Listener
   useEffect(() => {
-    if (!user || !db) return;
+    if (!user) return;
     const q = query(collection(db, "prayers"), orderBy("createdAt", "desc"));
-    return onSnapshot(q, s => setPrayers(s.docs.map(d => ({id: d.id, ...d.data()}))), e => console.error(e));
+    const unsub = onSnapshot(q, (snapshot) => {
+        const data = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        setPrayers(data);
+    }, (error) => {
+        console.error("Data Error:", error);
+    });
+    return unsub;
   }, [user]);
 
   const handleAdd = async (text, type, privacy, isAnon) => {
@@ -255,8 +242,19 @@ function AppContent() {
     await updateDoc(doc(db, "prayers", id), { comments: arrayUnion(comment) });
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-white opacity-50" size={32} /></div>;
-  if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} />;
+  // 1. Loading Screen
+  if (authChecking) {
+    return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+            <Loader2 className="animate-spin text-white opacity-50" size={32} />
+        </div>
+    );
+  }
+
+  // 2. Auth Screen
+  if (!user) {
+      return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} />;
+  }
 
   const filteredPrayers = prayers.filter(p => {
     if (feedFilter === 'diary') return p.userId === user.uid;
@@ -265,11 +263,18 @@ function AppContent() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-black font-sans text-base transition-colors duration-700">
+      {/* BACKGROUND */}
       <div className="fixed inset-0 z-0 pointer-events-none bg-black">
-        <motion.img key={theme.id} initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} src={theme.bg} className="w-full h-full object-cover opacity-90" onError={(e) => e.target.style.display = 'none'} />
+        <motion.img 
+            key={theme.id} 
+            initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}} 
+            src={theme.bg} className="w-full h-full object-cover opacity-90" 
+            onError={(e) => e.target.style.display = 'none'} 
+        />
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
+      {/* HEADER */}
       <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-16 pb-4 flex justify-between items-center ${theme.text}`}>
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
@@ -279,6 +284,7 @@ function AppContent() {
          </button>
       </header>
 
+      {/* MENU */}
       <AnimatePresence>
         {menuOpen && (
             <motion.div initial={{x: '100%'}} animate={{x: 0}} exit={{x: '100%'}} transition={{type:'spring', damping:25}} className={`fixed inset-0 z-[60] backdrop-blur-3xl bg-black/60 p-8 flex flex-col justify-center gap-4 ${theme.text}`}>
@@ -296,6 +302,7 @@ function AppContent() {
         )}
       </AnimatePresence>
 
+      {/* CONTENT */}
       <main className="relative z-10 pt-32 pb-32 px-4 w-full max-w-3xl mx-auto min-h-screen">
          
          {activeTab === 'flow' && (
@@ -336,8 +343,8 @@ function AppContent() {
                     <Plus size={24} /> Создать запись
                 </button>
                 <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Мой Дневник</h2>
-                {myPrayers.length === 0 && <div className={`text-center py-20 opacity-40 ${theme.text}`}>Ваш дневник пуст.</div>}
-                {myPrayers.map(p => (
+                {filteredPrayers.length === 0 && <div className={`text-center py-20 opacity-40 ${theme.text}`}>Ваш дневник пуст.</div>}
+                {filteredPrayers.map(p => (
                     <PrayerCard key={p.id} prayer={p} user={user} isAdmin={isAdmin} theme={theme} onLike={toggleLike} onDelete={deletePrayer} onEdit={saveEdit} onComment={addComment} activeCommentId={commentingId} setCommentingId={setCommentingId} activeEditId={editingId} setEditingId={setEditingId} />
                 ))}
             </div>
@@ -563,15 +570,6 @@ function RulesModal({ isOpen, onClose, theme }) {
             </div>
         </div>
     );
-}
-
-// Экспортируем основной компонент обернутый в ловушку
-export default function AppBoundary() {
-  return (
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  );
 }
 
 
