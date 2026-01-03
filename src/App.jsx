@@ -11,7 +11,7 @@ import {
 import { 
   Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Edit2, MessageCircle, Send, ListMusic, User
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight
 } from 'lucide-react';
 
 // --- 1. КОНФИГУРАЦИЯ FIREBASE ---
@@ -30,7 +30,7 @@ const db = getFirestore(app);
 
 const ADMIN_EMAILS = ["admin@amen.com", "founder@amen.com"];
 
-// --- ТЕМЫ (Чистые) ---
+// --- ТЕМЫ ---
 const THEMES = {
   dawn: { id: 'dawn', name: 'Рассвет', bg: '/dawn.jpg', text: 'text-stone-900', accent: 'text-stone-600', card: 'bg-[#fffbf7]/80', btn: 'bg-stone-800 text-white', border: 'border-stone-200' },
   morning: { id: 'morning', name: 'Утро', bg: '/morning.jpg', text: 'text-slate-900', accent: 'text-slate-600', card: 'bg-white/80', btn: 'bg-slate-800 text-white', border: 'border-slate-200' },
@@ -55,7 +55,34 @@ const TRACKS = [
 const JANUARY_FOCUS = [
   { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
   { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит, и тьма не объяла его.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
-  // ... (для краткости массив не дублирую, используйте полный список из прошлого ответа или оставьте этот пример, он заполнится автоматически для текущего дня)
+  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам, мир Мой даю вам.", desc: "Не тревожься о завтрашнем дне.", action: "Посиди 5 минут в тишине." },
+  { day: 4, title: "Сила в слабости", verse: "Сила Моя совершается в немощи.", desc: "Твоя слабость — место для Божьей силы.", action: "Признайся в одной слабости Богу." },
+  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие, а не чувство.", action: "Сделай доброе дело тайно." },
+  { day: 6, title: "Прощение", verse: "Прощайте, и прощены будете.", desc: "Обида — это яд, который ты пьешь сам.", action: "Напиши имя того, кого нужно простить." },
+  { day: 7, title: "Рождество", verse: "Слава в вышних Богу.", desc: "Чудо приходит, когда его ждут.", action: "Поздравь близкого человека." },
+  { day: 8, title: "Мудрость", verse: "Начало мудрости — страх Господень.", desc: "Ищи совета свыше, прежде чем решать.", action: "Прочти главу Притч." },
+  { day: 9, title: "Доверие", verse: "Надейся на Господа всем сердцем.", desc: "Отпусти контроль.", action: "Скажи вслух: Я доверяю Тебе." },
+  { day: 10, title: "Благодарность", verse: "За все благодарите.", desc: "Благодарность открывает двери чудесам.", action: "Напиши 3 вещи, за которые благодарен." },
+  { day: 11, title: "Терпение", verse: "Претерпевший же до конца спасется.", desc: "Не торопи время.", action: "Подожди с ответом в гневе." },
+  { day: 12, title: "Слово", verse: "Слово Твое — светильник ноге моей.", desc: "Библия — это карта жизни.", action: "Выучи один стих." },
+  { day: 13, title: "Молитва", verse: "Непрестанно молитесь.", desc: "Разговор с Отцом меняет реальность.", action: "Молись за врагов." },
+  { day: 14, title: "Радость", verse: "Радуйтесь всегда в Господе.", desc: "Радость — это выбор, а не реакция.", action: "Улыбнись прохожему." },
+  { day: 15, title: "Смирение", verse: "Бог гордым противится.", desc: "Признать ошибку — признак силы.", action: "Попроси прощения первым." },
+  { day: 16, title: "Вера", verse: "Вера есть осуществление ожидаемого.", desc: "Видь невидимое.", action: "Сделай шаг веры сегодня." },
+  { day: 17, title: "Исцеление", verse: "Ранами Его мы исцелились.", desc: "Бог хочет твоей целостности.", action: "Помолись о больном." },
+  { day: 18, title: "Щедрость", verse: "Блаженнее давать, нежели принимать.", desc: "Рука дающего не оскудеет.", action: "Пожертвуй на благое дело." },
+  { day: 19, title: "Семья", verse: "Почитай отца твоего и мать.", desc: "Семья — твоя первая церковь.", action: "Позвони родителям." },
+  { day: 20, title: "Дружба", verse: "Друг любит во всякое время.", desc: "Будь тем другом, которого ищешь.", action: "Напиши старому другу." },
+  { day: 21, title: "Труд", verse: "Все, что делаете, делайте от души.", desc: "Твой труд — это поклонение.", action: "Сделай работу превосходно." },
+  { day: 22, title: "Отдых", verse: "Остановитесь и познайте, что Я — Бог.", desc: "Покой — это оружие.", action: "Выключи телефон на час." },
+  { day: 23, title: "Честность", verse: "Отвергнув ложь, говорите истину.", desc: "Правда делает свободным.", action: "Не солги сегодня ни разу." },
+  { day: 24, title: "Чистота", verse: "Блаженны чистые сердцем.", desc: "Береги глаза и уши.", action: "Удали лишнее из соцсетей." },
+  { day: 25, title: "Послушание", verse: "Послушание лучше жертвы.", desc: "Слушать Бога важнее, чем делать для Него.", action: "Исполни то, что откладывал." },
+  { day: 26, title: "Надежда", verse: "Надежда не постыжает.", desc: "Лучшее впереди.", action: "Мечтай с Богом." },
+  { day: 27, title: "Смелость", verse: "Если Бог за нас, кто против нас?", desc: "Страх — это ложь.", action: "Сделай то, чего боялся." },
+  { day: 28, title: "Служение", verse: "Служите друг другу.", desc: "Величие в служении.", action: "Помоги кому-то безвозмездно." },
+  { day: 29, title: "Единство", verse: "Да будут все едино.", desc: "Вместе мы сильнее.", action: "Не спорь сегодня." },
+  { day: 30, title: "Обновление", verse: "Кто во Христе, тот новая тварь.", desc: "Каждый день — новый шанс.", action: "Начни новую привычку." },
   { day: 31, title: "Вечность", verse: "Бог вложил вечность в сердца их.", desc: "Живи с перспективой неба.", action: "Поблагодари за прожитый месяц." }
 ];
 
@@ -122,7 +149,7 @@ function MusicPlayer({ theme }) {
         )}
       </div>
 
-      {/* Плейлист с закрытием по клику на фон */}
+      {/* Плейлист */}
       <AnimatePresence>
         {showPlaylist && (
           <>
@@ -156,8 +183,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [prayers, setPrayers] = useState([]);
-  const [activeTab, setActiveTab] = useState('focus'); 
-  const [feedFilter, setFeedFilter] = useState('all'); 
+  const [activeTab, setActiveTab] = useState('flow'); // Теперь 'flow' по умолчанию
   const [currentThemeId, setCurrentThemeId] = useState('day');
   const [menuOpen, setMenuOpen] = useState(false);
   
@@ -238,33 +264,32 @@ export default function App() {
 
   if (!user) return <AuthScreen onLogin={handleSignIn} theme={theme} onShowRules={() => setShowDisclaimer(true)} loading={loading} />;
 
-  const filteredPrayers = prayers.filter(p => {
-    if (feedFilter === 'diary') return p.userId === user.uid;
-    return p.privacy === 'public';
-  });
+  // Фильтрация для разных вкладок
+  const publicPrayers = prayers.filter(p => p.privacy === 'public');
+  const myPrayers = prayers.filter(p => p.userId === user.uid);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-black font-sans text-base">
-      {/* ФОН - Полное покрытие */}
+      {/* ФОН - Убрал z-0 и поставил z-0, добавил pointer-events-none, убедился что картинка cover */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <motion.img 
             key={theme.id}
             initial={{opacity: 0}} animate={{opacity: 1}} transition={{duration: 1}}
             src={theme.bg} className="w-full h-full object-cover opacity-90" 
         />
-        {/* Легкое затемнение для контраста текста */}
+        {/* Затемнение для читаемости */}
         <div className="absolute inset-0 bg-black/10" /> 
       </div>
 
-      {/* ХЕДЕР */}
-      <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-12 pb-4 flex justify-between items-center ${theme.text}`}>
+      {/* ХЕДЕР - Убрана "челка" (pt-12 заменен на pt-8 и отступы проверены) */}
+      <header className={`fixed top-0 left-0 right-0 z-50 px-6 pt-8 pb-4 flex justify-between items-center ${theme.text}`}>
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
          </div>
          
          <button 
             onClick={() => setMenuOpen(true)} 
-            className={`p-3 rounded-full backdrop-blur-md border border-white/10 shadow-sm ${theme.card}`}
+            className={`mt-2 p-3 rounded-full backdrop-blur-xl border border-white/10 shadow-sm ${theme.card}`}
          >
             <Menu size={22} strokeWidth={1.5} />
          </button>
@@ -278,27 +303,22 @@ export default function App() {
                 
                 <h2 className="text-4xl font-thin mb-12 opacity-50 tracking-wider">Меню</h2>
                 
-                <MenuLink label="Фокус Дня" onClick={()=>{setActiveTab('focus'); setMenuOpen(false)}} />
-                <MenuLink label="Стена Единства" onClick={()=>{setActiveTab('feed'); setFeedFilter('all'); setMenuOpen(false)}} />
-                <MenuLink label="Личный Дневник" onClick={()=>{setActiveTab('feed'); setFeedFilter('diary'); setMenuOpen(false)}} />
+                <MenuLink label="Поток" onClick={()=>{setActiveTab('flow'); setMenuOpen(false)}} />
+                <MenuLink label="Личный Дневник" onClick={()=>{setActiveTab('diary'); setMenuOpen(false)}} />
                 <MenuLink label="Профиль" onClick={()=>{setActiveTab('profile'); setMenuOpen(false)}} />
                 
-                <div className="mt-12">
-                    <button onClick={()=>setShowAddModal(true)} className={`w-full py-4 rounded-xl font-medium flex items-center justify-center gap-2 ${theme.btn}`}>
-                        <Plus size={18}/> Создать запись
-                    </button>
-                </div>
             </motion.div>
         )}
       </AnimatePresence>
 
       {/* КОНТЕНТ */}
-      <main className="relative z-10 pt-36 pb-32 px-6 w-full max-w-3xl mx-auto min-h-screen">
+      <main className="relative z-10 pt-32 pb-32 px-4 w-full max-w-3xl mx-auto min-h-screen">
          
-         {/* ФОКУС ДНЯ */}
-         {activeTab === 'focus' && (
-             <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="h-full flex flex-col justify-center">
-                 <div className={`p-8 rounded-[2rem] backdrop-blur-xl border border-white/20 shadow-2xl ${theme.card} ${theme.text}`}>
+         {/* ВКЛАДКА: ПОТОК (Фокус + Публичная лента) */}
+         {activeTab === 'flow' && (
+             <div className="space-y-12">
+                 {/* 1. ФОКУС ДНЯ */}
+                 <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className={`p-8 rounded-[2rem] backdrop-blur-xl border shadow-xl ${theme.card} ${theme.border} ${theme.text}`}>
                     <div className="flex justify-between items-start mb-10">
                         <span className="text-xs font-bold uppercase tracking-widest opacity-50 border-b border-current pb-1">
                             {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
@@ -315,30 +335,75 @@ export default function App() {
                         {currentFocus.desc}
                     </p>
 
-                    <div className={`p-6 rounded-2xl border border-current/10 bg-current/5`}>
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest mb-3 opacity-50">Действие</h3>
+                    {/* КНОПКА ДЕЙСТВИЯ */}
+                    <button 
+                        onClick={() => setShowAddModal(true)} 
+                        className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
+                            <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
+                        </div>
                         <p className="font-normal text-lg">{currentFocus.action}</p>
-                    </div>
+                    </button>
+                 </motion.div>
+
+                 {/* 2. ПУБЛИЧНАЯ ЛЕНТА */}
+                 <div className="space-y-8">
+                    <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
+                        Стена Единства
+                    </h2>
+
+                    {publicPrayers.length === 0 && (
+                        <div className={`text-center py-10 opacity-40 ${theme.text}`}>
+                            <p className="font-light text-lg">Здесь пока тихо...</p>
+                        </div>
+                    )}
+
+                    {publicPrayers.map(p => (
+                        <PrayerCard 
+                            key={p.id} 
+                            prayer={p} 
+                            user={user} 
+                            isAdmin={isAdmin} 
+                            theme={theme}
+                            onLike={toggleLike}
+                            onDelete={deletePrayer}
+                            onEdit={saveEdit}
+                            onComment={addComment}
+                            activeCommentId={commentingId}
+                            setCommentingId={setCommentingId}
+                            activeEditId={editingId}
+                            setEditingId={setEditingId}
+                        />
+                    ))}
                  </div>
-             </motion.div>
+             </div>
          )}
 
-         {/* ЛЕНТА */}
-         {activeTab === 'feed' && (
+         {/* ВКЛАДКА: ЛИЧНЫЙ ДНЕВНИК */}
+         {activeTab === 'diary' && (
             <div className="space-y-8">
-                <div className="flex items-center justify-between mb-4 px-2">
-                    <h2 className={`text-2xl font-light tracking-wide ${theme.text}`}>
-                        {feedFilter === 'all' ? 'Стена Единства' : 'Личный Дневник'}
-                    </h2>
-                </div>
+                {/* КНОПКА СОЗДАТЬ */}
+                <button 
+                    onClick={()=>setShowAddModal(true)} 
+                    className={`w-full py-6 rounded-[2rem] border border-white/20 shadow-xl flex items-center justify-center gap-3 font-medium text-lg transition-transform active:scale-95 ${theme.card} ${theme.text}`}
+                >
+                    <Plus size={24} />
+                    Создать запись
+                </button>
 
-                {filteredPrayers.length === 0 && (
-                    <div className={`text-center py-32 opacity-40 ${theme.text}`}>
-                        <p className="font-light text-lg">Здесь пока пусто.</p>
+                <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
+                    Мой Дневник
+                </h2>
+
+                {myPrayers.length === 0 && (
+                    <div className={`text-center py-20 opacity-40 ${theme.text}`}>
+                        <p className="font-light text-lg">Ваш дневник пуст.</p>
                     </div>
                 )}
 
-                {filteredPrayers.map(p => (
+                {myPrayers.map(p => (
                     <PrayerCard 
                         key={p.id} 
                         prayer={p} 
@@ -358,7 +423,7 @@ export default function App() {
             </div>
          )}
 
-         {/* ПРОФИЛЬ */}
+         {/* ВКЛАДКА: ПРОФИЛЬ */}
          {activeTab === 'profile' && (
              <div className="space-y-6">
                 <div className={`p-10 rounded-[2rem] text-center backdrop-blur-xl border border-white/20 shadow-2xl ${theme.card}`}>
@@ -395,7 +460,7 @@ export default function App() {
   );
 }
 
-// --- SUB COMPONENTS ---
+// --- Вспомогательные компоненты остались без изменений ---
 
 function MenuLink({ label, onClick }) {
     return (
@@ -530,7 +595,7 @@ function AuthScreen({ onLogin, theme, onShowRules, loading }) {
             </div>
             <div className="relative z-10 flex flex-col items-center text-center">
                 <h1 className="text-7xl font-thin mb-4 tracking-[0.2em] uppercase opacity-90">Amen</h1>
-                <p className="text-xs font-light mb-16 opacity-60 tracking-[0.3em] uppercase">Пространство тишины</p>
+                <p className="text-sm font-light mb-16 opacity-60 tracking-[0.3em] uppercase">Пространство тишины</p>
                 {loading ? (
                     <div className="text-xs opacity-40 uppercase tracking-widest">Загрузка...</div>
                 ) : (
