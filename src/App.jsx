@@ -12,10 +12,10 @@ import {
 import { 
   Heart, Plus, Trash2, Menu, X, MessageSquarePlus, LogOut, Info, 
   Play, Pause, SkipForward, AlertTriangle, Volume2, VolumeX, 
-  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2
+  Edit2, MessageCircle, Send, ListMusic, User, ArrowRight, Lock, CheckCircle2, Mail, Loader2
 } from 'lucide-react';
 
-// --- 1. КОНФИГУРАЦИЯ FIREBASE ---
+// --- 1. КОНФИГУРАЦИЯ FIREBASE (ВАШИ КЛЮЧИ) ---
 const firebaseConfig = {
   apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
   authDomain: "amen-app-b0da2.firebaseapp.com",
@@ -53,14 +53,42 @@ const TRACKS = [
   { id: 9, title: "Worship", url: "/music/worship.mp3" }
 ];
 
+// ПОЛНЫЙ СПИСОК (ЧТОБЫ НЕ БЫЛО ОШИБОК UNDEFINED)
 const JANUARY_FOCUS = [
   { day: 1, title: "Начало Пути", verse: "В начале сотворил Бог небо и землю.", desc: "Всё новое начинается с Бога. Посвяти этот год Ему.", action: "Напиши одну цель на год." },
   { day: 2, title: "Свет во тьме", verse: "И свет во тьме светит, и тьма не объяла его.", desc: "Даже маленькая искра веры разгоняет страх.", action: "Зажги свечу и помолись." },
-  // Для экономии места массив сокращен, логика будет работать циклично
+  { day: 3, title: "Мир в сердце", verse: "Мир оставляю вам, мир Мой даю вам.", desc: "Не тревожься о завтрашнем дне.", action: "Посиди 5 минут в тишине." },
+  { day: 4, title: "Сила в слабости", verse: "Сила Моя совершается в немощи.", desc: "Твоя слабость — место для Божьей силы.", action: "Признайся в одной слабости Богу." },
+  { day: 5, title: "Любовь", verse: "Бог есть любовь.", desc: "Любовь — это действие, а не чувство.", action: "Сделай доброе дело тайно." },
+  { day: 6, title: "Прощение", verse: "Прощайте, и прощены будете.", desc: "Обида — это яд, который ты пьешь сам.", action: "Напиши имя того, кого нужно простить." },
+  { day: 7, title: "Рождество", verse: "Слава в вышних Богу.", desc: "Чудо приходит, когда его ждут.", action: "Поздравь близкого человека." },
+  { day: 8, title: "Мудрость", verse: "Начало мудрости — страх Господень.", desc: "Ищи совета свыше, прежде чем решать.", action: "Прочти главу Притч." },
+  { day: 9, title: "Доверие", verse: "Надейся на Господа всем сердцем.", desc: "Отпусти контроль.", action: "Скажи вслух: Я доверяю Тебе." },
+  { day: 10, title: "Благодарность", verse: "За все благодарите.", desc: "Благодарность открывает двери чудесам.", action: "Напиши 3 вещи, за которые благодарен." },
+  { day: 11, title: "Терпение", verse: "Претерпевший же до конца спасется.", desc: "Не торопи время.", action: "Подожди с ответом в гневе." },
+  { day: 12, title: "Слово", verse: "Слово Твое — светильник ноге моей.", desc: "Библия — это карта жизни.", action: "Выучи один стих." },
+  { day: 13, title: "Молитва", verse: "Непрестанно молитесь.", desc: "Разговор с Отцом меняет реальность.", action: "Молись за врагов." },
+  { day: 14, title: "Радость", verse: "Радуйтесь всегда в Господе.", desc: "Радость — это выбор, а не реакция.", action: "Улыбнись прохожему." },
+  { day: 15, title: "Смирение", verse: "Бог гордым противится.", desc: "Признать ошибку — признак силы.", action: "Попроси прощения первым." },
+  { day: 16, title: "Вера", verse: "Вера есть осуществление ожидаемого.", desc: "Видь невидимое.", action: "Сделай шаг веры сегодня." },
+  { day: 17, title: "Исцеление", verse: "Ранами Его мы исцелились.", desc: "Бог хочет твоей целостности.", action: "Помолись о больном." },
+  { day: 18, title: "Щедрость", verse: "Блаженнее давать, нежели принимать.", desc: "Рука дающего не оскудеет.", action: "Пожертвуй на благое дело." },
+  { day: 19, title: "Семья", verse: "Почитай отца твоего и мать.", desc: "Семья — твоя первая церковь.", action: "Позвони родителям." },
+  { day: 20, title: "Дружба", verse: "Друг любит во всякое время.", desc: "Будь тем другом, которого ищешь.", action: "Напиши старому другу." },
+  { day: 21, title: "Труд", verse: "Все, что делаете, делайте от души.", desc: "Твой труд — это поклонение.", action: "Сделай работу превосходно." },
+  { day: 22, title: "Отдых", verse: "Остановитесь и познайте, что Я — Бог.", desc: "Покой — это оружие.", action: "Выключи телефон на час." },
+  { day: 23, title: "Честность", verse: "Отвергнув ложь, говорите истину.", desc: "Правда делает свободным.", action: "Не солги сегодня ни разу." },
+  { day: 24, title: "Чистота", verse: "Блаженны чистые сердцем.", desc: "Береги глаза и уши.", action: "Удали лишнее из соцсетей." },
+  { day: 25, title: "Послушание", verse: "Послушание лучше жертвы.", desc: "Слушать Бога важнее, чем делать для Него.", action: "Исполни то, что откладывал." },
+  { day: 26, title: "Надежда", verse: "Надежда не постыжает.", desc: "Лучшее впереди.", action: "Мечтай с Богом." },
+  { day: 27, title: "Смелость", verse: "Если Бог за нас, кто против нас?", desc: "Страх — это ложь.", action: "Сделай то, чего боялся." },
+  { day: 28, title: "Служение", verse: "Служите друг другу.", desc: "Величие в служении.", action: "Помоги кому-то безвозмездно." },
+  { day: 29, title: "Единство", verse: "Да будут все едино.", desc: "Вместе мы сильнее.", action: "Не спорь сегодня." },
+  { day: 30, title: "Обновление", verse: "Кто во Христе, тот новая тварь.", desc: "Каждый день — новый шанс.", action: "Начни новую привычку." },
   { day: 31, title: "Вечность", verse: "Бог вложил вечность в сердца их.", desc: "Живи с перспективой неба.", action: "Поблагодари за прожитый месяц." }
 ];
 
-// --- КОМПОНЕНТ ПЛЕЕРА ---
+// --- ПЛЕЕР ---
 function MusicPlayer({ theme }) {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -170,6 +198,8 @@ export default function App() {
 
   const theme = THEMES[currentThemeId];
   const today = new Date();
+  
+  // ЗАЩИТА ОТ КРАША: Если день > 31 или что-то пошло не так, берем 1-й день
   const dayIndex = today.getMonth() === 0 ? today.getDate() - 1 : 0; 
   const currentFocus = JANUARY_FOCUS[dayIndex] || JANUARY_FOCUS[0];
 
@@ -199,7 +229,6 @@ export default function App() {
         comments: [],
         amens: 0
     });
-    // Modal closes via wrapper delay logic
   };
 
   const toggleLike = async (id, likes) => {
@@ -234,7 +263,17 @@ export default function App() {
     });
   };
 
-  if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} loading={loading} />;
+  // ЭКРАН ЗАГРУЗКИ (Защита от черного экрана)
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+            <Loader2 className="animate-spin text-white opacity-50" size={32} />
+        </div>
+    );
+  }
+
+  // ЭКРАН ВХОДА
+  if (!user) return <AuthScreen theme={theme} onShowRules={() => setShowDisclaimer(true)} />;
 
   const filteredPrayers = prayers.filter(p => {
     if (feedFilter === 'diary') return p.userId === user.uid;
@@ -256,11 +295,7 @@ export default function App() {
          <div onClick={()=>setMenuOpen(true)} className="flex items-center gap-2 cursor-pointer">
             <h1 className="text-3xl font-light tracking-widest uppercase opacity-90">Amen</h1>
          </div>
-         
-         <button 
-            onClick={() => setMenuOpen(true)} 
-            className={`p-3 rounded-full backdrop-blur-xl border border-white/10 shadow-sm ${theme.border} ${theme.card}`}
-         >
+         <button onClick={() => setMenuOpen(true)} className={`p-3 rounded-full backdrop-blur-xl border border-white/10 shadow-sm ${theme.border} ${theme.card}`}>
             <Menu size={22} strokeWidth={1.5} />
          </button>
       </header>
@@ -292,21 +327,12 @@ export default function App() {
                             {today.toLocaleDateString('ru-RU', {day: 'numeric', month: 'long'})}
                         </span>
                     </div>
-                    
                     <h2 className="text-3xl font-light mb-8 leading-tight">{currentFocus.title}</h2>
-                    
                     <div className="mb-10 pl-6 border-l border-current opacity-70">
                         <p className="font-light italic text-xl leading-relaxed">"{currentFocus.verse}"</p>
                     </div>
-
-                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">
-                        {currentFocus.desc}
-                    </p>
-
-                    <button 
-                        onClick={() => setShowAddModal(true)} 
-                        className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}
-                    >
+                    <p className="text-lg font-light opacity-90 mb-10 leading-relaxed">{currentFocus.desc}</p>
+                    <button onClick={() => setShowAddModal(true)} className={`w-full text-left p-6 rounded-2xl border border-current/10 bg-current/5 hover:bg-current/10 transition-colors group`}>
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-50">Действие</h3>
                             <ArrowRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1" />
@@ -316,31 +342,17 @@ export default function App() {
                  </motion.div>
 
                  <div className="space-y-8">
-                    <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
-                        Стена Единства
-                    </h2>
-
+                    <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Стена Единства</h2>
                     {publicPrayers.length === 0 && (
                         <div className={`text-center py-10 opacity-40 ${theme.text}`}>
                             <p className="font-light text-lg">Здесь пока тихо...</p>
                         </div>
                     )}
-
                     {publicPrayers.map(p => (
                         <PrayerCard 
-                            key={p.id} 
-                            prayer={p} 
-                            user={user} 
-                            isAdmin={isAdmin} 
-                            theme={theme}
-                            onLike={toggleLike}
-                            onDelete={deletePrayer}
-                            onEdit={saveEdit}
-                            onComment={addComment}
-                            activeCommentId={commentingId}
-                            setCommentingId={setCommentingId}
-                            activeEditId={editingId}
-                            setEditingId={setEditingId}
+                            key={p.id} prayer={p} user={user} isAdmin={isAdmin} theme={theme}
+                            onLike={toggleLike} onDelete={deletePrayer} onEdit={saveEdit} onComment={addComment}
+                            activeCommentId={commentingId} setCommentingId={setCommentingId} activeEditId={editingId} setEditingId={setEditingId}
                         />
                     ))}
                  </div>
@@ -349,39 +361,20 @@ export default function App() {
 
          {activeTab === 'feed' && feedFilter === 'diary' && (
             <div className="space-y-8">
-                <button 
-                    onClick={()=>setShowAddModal(true)} 
-                    className={`w-full py-6 rounded-[2rem] border border-white/20 shadow-xl flex items-center justify-center gap-3 font-medium text-lg transition-transform active:scale-95 ${theme.card} ${theme.text}`}
-                >
-                    <Plus size={24} />
-                    Создать запись
+                <button onClick={()=>setShowAddModal(true)} className={`w-full py-6 rounded-[2rem] border border-white/20 shadow-xl flex items-center justify-center gap-3 font-medium text-lg transition-transform active:scale-95 ${theme.card} ${theme.text}`}>
+                    <Plus size={24} /> Создать запись
                 </button>
-
-                <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>
-                    Мой Дневник
-                </h2>
-
+                <h2 className={`text-2xl font-light tracking-wide px-2 opacity-80 ${theme.text}`}>Мой Дневник</h2>
                 {myPrayers.length === 0 && (
                     <div className={`text-center py-20 opacity-40 ${theme.text}`}>
                         <p className="font-light text-lg">Ваш дневник пуст.</p>
                     </div>
                 )}
-
                 {myPrayers.map(p => (
                     <PrayerCard 
-                        key={p.id} 
-                        prayer={p} 
-                        user={user} 
-                        isAdmin={isAdmin} 
-                        theme={theme}
-                        onLike={toggleLike}
-                        onDelete={deletePrayer}
-                        onEdit={saveEdit}
-                        onComment={addComment}
-                        activeCommentId={commentingId}
-                        setCommentingId={setCommentingId}
-                        activeEditId={editingId}
-                        setEditingId={setEditingId}
+                        key={p.id} prayer={p} user={user} isAdmin={isAdmin} theme={theme}
+                        onLike={toggleLike} onDelete={deletePrayer} onEdit={saveEdit} onComment={addComment}
+                        activeCommentId={commentingId} setCommentingId={setCommentingId} activeEditId={editingId} setEditingId={setEditingId}
                     />
                 ))}
             </div>
@@ -415,7 +408,6 @@ export default function App() {
       </main>
 
       <MusicPlayer theme={theme} />
-
       <AddModal isOpen={showAddModal} onClose={()=>setShowAddModal(false)} onAdd={handleAdd} theme={theme} />
       <FeedbackModal isOpen={showFeedback} onClose={()=>setShowFeedback(false)} theme={theme} />
       <RulesModal isOpen={showDisclaimer} onClose={()=>setShowDisclaimer(false)} theme={theme} />
@@ -423,9 +415,9 @@ export default function App() {
   );
 }
 
-// --- AUTH SCREEN (LOGIN/PASS ONLY) ---
+// --- AUTH SCREEN ---
 
-function AuthScreen({ theme, onShowRules, loading }) {
+function AuthScreen({ theme, onShowRules }) {
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -434,9 +426,7 @@ function AuthScreen({ theme, onShowRules, loading }) {
     const handleAuth = async (e) => {
         e.preventDefault();
         setError('');
-        // Создаем технический email: login + @amen.internal
         const fakeEmail = `${username.toLowerCase().replace(/\s/g, '')}@amen.internal`;
-        
         try {
             if (isLogin) {
                 await signInWithEmailAndPassword(auth, fakeEmail, password);
@@ -446,9 +436,9 @@ function AuthScreen({ theme, onShowRules, loading }) {
             }
         } catch (err) {
             if (err.code === 'auth/invalid-credential') setError('Неверный логин или пароль');
-            else if (err.code === 'auth/email-already-in-use') setError('Этот логин уже занят');
-            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой (мин. 6 символов)');
-            else setError('Ошибка входа. Проверьте данные.');
+            else if (err.code === 'auth/email-already-in-use') setError('Логин занят');
+            else if (err.code === 'auth/weak-password') setError('Пароль слишком простой');
+            else setError(err.message);
         }
     };
 
@@ -460,63 +450,36 @@ function AuthScreen({ theme, onShowRules, loading }) {
             <div className="relative z-10 flex flex-col items-center text-center w-full max-w-sm">
                 <h1 className="text-7xl font-thin mb-4 tracking-[0.2em] uppercase opacity-90">Amen</h1>
                 <p className="text-sm font-light mb-12 opacity-60 tracking-[0.3em] uppercase">Пространство тишины</p>
-                
                 <form onSubmit={handleAuth} className="w-full space-y-4 backdrop-blur-2xl bg-white/10 p-8 rounded-[2rem] border border-white/10 shadow-2xl">
                     <div className="space-y-4">
                         <div className="relative">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
-                            <input 
-                                type="text" 
-                                placeholder="Придумайте логин" 
-                                value={username}
-                                onChange={e => setUsername(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
-                            />
+                            <input type="text" placeholder="Логин" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"/>
                         </div>
                         <div className="relative">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 opacity-50" size={18}/>
-                            <input 
-                                type="password" 
-                                placeholder="Пароль" 
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"
-                            />
+                            <input type="password" placeholder="Пароль" value={password} onChange={e => setPassword(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder:opacity-30 outline-none focus:border-white/30 transition-colors"/>
                         </div>
                     </div>
-
                     {error && <p className="text-red-300 text-xs mt-2">{error}</p>}
-
                     <button className="w-full py-4 rounded-xl bg-white text-black font-bold text-sm uppercase tracking-widest hover:bg-gray-200 transition-all mt-6 shadow-lg">
                         {isLogin ? 'Войти' : 'Создать аккаунт'}
                     </button>
                 </form>
-
                 <div className="mt-8 flex flex-col gap-4 text-xs opacity-60 uppercase tracking-widest">
                     <button onClick={() => setIsLogin(!isLogin)} className="hover:opacity-100 transition-opacity">
                         {isLogin ? 'Нет аккаунта? Создать' : 'Уже есть? Войти'}
                     </button>
-                    
                     <div className="w-10 h-px bg-white/20 mx-auto my-2"/>
-                    
-                    <button onClick={() => signInAnonymously(auth)} className="hover:opacity-100 transition-opacity">
-                        Войти как гость
-                    </button>
+                    <button onClick={() => signInAnonymously(auth)} className="hover:opacity-100 transition-opacity">Войти как гость</button>
                 </div>
-
                 <button onClick={onShowRules} className="mt-12 text-[9px] opacity-30 hover:opacity-70 uppercase tracking-widest">Правила</button>
             </div>
         </div>
     );
 }
 
-function MenuLink({ label, onClick }) {
-    return (
-        <button onClick={onClick} className="w-full text-left p-5 text-2xl font-thin hover:pl-8 transition-all border-b border-white/5 tracking-wide">
-            {label}
-        </button>
-    )
-}
+function MenuLink({ label, onClick }) { return <button onClick={onClick} className="w-full text-left p-5 text-2xl font-thin hover:pl-8 transition-all border-b border-white/5 tracking-wide">{label}</button> }
 
 function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, onComment, activeCommentId, setCommentingId, activeEditId, setEditingId }) {
     const isEditing = activeEditId === prayer.id;
@@ -528,50 +491,27 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
         <motion.div initial={{y:10, opacity:0}} animate={{y:0, opacity:1}} className={`p-8 rounded-[2rem] border backdrop-blur-3xl shadow-lg ${theme.card} ${theme.border}`}>
             <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm ${theme.btn}`}>
-                        {prayer.authorName?.[0]?.toUpperCase() || "A"}
-                    </div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm text-white shadow-sm ${theme.btn}`}>{prayer.authorName?.[0]?.toUpperCase() || "A"}</div>
                     <div>
                         <h3 className={`font-medium text-sm ${theme.text}`}>{prayer.authorName}</h3>
-                        <div className="flex gap-2 text-[10px] opacity-40 uppercase font-bold tracking-widest mt-1">
-                            <span>{prayer.type === 'miracle' ? 'Чудо' : 'Молитва'}</span>
-                        </div>
+                        <div className="flex gap-2 text-[10px] opacity-40 uppercase font-bold tracking-widest mt-1"><span>{prayer.type === 'miracle' ? 'Чудо' : 'Молитва'}</span></div>
                     </div>
                 </div>
-                
                 <div className="flex gap-4 opacity-40">
-                    {prayer.userId === user.uid && (
-                        <button onClick={()=>{setEditingId(isEditing ? null : prayer.id); setEditText(prayer.text)}} className={`${theme.text} hover:opacity-100`}>
-                            <Edit2 size={16} strokeWidth={1.5}/>
-                        </button>
-                    )}
-                    {(prayer.userId === user.uid || isAdmin) && (
-                        <button onClick={()=>onDelete(prayer.id)} className="text-red-400 hover:text-red-500 hover:opacity-100"><Trash2 size={16} strokeWidth={1.5}/></button>
-                    )}
+                    {prayer.userId === user.uid && <button onClick={()=>{setEditingId(isEditing ? null : prayer.id); setEditText(prayer.text)}} className={`${theme.text} hover:opacity-100`}><Edit2 size={16} strokeWidth={1.5}/></button>}
+                    {(prayer.userId === user.uid || isAdmin) && <button onClick={()=>onDelete(prayer.id)} className="text-red-400 hover:text-red-500 hover:opacity-100"><Trash2 size={16} strokeWidth={1.5}/></button>}
                 </div>
             </div>
-
             {isEditing ? (
                 <div className="mb-4">
                     <textarea value={editText} onChange={e=>setEditText(e.target.value)} className={`w-full p-4 rounded-xl bg-black/5 outline-none ${theme.text}`} rows={4}/>
                     <button onClick={()=>onEdit(prayer.id, editText)} className="mt-3 px-6 py-2 bg-green-500/10 text-green-600 rounded-lg text-xs font-bold uppercase tracking-widest">Сохранить</button>
                 </div>
-            ) : (
-                <p className={`text-lg font-light leading-relaxed mb-8 whitespace-pre-wrap ${theme.textDim || theme.text}`}>{prayer.text}</p>
-            )}
-
+            ) : (<p className={`text-lg font-light leading-relaxed mb-8 whitespace-pre-wrap ${theme.textDim || theme.text}`}>{prayer.text}</p>)}
             <div className="flex gap-6 pt-6 border-t border-current/10">
-                <button onClick={()=>onLike(prayer.id, prayer.likes||[])} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent ${prayer.likes?.includes(user.uid) ? 'bg-rose-500/10 text-rose-500' : 'hover:bg-black/5 opacity-50'} ${theme.text}`}>
-                    <Heart size={18} strokeWidth={1.5} className={prayer.likes?.includes(user.uid) ? "fill-current" : ""}/>
-                    <span className="text-xs font-medium">{prayer.amens || 0}</span>
-                </button>
-                
-                <button onClick={()=>setCommentingId(isCommenting ? null : prayer.id)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent hover:bg-black/5 opacity-50 ${theme.text}`}>
-                    <MessageCircle size={18} strokeWidth={1.5}/>
-                    <span className="text-xs font-medium">{prayer.comments?.length || 0}</span>
-                </button>
+                <button onClick={()=>onLike(prayer.id, prayer.likes||[])} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent ${prayer.likes?.includes(user.uid) ? 'bg-rose-500/10 text-rose-500' : 'hover:bg-black/5 opacity-50'} ${theme.text}`}><Heart size={18} strokeWidth={1.5} className={prayer.likes?.includes(user.uid) ? "fill-current" : ""}/><span className="text-xs font-medium">{prayer.amens || 0}</span></button>
+                <button onClick={()=>setCommentingId(isCommenting ? null : prayer.id)} className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all active:scale-95 border border-transparent hover:bg-black/5 opacity-50 ${theme.text}`}><MessageCircle size={18} strokeWidth={1.5}/><span className="text-xs font-medium">{prayer.comments?.length || 0}</span></button>
             </div>
-
             <AnimatePresence>
                 {isCommenting && (
                     <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden mt-6 pt-6 border-t border-current/5">
@@ -581,10 +521,7 @@ function PrayerCard({ prayer, user, isAdmin, theme, onLike, onDelete, onEdit, on
                         </div>
                         <div className="space-y-4 pl-2">
                             {prayer.comments?.map((c, i) => (
-                                <div key={i} className={`text-sm ${theme.text}`}>
-                                    <span className="font-bold opacity-50 block mb-1 text-xs">{c.author}</span>
-                                    <span className="opacity-80 font-light">{c.text}</span>
-                                </div>
+                                <div key={i} className={`text-sm ${theme.text}`}><span className="font-bold opacity-50 block mb-1 text-xs">{c.author}</span><span className="opacity-80 font-light">{c.text}</span></div>
                             ))}
                         </div>
                     </motion.div>
@@ -600,32 +537,22 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
     const [privacy, setPrivacy] = useState('public');
     const [anon, setAnon] = useState(false);
     const [status, setStatus] = useState('idle');
-    
     if(!isOpen) return null;
-
     const handleSubmit = async () => {
         setStatus('sending');
         setTimeout(async () => {
             await onAdd(text, type, privacy, anon);
             setStatus('success');
-            setTimeout(() => {
-                setStatus('idle');
-                setText('');
-                onClose();
-            }, 2000);
+            setTimeout(() => { setStatus('idle'); setText(''); onClose(); }, 2000);
         }, 1500);
     };
-    
     return (
         <>
         <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-md" onClick={onClose}/>
         <motion.div initial={{y:'100%'}} animate={{y:0}} className={`fixed bottom-0 left-0 right-0 z-[70] rounded-t-[2.5rem] p-10 border-t border-white/20 shadow-2xl ${theme.card} ${theme.text}`}>
-            
             {status === 'success' ? (
                 <div className="h-64 flex flex-col items-center justify-center text-center">
-                    <motion.div initial={{scale:0}} animate={{scale:1}} className="mb-4 text-green-500">
-                        <CheckCircle2 size={64} strokeWidth={1}/>
-                    </motion.div>
+                    <motion.div initial={{scale:0}} animate={{scale:1}} className="mb-4 text-green-500"><CheckCircle2 size={64} strokeWidth={1}/></motion.div>
                     <h3 className="text-2xl font-thin tracking-widest uppercase">Услышано</h3>
                 </div>
             ) : status === 'sending' ? (
@@ -636,27 +563,17 @@ function AddModal({ isOpen, onClose, onAdd, theme }) {
             ) : (
                 <>
                     <h3 className="text-xl font-light mb-8 tracking-widest uppercase opacity-70">Новая запись</h3>
-                    
                     <div className="flex gap-4 mb-6 text-sm">
                         <button onClick={()=>setType('prayer')} className={`flex-1 py-4 rounded-2xl border transition-colors ${type==='prayer' ? 'border-current opacity-100 font-medium' : 'border-current/10 opacity-40'}`}>Молитва</button>
                         <button onClick={()=>setType('miracle')} className={`flex-1 py-4 rounded-2xl border transition-colors ${type==='miracle' ? 'border-current opacity-100 font-medium' : 'border-current/10 opacity-40'}`}>Чудо</button>
                     </div>
-
                     <div className="flex gap-4 mb-8 text-xs">
-                        <button onClick={()=>setPrivacy('public')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='public' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>
-                            На стену
-                        </button>
-                        <button onClick={()=>setPrivacy('private')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='private' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>
-                            В дневник
-                        </button>
+                        <button onClick={()=>setPrivacy('public')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='public' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>На стену</button>
+                        <button onClick={()=>setPrivacy('private')} className={`flex items-center justify-center gap-2 flex-1 py-3 rounded-xl border ${privacy==='private' ? 'bg-current/5 border-current/20' : 'border-transparent opacity-30'}`}>В дневник</button>
                     </div>
-
                     <textarea value={text} onChange={e=>setText(e.target.value)} placeholder="О чем болит сердце?" className="w-full h-40 bg-transparent rounded-xl p-0 resize-none outline-none text-xl font-light mb-8 placeholder:opacity-20 border-none"/>
-                    
                     <div className="flex justify-between items-center border-t border-current/10 pt-6">
-                        <button onClick={()=>setAnon(!anon)} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs transition-opacity ${anon ? 'opacity-100' : 'opacity-30'}`}>
-                            {anon ? "Анонимно" : "От имени"}
-                        </button>
+                        <button onClick={()=>setAnon(!anon)} className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs transition-opacity ${anon ? 'opacity-100' : 'opacity-30'}`}>{anon ? "Анонимно" : "От имени"}</button>
                         <button onClick={handleSubmit} disabled={!text.trim()} className={`px-10 py-4 rounded-2xl font-bold shadow-lg text-sm tracking-widest uppercase ${theme.btn} disabled:opacity-50`}>Amen</button>
                     </div>
                 </>
