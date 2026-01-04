@@ -58,10 +58,10 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// --- ТЕМЫ (МИНИМАЛИСТИЧНЫЕ НАЗВАНИЯ) ---
+// --- ТЕМЫ ---
 const THEMES = {
   dawn: { 
-    id: 'dawn', label: 'Воздух', bgImage: '/dawn.jpg', // Было Рассвет
+    id: 'dawn', label: 'Воздух', bgImage: '/dawn.jpg', 
     fallbackColor: '#fff7ed', 
     cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-900', subText: 'text-stone-600', 
@@ -71,7 +71,7 @@ const THEMES = {
     menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
   },
   morning: { 
-    id: 'morning', label: 'Свет', bgImage: '/morning.jpg', // Было Утро
+    id: 'morning', label: 'Свет', bgImage: '/morning.jpg', 
     fallbackColor: '#f0f9ff', 
     cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-slate-900', subText: 'text-slate-600', 
@@ -81,7 +81,7 @@ const THEMES = {
     menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
   },
   day: { 
-    id: 'day', label: 'Песок', bgImage: '/day.jpg', // Было День
+    id: 'day', label: 'Песок', bgImage: '/day.jpg', 
     fallbackColor: '#fdfce7', 
     cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-950', subText: 'text-stone-700', 
@@ -91,7 +91,7 @@ const THEMES = {
     menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
   },
   sunset: { 
-    id: 'sunset', label: 'Тепло', bgImage: '/sunset.jpg', // Было Закат
+    id: 'sunset', label: 'Тепло', bgImage: '/sunset.jpg', 
     fallbackColor: '#fff1f2', 
     cardBg: 'bg-[#fff1f2]/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-rose-950', subText: 'text-rose-800', 
@@ -101,7 +101,7 @@ const THEMES = {
     menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/20'
   },
   evening: { 
-    id: 'evening', label: 'Глубина', bgImage: '/evening.jpg', // Было Вечер
+    id: 'evening', label: 'Глубина', bgImage: '/evening.jpg', 
     fallbackColor: '#f5f3ff', 
     cardBg: 'bg-[#2e1065]/30 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-white', subText: 'text-purple-200', 
@@ -111,7 +111,7 @@ const THEMES = {
     menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10'
   },
   midnight: { 
-    id: 'midnight', label: 'Тишина', bgImage: '/midnight.jpg', // Было Полночь
+    id: 'midnight', label: 'Тишина', bgImage: '/midnight.jpg', 
     fallbackColor: '#020617', 
     cardBg: 'bg-black/30 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-slate-100', subText: 'text-slate-400', 
@@ -236,7 +236,6 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
   );
 };
 
-// Меню: узкое, вертикальное, темы в модальном окне
 const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [
@@ -261,7 +260,6 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) =>
                 animate={{ x: 0 }} 
                 exit={{ x: "100%" }} 
                 transition={{ type: "tween", duration: 0.3 }} 
-                // w-64 - делаем меню уже
                 className={`fixed top-0 right-0 bottom-0 z-50 w-64 p-8 shadow-2xl flex flex-col justify-between ${theme.menuBg}`}
             >
               <div className="mt-20 flex flex-col items-start gap-8">
@@ -271,7 +269,6 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) =>
                   </button>
                 ))}
                 
-                {/* Выбор темы */}
                 <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide opacity-40 hover:opacity-100 flex items-center gap-3">
                     <ImageIcon size={18}/> Атмосфера
                 </button>
@@ -375,15 +372,23 @@ const App = () => {
 
     const title = e.target.elements.title?.value || "Молитва";
     const text = e.target.elements.text.value;
-    const isPublic = source === "focus" ? focusPrayerPublic : e.target.elements.pub?.checked;
+    
+    // ИСПОЛЬЗУЕМ СОСТОЯНИЕ ПЕРЕКЛЮЧАТЕЛЯ
+    const isPublic = focusPrayerPublic; 
     
     const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [] };
     
+    // Всегда сохраняем в личный дневник
     await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data);
     
+    // Если публично - добавляем в ленту
     if(isPublic) {
       await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), {
-        text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: []
+        text: title + (text ? `\n\n${text}` : ""), 
+        authorId: user.uid, 
+        authorName: user.displayName || "Пилигрим", 
+        createdAt: serverTimestamp(), 
+        likes: []
       });
     }
 
@@ -392,6 +397,7 @@ const App = () => {
         setShowCreateModal(false);
         setShowSuccessModal(true);
         e.target.reset();
+        setFocusPrayerPublic(false); // Сброс
         setTimeout(() => setShowSuccessModal(false), 2000);
     }, 1500);
   };
@@ -482,7 +488,6 @@ const App = () => {
                    </button>
                 </Card>
 
-                {/* РАЗДЕЛИТЕЛЬ ДЛЯ ЕДИНСТВА */}
                 <div className="flex items-center justify-center my-8 opacity-40">
                     <div className="h-px bg-current w-16"></div>
                     <span className="mx-4 text-[10px] uppercase tracking-[0.3em] font-bold">Единство</span>
@@ -575,7 +580,6 @@ const App = () => {
 
                         <ActivityCalendar prayers={myPrayers} theme={theme} />
 
-                        {/* НАВИГАТОР ПО ФУНКЦИЯМ */}
                         <div className="text-left max-w-xs mx-auto space-y-6 mt-12 mb-20 opacity-60 px-4">
                             <div className="flex gap-4 items-start">
                                 <div className="mt-1"><Compass size={16}/></div>
@@ -602,7 +606,6 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} />
 
-        {/* --- CREATE MODAL --- */}
         <AnimatePresence>
         {showCreateModal && (
             <>
@@ -643,7 +646,6 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* --- THEME MODAL --- */}
         <AnimatePresence>
             {showThemeModal && (
                 <>
@@ -672,7 +674,6 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- LEGAL MODAL --- */}
         <AnimatePresence>
             {showLegalModal && (
                 <>
@@ -688,7 +689,6 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- SUCCESS MODAL --- */}
         <AnimatePresence>
             {showSuccessModal && (
                 <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="fixed inset-0 z-[60] flex items-center justify-center p-8 pointer-events-none">
