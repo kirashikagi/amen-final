@@ -19,14 +19,16 @@ import {
   doc, 
   getDoc,
   query, 
+  where,
   orderBy, 
   limit, 
+  getDocs,
   onSnapshot, 
   serverTimestamp, 
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -39,7 +41,8 @@ const firebaseConfig = {
 };
 
 const dbCollectionId = "amen-production"; 
-const ADMIN_NAMES = ['Admin', 'Founder', 'admin', 'founder'];
+// ДОБАВЬТЕ СЮДА СВОЕ ИМЯ ТОЧНО КАК В ПРОФИЛЕ, ЧТОБЫ ВИДЕТЬ АДМИНКУ
+const ADMIN_NAMES = ['Admin', 'Founder', 'admin', 'founder', 'Киря'];
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -127,6 +130,7 @@ const FALLBACK_READINGS = {
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
+// --- TEXTS ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
@@ -235,7 +239,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
   );
 };
 
-const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) => {
+const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAdmin }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [
     { id: 'diary', label: 'ДНЕВНИК' },
@@ -271,6 +275,13 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) =>
                 <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide opacity-40 hover:opacity-100 flex items-center gap-3">
                     <ImageIcon size={18}/> Атмосфера
                 </button>
+
+                {/* АДМИНСКАЯ КНОПКА ВХОДЯЩИЕ */}
+                {isAdmin && (
+                    <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide text-orange-600 hover:text-orange-700 flex items-center gap-3">
+                        <Mail size={18}/> Входящие
+                    </button>
+                )}
               </div>
               
               <div className="mb-8 flex flex-col items-start gap-6">
@@ -302,12 +313,16 @@ const App = () => {
   const [myPrayers, setMyPrayers] = useState([]);
   const [publicPosts, setPublicPosts] = useState([]);
   const [dailyVerse, setDailyVerse] = useState(null);
+  const [feedbacks, setFeedbacks] = useState([]);
 
+  // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isAmenAnimating, setIsAmenAnimating] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [showAnswerModal, setShowAnswerModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false); // Для отправки отзыва
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isAmenAnimating, setIsAmenAnimating] = useState(false);
 
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -315,6 +330,16 @@ const App = () => {
   
   const [diaryTab, setDiaryTab] = useState('active'); 
   const [newName, setNewName] = useState('');
+
+  // States for Editing and Answering
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ title: '', text: '' });
+  const [noteText, setNoteText] = useState('');
+  const [answeringId, setAnsweringId] = useState(null);
+  const [answerText, setAnswerText] = useState('');
+  const [feedbackText, setFeedbackText] = useState('');
+
+  const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
 
   useEffect(() => {
     localStorage.setItem('amen-theme-id', currentThemeId);
@@ -340,8 +365,15 @@ const App = () => {
       if(u) setNewName(u.displayName || "");
   }), []);
 
+  // Sync Data
   useEffect(() => { if (!user) return; return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), orderBy('createdAt', 'desc')), snap => setMyPrayers(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, [user]);
   useEffect(() => { return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), orderBy('createdAt', 'desc'), limit(50)), snap => setPublicPosts(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, []);
+  
+  // Sync Admin Feedback
+  useEffect(() => {
+    if (view !== 'admin_feedback' || !isAdmin) return;
+    return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), orderBy('createdAt', 'desc')), snap => setFeedbacks(snap.docs.map(d => ({id: d.id, ...d.data()}))));
+  }, [view, isAdmin]);
 
   const handleLogin = async (e) => {
     e.preventDefault(); setAuthError(''); setIsAuthLoading(true);
@@ -365,29 +397,22 @@ const App = () => {
       await updateProfile(user, { displayName: newName });
   };
 
+  // --- ACTIONS ---
+
   const handleAmen = async (e, source = "manual") => {
     e.preventDefault();
     setIsAmenAnimating(true);
 
     const title = e.target.elements.title?.value || "Молитва";
     const text = e.target.elements.text.value;
-    
-    // ИСПОЛЬЗУЕМ СОСТОЯНИЕ ПЕРЕКЛЮЧАТЕЛЯ
     const isPublic = focusPrayerPublic; 
     
     const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [] };
-    
-    // Всегда сохраняем в личный дневник
     await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data);
     
-    // Если публично - добавляем в ленту
     if(isPublic) {
       await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), {
-        text: title + (text ? `\n\n${text}` : ""), 
-        authorId: user.uid, 
-        authorName: user.displayName || "Пилигрим", 
-        createdAt: serverTimestamp(), 
-        likes: []
+        text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: []
       });
     }
 
@@ -396,7 +421,7 @@ const App = () => {
         setShowCreateModal(false);
         setShowSuccessModal(true);
         e.target.reset();
-        setFocusPrayerPublic(false); // Сброс
+        setFocusPrayerPublic(false);
         setTimeout(() => setShowSuccessModal(false), 2000);
     }, 1500);
   };
@@ -406,11 +431,82 @@ const App = () => {
     await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) });
   };
 
-  const markAsAnswered = async (prayerId) => {
+  const startEditing = (p) => {
+      setEditingId(p.id);
+      setEditForm({ title: p.title, text: p.text });
+  };
+
+  const saveEdit = async () => {
+      if(!editForm.title.trim()) return;
+      await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', editingId), {
+          title: editForm.title,
+          text: editForm.text
+      });
+      setEditingId(null);
+  };
+
+  const addNote = async (prayerId) => {
+      if(!noteText.trim()) return;
       await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', prayerId), {
+          updates: arrayUnion({ text: noteText, createdAt: new Date().toISOString() })
+      });
+      setNoteText('');
+  };
+
+  const openAnswerModal = (prayerId) => {
+      setAnsweringId(prayerId);
+      setAnswerText('');
+      setShowAnswerModal(true);
+  };
+
+  const confirmAnswer = async () => {
+      if(!answeringId) return;
+      await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', answeringId), {
           status: 'answered',
+          answerNote: answerText,
           answeredAt: serverTimestamp()
       });
+
+      const prayer = myPrayers.find(p => p.id === answeringId);
+      if(prayer) {
+          const q = query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), where('authorId', '==', user.uid));
+          const querySnapshot = await getDocs(q);
+          querySnapshot.forEach(async (docSnap) => {
+              const postData = docSnap.data();
+              if (postData.text.startsWith(prayer.title)) {
+                  await updateDoc(docSnap.ref, { status: 'answered' });
+              }
+          });
+      }
+      setShowAnswerModal(false);
+      setAnsweringId(null);
+  };
+
+  // --- ADMIN ACTIONS ---
+  const deletePost = async (id) => {
+      if(confirm("Админ: Удалить пост с концами?")) {
+          await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id));
+      }
+  };
+
+  const deleteFeedback = async (id) => {
+      if(confirm("Админ: Удалить отзыв?")) {
+          await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id));
+      }
+  };
+
+  // --- FEEDBACK ACTIONS ---
+  const sendFeedback = async () => {
+      if(!feedbackText.trim()) return;
+      await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), {
+          text: feedbackText,
+          userId: user.uid,
+          userName: user.displayName,
+          createdAt: serverTimestamp()
+      });
+      setFeedbackText('');
+      setShowFeedbackModal(false);
+      alert("Отправлено!");
   };
 
   if (loading || !dailyVerse) return <div className="h-screen bg-[#f4f5f0] flex items-center justify-center text-stone-400 font-light italic">Amen...</div>;
@@ -446,7 +542,14 @@ const App = () => {
             openThemeModal={() => setShowThemeModal(true)}
             openLegal={() => setShowLegalModal(true)}
             logout={() => signOut(auth)} 
+            isAdmin={isAdmin}
         />
+
+        {view !== 'profile' && (
+             <div className="pt-28 pb-4 px-8 text-center">
+                <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+             </div>
+        )}
 
         <main className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar">
           <AnimatePresence mode="wait">
@@ -454,33 +557,22 @@ const App = () => {
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
                 
-                {/* ЗАГОЛОВОК ТЕПЕРЬ ВНУТРИ ПОТОКА, ЧТОБЫ СКРОЛЛИЛСЯ */}
-                <div className="pt-28 text-center">
-                    <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
-                </div>
-
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
-                   
                    <div className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-50 mb-8">Фокус дня</div>
-                   
                    <h2 className="text-3xl font-normal leading-tight mb-6 px-2 font-serif">{dailyVerse.title}</h2>
-                   
                    <div className="mb-8 px-2 relative">
                        <span className="text-4xl absolute -top-4 -left-2 opacity-10 font-serif">“</span>
                        <p className="text-lg font-serif italic leading-relaxed opacity-90 relative z-10">{dailyVerse.text}</p>
                        <span className="text-4xl absolute -bottom-8 -right-2 opacity-10 font-serif">”</span>
                    </div>
-                   
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
-                   
                    <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
                            <p className="text-sm font-medium leading-relaxed opacity-90">{dailyVerse.thought}</p>
                        </div>
                    </div>
-
                    <button onClick={() => setShowCreateModal(true)} className={`w-full py-4 text-xs font-bold uppercase tracking-[0.2em] transition rounded-xl ${theme.button}`}>
                        {dailyVerse.action}
                    </button>
@@ -495,17 +587,29 @@ const App = () => {
                 <div className="space-y-4">
                     {publicPosts.map(post => {
                          const liked = post.likes?.includes(user.uid);
+                         const isAnswered = post.status === 'answered';
                          return (
-                             <Card key={post.id} theme={theme} className="!p-6">
+                             <Card key={post.id} theme={theme} className="!p-6 relative">
                                  <div className="flex justify-between mb-4 opacity-40 text-[10px] uppercase tracking-widest font-medium">
                                      <span>{post.authorName}</span>
-                                     <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
+                                     <div className="flex gap-2">
+                                        {isAnswered && <span className="text-emerald-600 font-bold flex items-center gap-1"><CheckCircle2 size={10}/> Чудо</span>}
+                                        <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
+                                     </div>
                                  </div>
                                  <p className="mb-6 text-base font-light leading-relaxed whitespace-pre-wrap opacity-95">{post.text}</p>
+                                 
                                  <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl flex items-center justify-center gap-2 ${liked ? theme.activeButton : theme.button}`}>
                                      {liked ? "AMEN" : "AMEN"}
                                      {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
                                  </button>
+
+                                 {/* ADMIN MODERATION BUTTON */}
+                                 {isAdmin && (
+                                     <button onClick={() => deletePost(post.id)} className="absolute top-4 right-4 text-red-400 opacity-50 hover:opacity-100">
+                                         <Trash2 size={16} />
+                                     </button>
+                                 )}
                              </Card>
                          );
                      })}
@@ -515,10 +619,6 @@ const App = () => {
 
             {view === 'diary' && (
                 <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6">
-                    <div className="pt-28 text-center mb-4">
-                        <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
-                    </div>
-
                     <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg}`}>
                         <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
                         <button onClick={() => setDiaryTab('active')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-40'}`}>Текущие</button>
@@ -542,21 +642,83 @@ const App = () => {
                             <Card key={p.id} theme={theme}>
                                 <div className="flex justify-between items-start mb-3">
                                     <span className="text-[10px] font-medium uppercase tracking-wider opacity-40">{p.createdAt?.toDate().toLocaleDateString()}</span>
-                                    {p.status === 'answered' && <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={12}/> Ответ</span>}
+                                    {p.status === 'answered' ? (
+                                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={12}/> Ответ</span>
+                                    ) : (
+                                        <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
+                                    )}
                                 </div>
-                                <h3 className="text-lg font-medium mb-2 leading-tight">{p.title}</h3>
-                                <p className="text-sm font-light opacity-90 whitespace-pre-wrap leading-relaxed mb-6">{p.text}</p>
+
+                                {editingId === p.id ? (
+                                    <div className="mb-4 space-y-2">
+                                        <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-lg font-medium`} />
+                                        <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-sm h-20 resize-none`} />
+                                        <div className="flex justify-end gap-3 pt-2">
+                                            <button onClick={() => setEditingId(null)} className="text-[10px] uppercase opacity-50">Отмена</button>
+                                            <button onClick={saveEdit} className="text-[10px] uppercase font-bold">Сохранить</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h3 className="text-lg font-medium mb-2 leading-tight">{p.title}</h3>
+                                        <p className="text-sm font-light opacity-90 whitespace-pre-wrap leading-relaxed mb-6">{p.text}</p>
+                                    </>
+                                )}
+
+                                {p.updates && p.updates.length > 0 && (
+                                    <div className="mb-6 space-y-3 border-l-2 border-current border-opacity-10 pl-4">
+                                        {p.updates.map((u, i) => (
+                                            <div key={i} className="text-xs opacity-70">
+                                                <p>{u.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {p.status === 'answered' && p.answerNote && (
+                                    <div className="bg-emerald-500/10 p-4 rounded-xl mb-4 border border-emerald-500/20">
+                                        <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest mb-2">Свидетельство</p>
+                                        <p className="text-sm text-emerald-900 leading-relaxed">{p.answerNote}</p>
+                                    </div>
+                                )}
+                                
                                 <div className="pt-4 border-t border-current border-opacity-10 flex justify-between items-center">
                                     <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-[10px] text-red-400 opacity-50 hover:opacity-100 uppercase tracking-widest transition">Удалить</button>
-                                    {p.status !== 'answered' && (
-                                        <button onClick={() => markAsAnswered(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
-                                            <CheckCircle2 size={14}/> Это отвечено
-                                        </button>
-                                    )}
+                                    
+                                    {p.status !== 'answered' ? (
+                                        <div className="flex gap-3">
+                                            <div className="flex items-center gap-2">
+                                                <input value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Заметка..." className="bg-transparent text-xs outline-none w-20 border-b border-current border-opacity-20" />
+                                                <button onClick={() => addNote(p.id)} className="opacity-50 hover:opacity-100"><Plus size={14}/></button>
+                                            </div>
+                                            <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
+                                                <CheckCircle2 size={14}/> Это отвечено
+                                            </button>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </Card>
                         ))}
                     </div>
+                </motion.div>
+            )}
+
+            {view === 'admin_feedback' && isAdmin && (
+                <motion.div key="admin_feedback" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-4 pt-28">
+                     <h2 className="text-xl text-center mb-8">Входящие отзывы</h2>
+                     {feedbacks.length === 0 && <div className="text-center opacity-40 py-20">Пока пусто.</div>}
+                     {feedbacks.map(msg => (
+                         <Card key={msg.id} theme={theme} className="relative">
+                             <div className="flex justify-between mb-3 opacity-60 text-[10px] uppercase tracking-widest font-bold">
+                                 <span>{msg.userName}</span>
+                                 <span>{msg.createdAt?.toDate().toLocaleDateString()}</span>
+                             </div>
+                             <p className="mb-4 text-sm leading-relaxed whitespace-pre-wrap opacity-90">{msg.text}</p>
+                             <div className="flex justify-end">
+                                 <button onClick={() => deleteFeedback(msg.id)} className="p-2 text-red-400 bg-red-500/10 rounded-full hover:bg-red-500/20"><Trash2 size={16} /></button>
+                             </div>
+                         </Card>
+                     ))}
                 </motion.div>
             )}
 
@@ -595,6 +757,13 @@ const App = () => {
                                     </p>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* КНОПКА ОБРАТНОЙ СВЯЗИ */}
+                        <div className="mb-12">
+                            <button onClick={() => setShowFeedbackModal(true)} className="flex items-center gap-2 mx-auto text-xs opacity-50 hover:opacity-100 transition">
+                                <MessageCircle size={14} /> Написать разработчику
+                            </button>
                         </div>
                         
                         <div className="text-center opacity-30 mt-auto">
@@ -647,6 +816,57 @@ const App = () => {
             </motion.div>
             </>
         )}
+        </AnimatePresence>
+
+        {/* --- ANSWER DESCRIPTION MODAL --- */}
+        <AnimatePresence>
+            {showAnswerModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}/>
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-yellow-500/20`}>
+                    <div className="text-center mb-6">
+                        <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle2 size={24} />
+                        </div>
+                        <h3 className="text-xl font-serif">Чудо произошло?</h3>
+                    </div>
+                    <textarea 
+                        value={answerText}
+                        onChange={(e) => setAnswerText(e.target.value)}
+                        placeholder="Напиши краткое свидетельство. Как пришел ответ? Это вдохновит тебя в будущем."
+                        className={`w-full p-4 rounded-xl outline-none h-32 text-sm resize-none mb-6 ${theme.containerBg}`}
+                    />
+                    <button onClick={confirmAnswer} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest bg-yellow-600 text-white shadow-lg active:scale-95 transition`}>
+                        Подтвердить
+                    </button>
+                </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+
+        {/* --- FEEDBACK MODAL --- */}
+        <AnimatePresence>
+            {showFeedbackModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}/>
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-serif">Разработчику</h3>
+                        <button onClick={() => setShowFeedbackModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                    </div>
+                    <p className="text-xs opacity-60 mb-4 leading-relaxed">Нашли ошибку? Есть идея? Или просто хотите сказать спасибо? Я читаю всё.</p>
+                    <textarea 
+                        value={feedbackText}
+                        onChange={(e) => setFeedbackText(e.target.value)}
+                        placeholder="Ваше сообщение..."
+                        className={`w-full p-4 rounded-xl outline-none h-32 text-sm resize-none mb-6 ${theme.containerBg}`}
+                    />
+                    <button onClick={sendFeedback} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition`}>
+                        Отправить
+                    </button>
+                </motion.div>
+                </>
+            )}
         </AnimatePresence>
 
         <AnimatePresence>
