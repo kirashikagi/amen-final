@@ -128,7 +128,7 @@ const FALLBACK_READINGS = {
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 // --- TEXTS ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не собираем ваши личные данные для рекламы.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 // --- COMPONENTS ---
@@ -373,15 +373,13 @@ const App = () => {
     const title = e.target.elements.title?.value || "Молитва";
     const text = e.target.elements.text.value;
     
-    // ИСПОЛЬЗУЕМ СОСТОЯНИЕ ПЕРЕКЛЮЧАТЕЛЯ
+    // ВАЖНОЕ ИСПРАВЛЕНИЕ: БЕРЕМ ЗНАЧЕНИЕ ПЕРЕКЛЮЧАТЕЛЯ
     const isPublic = focusPrayerPublic; 
     
     const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [] };
     
-    // Всегда сохраняем в личный дневник
     await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data);
     
-    // Если публично - добавляем в ленту
     if(isPublic) {
       await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), {
         text: title + (text ? `\n\n${text}` : ""), 
@@ -397,7 +395,7 @@ const App = () => {
         setShowCreateModal(false);
         setShowSuccessModal(true);
         e.target.reset();
-        setFocusPrayerPublic(false); // Сброс
+        setFocusPrayerPublic(false);
         setTimeout(() => setShowSuccessModal(false), 2000);
     }, 1500);
   };
@@ -506,6 +504,7 @@ const App = () => {
                                  <p className="mb-6 text-base font-light leading-relaxed whitespace-pre-wrap opacity-95">{post.text}</p>
                                  <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl flex items-center justify-center gap-2 ${liked ? theme.activeButton : theme.button}`}>
                                      {liked ? "AMEN" : "AMEN"}
+                                     {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
                                  </button>
                              </Card>
                          );
@@ -514,6 +513,7 @@ const App = () => {
               </motion.div>
             )}
 
+            {/* ОСТАЛЬНЫЕ ВЬЮХИ БЕЗ ИЗМЕНЕНИЙ */}
             {view === 'diary' && (
                 <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6">
                     <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg}`}>
