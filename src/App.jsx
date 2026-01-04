@@ -127,8 +127,7 @@ const FALLBACK_READINGS = {
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
-// --- TEXTS ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не собираем ваши личные данные для рекламы.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 // --- COMPONENTS ---
@@ -373,13 +372,15 @@ const App = () => {
     const title = e.target.elements.title?.value || "Молитва";
     const text = e.target.elements.text.value;
     
-    // ВАЖНОЕ ИСПРАВЛЕНИЕ: БЕРЕМ ЗНАЧЕНИЕ ПЕРЕКЛЮЧАТЕЛЯ
+    // ИСПОЛЬЗУЕМ СОСТОЯНИЕ ПЕРЕКЛЮЧАТЕЛЯ
     const isPublic = focusPrayerPublic; 
     
     const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [] };
     
+    // Всегда сохраняем в личный дневник
     await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data);
     
+    // Если публично - добавляем в ленту
     if(isPublic) {
       await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), {
         text: title + (text ? `\n\n${text}` : ""), 
@@ -395,7 +396,7 @@ const App = () => {
         setShowCreateModal(false);
         setShowSuccessModal(true);
         e.target.reset();
-        setFocusPrayerPublic(false);
+        setFocusPrayerPublic(false); // Сброс
         setTimeout(() => setShowSuccessModal(false), 2000);
     }, 1500);
   };
@@ -447,18 +448,17 @@ const App = () => {
             logout={() => signOut(auth)} 
         />
 
-        {view !== 'profile' && (
-             <div className="pt-28 pb-4 px-8 text-center">
-                <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
-             </div>
-        )}
-
         <main className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar">
           <AnimatePresence mode="wait">
             
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
                 
+                {/* ЗАГОЛОВОК ТЕПЕРЬ ВНУТРИ ПОТОКА, ЧТОБЫ СКРОЛЛИЛСЯ */}
+                <div className="pt-28 text-center">
+                    <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                </div>
+
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
                    
@@ -513,9 +513,12 @@ const App = () => {
               </motion.div>
             )}
 
-            {/* ОСТАЛЬНЫЕ ВЬЮХИ БЕЗ ИЗМЕНЕНИЙ */}
             {view === 'diary' && (
                 <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6">
+                    <div className="pt-28 text-center mb-4">
+                        <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                    </div>
+
                     <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg}`}>
                         <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
                         <button onClick={() => setDiaryTab('active')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-40'}`}>Текущие</button>
