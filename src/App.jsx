@@ -26,7 +26,7 @@ import {
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronDown, ChevronUp } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -58,12 +58,12 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// --- ТЕМЫ (Границы стали тоньше: border-white/20) ---
+// --- ТЕМЫ ---
 const THEMES = {
   dawn: { 
     id: 'dawn', label: 'Рассвет', bgImage: '/dawn.jpg', 
     fallbackColor: '#fff7ed', 
-    cardBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl shadow-sm border border-white/30', 
+    cardBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-900', subText: 'text-stone-600', 
     containerBg: 'bg-white/50',
     button: 'border border-stone-800/10 hover:bg-white/40', 
@@ -166,7 +166,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
                     initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className={`fixed bottom-24 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto`}
+                    className={`fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto`}
                 >
                     <h4 className="text-xs font-medium uppercase tracking-widest opacity-50 mb-4 px-2">Фонотека</h4>
                     {AUDIO_TRACKS.map(track => (
@@ -183,25 +183,25 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
         )}
       </AnimatePresence>
 
-      {/* THINNER PLAYER DESIGN */}
-      <div className={`fixed bottom-8 left-8 right-8 z-40 py-2 px-5 rounded-full backdrop-blur-xl border border-white/20 shadow-sm flex items-center justify-between ${theme.menuBg}`}>
+      {/* ULTRA THIN PLAYER (H-10 = 40px) */}
+      <div className={`fixed bottom-6 left-6 right-6 z-40 h-10 px-4 rounded-full backdrop-blur-xl border border-white/20 shadow-sm flex items-center justify-between ${theme.menuBg}`}>
         <audio ref={audioRef} src={currentTrack.url} onEnded={() => {}} loop />
         
         <div className="flex items-center gap-3 overflow-hidden" onClick={() => setShowPlaylist(true)}>
-           <div className={`p-1.5 rounded-full bg-black/5 dark:bg-white/10`}>
-             <Disc size={14} className={isPlaying ? "animate-spin-slow" : ""} />
+           <div className={`p-1 rounded-full bg-black/5 dark:bg-white/10`}>
+             <Disc size={12} className={isPlaying ? "animate-spin-slow" : ""} />
            </div>
-           <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px] pt-0.5">
+           <span className="text-[9px] font-bold uppercase tracking-widest truncate max-w-[120px] pt-0.5">
               {currentTrack.title}
            </span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button onClick={togglePlay} className="text-[10px] font-bold uppercase tracking-widest hover:opacity-60 transition pt-0.5">
+        <div className="flex items-center gap-3">
+          <button onClick={togglePlay} className="text-[9px] font-bold uppercase tracking-widest hover:opacity-60 transition pt-0.5">
              {isPlaying ? "PAUSE" : "PLAY"}
           </button>
           <button onClick={() => setShowPlaylist(!showPlaylist)} className="opacity-50 hover:opacity-100">
-             <List size={16} />
+             <List size={14} />
           </button>
         </div>
       </div>
@@ -209,7 +209,8 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
   );
 };
 
-const TopMenu = ({ view, setView, theme, logout }) => {
+// Меню теперь содержит Темы и Соглашение
+const TopMenu = ({ view, setView, theme, currentTheme, setCurrentTheme, openLegal, logout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [
     { id: 'flow', label: 'ПОТОК' }, 
@@ -219,7 +220,7 @@ const TopMenu = ({ view, setView, theme, logout }) => {
 
   return (
     <>
-      <div className="fixed top-14 right-6 z-[60]">
+      <div className="fixed top-12 right-6 z-[60]">
         <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
           {isOpen ? "ЗАКРЫТЬ" : "МЕНЮ"}
         </button>
@@ -233,17 +234,41 @@ const TopMenu = ({ view, setView, theme, logout }) => {
                 animate={{ x: 0 }} 
                 exit={{ x: "100%" }} 
                 transition={{ type: "tween", duration: 0.3 }} 
-                className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg}`}
+                className={`fixed top-0 right-0 bottom-0 z-50 w-80 p-8 shadow-2xl flex flex-col ${theme.menuBg} overflow-y-auto`}
             >
-              <div className="flex flex-col gap-8 mt-24">
+              <div className="mt-20 space-y-6">
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-2xl font-light tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
                     {item.label}
                   </button>
                 ))}
               </div>
+
+              <div className="my-10 border-t border-current border-opacity-10 pt-6">
+                   <div className="flex items-center gap-2 mb-4 opacity-50">
+                        <ImageIcon size={12} />
+                        <span className="text-[9px] uppercase tracking-widest font-bold">Атмосфера</span>
+                   </div>
+                   <div className="grid grid-cols-2 gap-2">
+                        {Object.values(THEMES).map(t => (
+                            <button 
+                            key={t.id} 
+                            onClick={() => setCurrentTheme(t.id)} 
+                            className={`h-10 rounded-lg relative overflow-hidden transition-all duration-300 ${currentTheme === t.id ? 'ring-2 ring-offset-1 ring-current' : 'opacity-60 hover:opacity-100'}`}
+                            >
+                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white text-[8px] uppercase font-bold tracking-widest shadow-sm">
+                                {t.label}
+                            </span>
+                            </button>
+                        ))}
+                    </div>
+              </div>
               
-              <div className="mb-8">
+              <div className="mt-auto space-y-4">
+                  <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs opacity-60 hover:opacity-100">
+                     <FileText size={14}/> Соглашение
+                  </button>
                   <button onClick={logout} className="text-xs text-red-400 font-medium uppercase tracking-widest">Выйти</button>
               </div>
             </motion.div>
@@ -273,14 +298,13 @@ const App = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
 
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [focusPrayerPublic, setFocusPrayerPublic] = useState(false);
   
-  // UX State
   const [diaryTab, setDiaryTab] = useState('active'); 
-  const [expandedLegal, setExpandedLegal] = useState(null); // 'terms' only
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
@@ -395,12 +419,22 @@ const App = () => {
       <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay}`} />
 
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto font-sans ${theme.text} overflow-hidden`}>
-        <TopMenu view={view} setView={setView} theme={theme} logout={() => signOut(auth)} />
+        <TopMenu 
+            view={view} 
+            setView={setView} 
+            theme={theme} 
+            currentTheme={currentThemeId}
+            setCurrentTheme={setCurrentThemeId}
+            openLegal={() => setShowLegalModal(true)}
+            logout={() => signOut(auth)} 
+        />
 
-        {/* УВЕЛИЧЕН ОТСТУП СВЕРХУ (pt-28) ЧТОБЫ УБРАТЬ НАЛОЖЕНИЕ */}
-        <div className="pt-28 pb-4 px-8 text-center">
-            <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
-        </div>
+        {/* ЗАГОЛОВОК ТЕПЕРЬ ОТРИСОВЫВАЕТСЯ ВНУТРИ ВЬЮХ, ЧТОБЫ "СКОЛЬЗИТЬ" В ПРОФИЛЕ */}
+        {view !== 'profile' && (
+             <div className="pt-28 pb-4 px-8 text-center">
+                <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+             </div>
+        )}
 
         <main className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar">
           <AnimatePresence mode="wait">
@@ -410,26 +444,20 @@ const App = () => {
                 
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
-                   
                    <div className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-50 mb-8">Фокус дня</div>
-                   
                    <h2 className="text-3xl font-normal leading-tight mb-6 px-2 font-serif">{dailyVerse.title}</h2>
-                   
                    <div className="mb-8 px-2 relative">
                        <span className="text-4xl absolute -top-4 -left-2 opacity-10 font-serif">“</span>
                        <p className="text-lg font-serif italic leading-relaxed opacity-90 relative z-10">{dailyVerse.text}</p>
                        <span className="text-4xl absolute -bottom-8 -right-2 opacity-10 font-serif">”</span>
                    </div>
-                   
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
-                   
                    <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
                            <p className="text-sm font-light leading-relaxed opacity-90">{dailyVerse.thought}</p>
                        </div>
                    </div>
-
                    <button onClick={() => setShowCreateModal(true)} className={`w-full py-4 text-xs font-bold uppercase tracking-[0.2em] transition rounded-xl ${theme.button}`}>
                        {dailyVerse.action}
                    </button>
@@ -450,8 +478,9 @@ const App = () => {
                                      <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
                                  </div>
                                  <p className="mb-6 text-base font-light leading-relaxed whitespace-pre-wrap opacity-95">{post.text}</p>
-                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl ${liked ? theme.activeButton : theme.button}`}>
-                                     {liked ? "МЫ ВМЕСТЕ" : "ПОДДЕРЖАТЬ"} {post.likes?.length > 0 && ` • ${post.likes.length}`}
+                                 {/* КНОПКА AMEN ДЛЯ МОЛИТВЫ */}
+                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl flex items-center justify-center gap-2 ${liked ? theme.activeButton : theme.button}`}>
+                                     {liked ? "AMEN" : "AMEN"}
                                  </button>
                              </Card>
                          );
@@ -462,7 +491,6 @@ const App = () => {
 
             {view === 'diary' && (
                 <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6">
-                    
                     <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg}`}>
                         <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
                         <button onClick={() => setDiaryTab('active')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-40'}`}>Текущие</button>
@@ -482,7 +510,6 @@ const App = () => {
                                 {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
                             </div>
                         )}
-                        
                         {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
                             <Card key={p.id} theme={theme}>
                                 <div className="flex justify-between items-start mb-3">
@@ -491,10 +518,8 @@ const App = () => {
                                 </div>
                                 <h3 className="text-lg font-medium mb-2 leading-tight">{p.title}</h3>
                                 <p className="text-sm font-light opacity-90 whitespace-pre-wrap leading-relaxed mb-6">{p.text}</p>
-                                
                                 <div className="pt-4 border-t border-current border-opacity-10 flex justify-between items-center">
                                     <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-[10px] text-red-400 opacity-50 hover:opacity-100 uppercase tracking-widest transition">Удалить</button>
-                                    
                                     {p.status !== 'answered' && (
                                         <button onClick={() => markAsAnswered(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
                                             <CheckCircle2 size={14}/> Это отвечено
@@ -508,11 +533,13 @@ const App = () => {
             )}
 
             {view === 'profile' && (
-                <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center py-6">
-                    
-                    {/* КАРТОЧКА ТЕПЕРЬ ОПУЩЕНА НИЖЕ ЗАГОЛОВКА AMEN */}
-                    <Card theme={theme} className="py-10 mt-6"> 
-                        <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-6 shadow-xl ${theme.activeButton}`}>
+                <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center pt-28">
+                    {/* ЗАГОЛОВОК AMEN ВНУТРИ ПРОФИЛЯ, ЧТОБЫ ОН СКРОЛЛИЛСЯ */}
+                    <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm mb-12">Amen</h1>
+
+                    {/* УБРАЛИ ГРАНИЦЫ И КАРТОЧКУ - ТЕПЕРЬ ПРОСТО ЭЛЕМЕНТЫ */}
+                    <div className="pb-10">
+                        <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton}`}>
                             {user.displayName?.[0] || "A"}
                         </div>
                         
@@ -526,56 +553,12 @@ const App = () => {
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                         </div>
-                        <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-10">Тайная комната</p>
+                        <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-20">Тайная комната</p>
                         
-                        <div className="flex items-center justify-center gap-2 mb-6 opacity-60">
-                            <ImageIcon size={14} />
-                            <span className="text-[10px] uppercase tracking-widest font-bold">Атмосфера</span>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-3 mb-10">
-                           {Object.values(THEMES).map(t => (
-                             <button 
-                               key={t.id} 
-                               onClick={() => setCurrentThemeId(t.id)} 
-                               className={`h-12 rounded-xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105 shadow-md' : 'opacity-60 hover:opacity-100'}`}
-                             >
-                               <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                               <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white text-[9px] uppercase font-bold tracking-widest shadow-sm">
-                                   {t.label}
-                               </span>
-                             </button>
-                           ))}
-                        </div>
-                        
-                        {/* СОГЛАШЕНИЕ (АККОРДЕОН) */}
-                        <div className="space-y-2 text-left mb-8">
-                            <div className={`rounded-2xl transition-all ${expandedLegal === 'terms' ? theme.containerBg : 'hover:bg-current hover:bg-opacity-5'}`}>
-                                <button onClick={() => setExpandedLegal(expandedLegal === 'terms' ? null : 'terms')} className="w-full p-4 flex items-center justify-between opacity-70 hover:opacity-100">
-                                    <div className="flex items-center gap-3">
-                                        <FileText size={18} />
-                                        <span className="text-sm font-medium">Пользовательское соглашение</span>
-                                    </div>
-                                    {expandedLegal === 'terms' ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
-                                </button>
-                                <AnimatePresence>
-                                    {expandedLegal === 'terms' && (
-                                        <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden">
-                                            <p className="p-4 pt-0 text-xs whitespace-pre-wrap leading-relaxed opacity-70 font-light border-t border-current border-opacity-5 mx-4 mt-2">
-                                                {TERMS_TEXT}
-                                            </p>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-
-                        {/* ДИСКЛЕЙМЕР (ПРОСТО ТЕКСТ ВНИЗУ) */}
                         <div className="text-center opacity-40">
                              <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                         </div>
-
-                    </Card>
+                    </div>
                 </motion.div>
             )}
 
@@ -623,6 +606,22 @@ const App = () => {
             </motion.div>
             </>
         )}
+        </AnimatePresence>
+
+        {/* --- LEGAL MODAL (FROM MENU) --- */}
+        <AnimatePresence>
+            {showLegalModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}/>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                    <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
+                    <div>
+                        <h3 className="text-lg font-bold uppercase tracking-widest mb-6 opacity-50">Соглашение</h3>
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed opacity-80 font-light">{TERMS_TEXT}</p>
+                    </div>
+                </motion.div>
+                </>
+            )}
         </AnimatePresence>
 
         {/* --- SUCCESS MODAL --- */}
