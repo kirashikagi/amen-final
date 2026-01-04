@@ -26,7 +26,7 @@ import {
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronDown, ChevronUp } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -58,48 +58,47 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// --- ТЕМЫ (Используем безопасные цвета для воздуха) ---
+// --- ТЕМЫ (Границы стали тоньше: border-white/20) ---
 const THEMES = {
   dawn: { 
     id: 'dawn', label: 'Рассвет', bgImage: '/dawn.jpg', 
     fallbackColor: '#fff7ed', 
-    cardBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl shadow-sm border border-white/60', 
+    cardBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl shadow-sm border border-white/30', 
     text: 'text-stone-900', subText: 'text-stone-600', 
-    // Заменили bg-stone-900/5 на bg-white/50 для надежности
-    containerBg: 'bg-white/60',
-    button: 'border border-stone-800/20 hover:bg-white/40', 
-    activeButton: 'bg-stone-800 text-white shadow-lg',
-    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
+    containerBg: 'bg-white/50',
+    button: 'border border-stone-800/10 hover:bg-white/40', 
+    activeButton: 'bg-stone-800 text-white shadow-md',
+    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/10'
   },
   morning: { 
     id: 'morning', label: 'Утро', bgImage: '/morning.jpg', 
     fallbackColor: '#f0f9ff', 
-    cardBg: 'bg-white/80 backdrop-blur-3xl shadow-sm border border-white/60', 
+    cardBg: 'bg-white/80 backdrop-blur-3xl shadow-sm border border-white/30', 
     text: 'text-slate-900', subText: 'text-slate-600', 
-    containerBg: 'bg-white/60',
-    button: 'border border-slate-800/20 hover:bg-white/40', 
-    activeButton: 'bg-sky-900 text-white shadow-lg',
-    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
+    containerBg: 'bg-white/50',
+    button: 'border border-slate-800/10 hover:bg-white/40', 
+    activeButton: 'bg-sky-900 text-white shadow-md',
+    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/10'
   },
   day: { 
     id: 'day', label: 'День', bgImage: '/day.jpg', 
     fallbackColor: '#fdfce7', 
-    cardBg: 'bg-[#fffff0]/85 backdrop-blur-3xl shadow-sm border border-white/60', 
+    cardBg: 'bg-[#fffff0]/85 backdrop-blur-3xl shadow-sm border border-white/30', 
     text: 'text-stone-950', subText: 'text-stone-700', 
-    containerBg: 'bg-white/60',
-    button: 'border border-stone-900/20 hover:bg-white/40', 
-    activeButton: 'bg-amber-900 text-white shadow-lg',
-    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
+    containerBg: 'bg-white/50',
+    button: 'border border-stone-900/10 hover:bg-white/40', 
+    activeButton: 'bg-amber-900 text-white shadow-md',
+    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/10'
   },
   sunset: { 
     id: 'sunset', label: 'Закат', bgImage: '/sunset.jpg', 
     fallbackColor: '#fff1f2', 
-    cardBg: 'bg-[#fff1f2]/80 backdrop-blur-3xl shadow-sm border border-white/60', 
+    cardBg: 'bg-[#fff1f2]/80 backdrop-blur-3xl shadow-sm border border-white/30', 
     text: 'text-rose-950', subText: 'text-rose-800', 
-    containerBg: 'bg-white/60',
-    button: 'border border-rose-900/20 hover:bg-white/40', 
-    activeButton: 'bg-rose-900 text-white shadow-lg',
-    menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/20'
+    containerBg: 'bg-white/50',
+    button: 'border border-rose-900/10 hover:bg-white/40', 
+    activeButton: 'bg-rose-900 text-white shadow-md',
+    menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/10'
   },
   evening: { 
     id: 'evening', label: 'Вечер', bgImage: '/evening.jpg', 
@@ -107,8 +106,8 @@ const THEMES = {
     cardBg: 'bg-[#2e1065]/60 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-white', subText: 'text-purple-200', 
     containerBg: 'bg-white/10',
-    button: 'border border-white/30 hover:bg-white/10', 
-    activeButton: 'bg-white text-purple-950 shadow-lg',
+    button: 'border border-white/20 hover:bg-white/10', 
+    activeButton: 'bg-white text-purple-950 shadow-md',
     menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10'
   },
   midnight: { 
@@ -117,8 +116,8 @@ const THEMES = {
     cardBg: 'bg-black/60 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-slate-100', subText: 'text-slate-400', 
     containerBg: 'bg-white/10',
-    button: 'border border-white/20 hover:bg-white/5', 
-    activeButton: 'bg-white text-black shadow-lg',
+    button: 'border border-white/10 hover:bg-white/5', 
+    activeButton: 'bg-white text-black shadow-md',
     menuBg: 'bg-black/90 backdrop-blur-3xl text-slate-100 border-l border-white/10'
   }
 };
@@ -130,7 +129,7 @@ const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11"
 
 // --- TEXTS ---
 const TERMS_TEXT = `1. Amen — это пространство тишины и молитвы.\n2. Мы не собираем ваши личные данные для рекламы.\n3. Ваши записи в "Дневнике" видны только вам.\n4. Записи в "Единстве" (с галочкой "Видят все") публичны.\n5. Будьте уважительны.`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nЕсли вы в кризисной ситуации, обратитесь к специалистам.\nВесь контент носит духовный характер.`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 // --- COMPONENTS ---
 
@@ -184,24 +183,25 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
         )}
       </AnimatePresence>
 
-      <div className={`fixed bottom-6 left-6 right-6 z-40 p-4 rounded-full backdrop-blur-xl border border-white/30 shadow-lg flex items-center justify-between ${theme.menuBg}`}>
+      {/* THINNER PLAYER DESIGN */}
+      <div className={`fixed bottom-8 left-8 right-8 z-40 py-2 px-5 rounded-full backdrop-blur-xl border border-white/20 shadow-sm flex items-center justify-between ${theme.menuBg}`}>
         <audio ref={audioRef} src={currentTrack.url} onEnded={() => {}} loop />
         
-        <div className="flex items-center gap-4 overflow-hidden" onClick={() => setShowPlaylist(true)}>
-           <div className={`p-2 rounded-full bg-black/5 dark:bg-white/10`}>
-             <Disc size={18} className={isPlaying ? "animate-spin-slow" : ""} />
+        <div className="flex items-center gap-3 overflow-hidden" onClick={() => setShowPlaylist(true)}>
+           <div className={`p-1.5 rounded-full bg-black/5 dark:bg-white/10`}>
+             <Disc size={14} className={isPlaying ? "animate-spin-slow" : ""} />
            </div>
-           <span className="text-xs font-medium uppercase tracking-widest truncate max-w-[150px]">
+           <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px] pt-0.5">
               {currentTrack.title}
            </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button onClick={togglePlay} className="text-xs font-medium uppercase tracking-widest hover:opacity-70 transition px-2">
-             {isPlaying ? "||" : "PLAY"}
+        <div className="flex items-center gap-4">
+          <button onClick={togglePlay} className="text-[10px] font-bold uppercase tracking-widest hover:opacity-60 transition pt-0.5">
+             {isPlaying ? "PAUSE" : "PLAY"}
           </button>
-          <button onClick={() => setShowPlaylist(!showPlaylist)} className="p-2 opacity-50 hover:opacity-100">
-             <List size={18} />
+          <button onClick={() => setShowPlaylist(!showPlaylist)} className="opacity-50 hover:opacity-100">
+             <List size={16} />
           </button>
         </div>
       </div>
@@ -220,7 +220,7 @@ const TopMenu = ({ view, setView, theme, logout }) => {
   return (
     <>
       <div className="fixed top-14 right-6 z-[60]">
-        <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-medium uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
+        <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
           {isOpen ? "ЗАКРЫТЬ" : "МЕНЮ"}
         </button>
       </div>
@@ -280,7 +280,7 @@ const App = () => {
   
   // UX State
   const [diaryTab, setDiaryTab] = useState('active'); 
-  const [expandedLegal, setExpandedLegal] = useState(null); // 'terms' | 'disclaimer'
+  const [expandedLegal, setExpandedLegal] = useState(null); // 'terms' only
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
@@ -397,7 +397,8 @@ const App = () => {
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto font-sans ${theme.text} overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} logout={() => signOut(auth)} />
 
-        <div className="pt-20 pb-6 px-8 text-center">
+        {/* УВЕЛИЧЕН ОТСТУП СВЕРХУ (pt-28) ЧТОБЫ УБРАТЬ НАЛОЖЕНИЕ */}
+        <div className="pt-28 pb-4 px-8 text-center">
             <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
         </div>
 
@@ -407,7 +408,6 @@ const App = () => {
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
                 
-                {/* ДЕТАЛЬНАЯ КАРТОЧКА СЛОВА */}
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
                    
@@ -423,7 +423,6 @@ const App = () => {
                    
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
                    
-                   {/* ИСПРАВЛЕННЫЙ КОНТЕЙНЕР (Светлый) */}
                    <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
@@ -510,12 +509,13 @@ const App = () => {
 
             {view === 'profile' && (
                 <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center py-6">
-                    <Card theme={theme} className="py-10">
+                    
+                    {/* КАРТОЧКА ТЕПЕРЬ ОПУЩЕНА НИЖЕ ЗАГОЛОВКА AMEN */}
+                    <Card theme={theme} className="py-10 mt-6"> 
                         <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-6 shadow-xl ${theme.activeButton}`}>
                             {user.displayName?.[0] || "A"}
                         </div>
                         
-                        {/* ИМЯ С ПРЯМЫМ РЕДАКТИРОВАНИЕМ */}
                         <div className="relative mb-2 px-8 group">
                             <input 
                                 value={newName}
@@ -528,7 +528,6 @@ const App = () => {
                         </div>
                         <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-10">Тайная комната</p>
                         
-                        {/* АТМОСФЕРА */}
                         <div className="flex items-center justify-center gap-2 mb-6 opacity-60">
                             <ImageIcon size={14} />
                             <span className="text-[10px] uppercase tracking-widest font-bold">Атмосфера</span>
@@ -549,9 +548,8 @@ const App = () => {
                            ))}
                         </div>
                         
-                        {/* ВЫПАДАЮЩИЕ СПИСКИ ДОКУМЕНТОВ */}
-                        <div className="space-y-2 text-left">
-                            {/* Соглашение */}
+                        {/* СОГЛАШЕНИЕ (АККОРДЕОН) */}
+                        <div className="space-y-2 text-left mb-8">
                             <div className={`rounded-2xl transition-all ${expandedLegal === 'terms' ? theme.containerBg : 'hover:bg-current hover:bg-opacity-5'}`}>
                                 <button onClick={() => setExpandedLegal(expandedLegal === 'terms' ? null : 'terms')} className="w-full p-4 flex items-center justify-between opacity-70 hover:opacity-100">
                                     <div className="flex items-center gap-3">
@@ -570,26 +568,11 @@ const App = () => {
                                     )}
                                 </AnimatePresence>
                             </div>
+                        </div>
 
-                            {/* Дисклеймер */}
-                            <div className={`rounded-2xl transition-all ${expandedLegal === 'disclaimer' ? theme.containerBg : 'hover:bg-current hover:bg-opacity-5'}`}>
-                                <button onClick={() => setExpandedLegal(expandedLegal === 'disclaimer' ? null : 'disclaimer')} className="w-full p-4 flex items-center justify-between opacity-70 hover:opacity-100">
-                                    <div className="flex items-center gap-3 text-red-400">
-                                        <ShieldAlert size={18} />
-                                        <span className="text-sm font-medium">Дисклеймер</span>
-                                    </div>
-                                    {expandedLegal === 'disclaimer' ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
-                                </button>
-                                <AnimatePresence>
-                                    {expandedLegal === 'disclaimer' && (
-                                        <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden">
-                                            <p className="p-4 pt-0 text-xs whitespace-pre-wrap leading-relaxed opacity-70 font-light border-t border-current border-opacity-5 mx-4 mt-2">
-                                                {DISCLAIMER_TEXT}
-                                            </p>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                        {/* ДИСКЛЕЙМЕР (ПРОСТО ТЕКСТ ВНИЗУ) */}
+                        <div className="text-center opacity-40">
+                             <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                         </div>
 
                     </Card>
