@@ -26,7 +26,7 @@ import {
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -58,52 +58,52 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// --- ТЕМЫ ---
+// --- ТЕМЫ (Сделаны более прозрачными /40 для карточек) ---
 const THEMES = {
   dawn: { 
     id: 'dawn', label: 'Рассвет', bgImage: '/dawn.jpg', 
     fallbackColor: '#fff7ed', 
-    cardBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl shadow-sm border border-white/40', 
+    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-900', subText: 'text-stone-600', 
     containerBg: 'bg-white/50',
     button: 'border border-stone-800/10 hover:bg-white/40', 
     activeButton: 'bg-stone-800 text-white shadow-md',
-    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/10'
+    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
   },
   morning: { 
     id: 'morning', label: 'Утро', bgImage: '/morning.jpg', 
     fallbackColor: '#f0f9ff', 
-    cardBg: 'bg-white/80 backdrop-blur-3xl shadow-sm border border-white/30', 
+    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-slate-900', subText: 'text-slate-600', 
     containerBg: 'bg-white/50',
     button: 'border border-slate-800/10 hover:bg-white/40', 
     activeButton: 'bg-sky-900 text-white shadow-md',
-    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/10'
+    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
   },
   day: { 
     id: 'day', label: 'День', bgImage: '/day.jpg', 
     fallbackColor: '#fdfce7', 
-    cardBg: 'bg-[#fffff0]/85 backdrop-blur-3xl shadow-sm border border-white/30', 
+    cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-950', subText: 'text-stone-700', 
     containerBg: 'bg-white/50',
     button: 'border border-stone-900/10 hover:bg-white/40', 
     activeButton: 'bg-amber-900 text-white shadow-md',
-    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/10'
+    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
   },
   sunset: { 
     id: 'sunset', label: 'Закат', bgImage: '/sunset.jpg', 
     fallbackColor: '#fff1f2', 
-    cardBg: 'bg-[#fff1f2]/80 backdrop-blur-3xl shadow-sm border border-white/30', 
+    cardBg: 'bg-[#fff1f2]/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-rose-950', subText: 'text-rose-800', 
     containerBg: 'bg-white/50',
     button: 'border border-rose-900/10 hover:bg-white/40', 
     activeButton: 'bg-rose-900 text-white shadow-md',
-    menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/10'
+    menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/20'
   },
   evening: { 
     id: 'evening', label: 'Вечер', bgImage: '/evening.jpg', 
     fallbackColor: '#f5f3ff', 
-    cardBg: 'bg-[#2e1065]/60 backdrop-blur-3xl shadow-sm border border-white/10', 
+    cardBg: 'bg-[#2e1065]/30 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-white', subText: 'text-purple-200', 
     containerBg: 'bg-white/10',
     button: 'border border-white/20 hover:bg-white/10', 
@@ -113,7 +113,7 @@ const THEMES = {
   midnight: { 
     id: 'midnight', label: 'Полночь', bgImage: '/midnight.jpg', 
     fallbackColor: '#020617', 
-    cardBg: 'bg-black/60 backdrop-blur-3xl shadow-sm border border-white/10', 
+    cardBg: 'bg-black/30 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-slate-100', subText: 'text-slate-400', 
     containerBg: 'bg-white/10',
     button: 'border border-white/10 hover:bg-white/5', 
@@ -123,12 +123,12 @@ const THEMES = {
 };
 
 const FALLBACK_READINGS = {
-  "03-01": { title: "Начало пути", source: "Матфея 7:7", text: "Просите, и дано будет вам; ищите, и найдете; стучите, и отворят вам.", thought: "Бог отвечает тем, кто делает шаг. Дверь открывается не перед тем, кто ждет, а перед тем, кто стучит.", action: "Сделать шаг веры" }
+  "03-01": { title: "Начало пути", source: "Матфея 7:7", text: "Просите, и дано будет вам; ищите, и найдете; стучите, и отворят вам.", thought: "Бог отвечает тем, кто делает шаг.", action: "Сделать шаг веры" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 // --- TEXTS ---
-const TERMS_TEXT = `1. Amen — это пространство тишины и молитвы.\n2. Мы не собираем ваши личные данные для рекламы.\n3. Ваши записи в "Дневнике" видны только вам.\n4. Записи в "Единстве" (с галочкой "Видят все") публичны.\n5. Будьте уважительны.`;
+const TERMS_TEXT = `Amen — пространство тишины.\nМы не используем ваши данные.\nДневник — личное, Единство — общее.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 // --- COMPONENTS ---
@@ -144,6 +144,38 @@ const Card = ({ children, theme, className = "", onClick }) => (
     {children}
   </motion.div>
 );
+
+const ActivityCalendar = ({ prayers, theme }) => {
+    // Генерируем последние 14 дней
+    const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (13 - i));
+        return d;
+    });
+
+    return (
+        <div className="flex flex-col items-center gap-3 mb-8">
+            <div className="flex items-center gap-2 opacity-50">
+                <CalendarDays size={12} />
+                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
+            </div>
+            <div className="flex gap-2">
+                {days.map((day, idx) => {
+                    const dateStr = day.toLocaleDateString();
+                    // Проверяем, была ли молитва в этот день
+                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
+                    return (
+                        <div 
+                            key={idx} 
+                            className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`}
+                            title={dateStr}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }) => {
   const audioRef = useRef(null);
@@ -183,10 +215,8 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
         )}
       </AnimatePresence>
 
-      {/* ULTRA THIN PLAYER (H-10 = 40px) */}
       <div className={`fixed bottom-6 left-6 right-6 z-40 h-10 px-4 rounded-full backdrop-blur-xl border border-white/20 shadow-sm flex items-center justify-between ${theme.menuBg}`}>
         <audio ref={audioRef} src={currentTrack.url} onEnded={() => {}} loop />
-        
         <div className="flex items-center gap-3 overflow-hidden" onClick={() => setShowPlaylist(true)}>
            <div className={`p-1 rounded-full bg-black/5 dark:bg-white/10`}>
              <Disc size={12} className={isPlaying ? "animate-spin-slow" : ""} />
@@ -195,7 +225,6 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
               {currentTrack.title}
            </span>
         </div>
-
         <div className="flex items-center gap-3">
           <button onClick={togglePlay} className="text-[9px] font-bold uppercase tracking-widest hover:opacity-60 transition pt-0.5">
              {isPlaying ? "PAUSE" : "PLAY"}
@@ -209,12 +238,12 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
   );
 };
 
-// Меню теперь содержит Темы и Соглашение
-const TopMenu = ({ view, setView, theme, currentTheme, setCurrentTheme, openLegal, logout }) => {
+const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) => {
   const [isOpen, setIsOpen] = useState(false);
+  // НОВЫЙ ПОРЯДОК: ДНЕВНИК -> ПОТОК -> ПРОФИЛЬ
   const menuItems = [
-    { id: 'flow', label: 'ПОТОК' }, 
     { id: 'diary', label: 'ДНЕВНИК' },
+    { id: 'flow', label: 'ПОТОК' }, 
     { id: 'profile', label: 'ПРОФИЛЬ' },
   ];
 
@@ -234,38 +263,22 @@ const TopMenu = ({ view, setView, theme, currentTheme, setCurrentTheme, openLega
                 animate={{ x: 0 }} 
                 exit={{ x: "100%" }} 
                 transition={{ type: "tween", duration: 0.3 }} 
-                className={`fixed top-0 right-0 bottom-0 z-50 w-80 p-8 shadow-2xl flex flex-col ${theme.menuBg} overflow-y-auto`}
+                className={`fixed top-0 right-0 bottom-0 z-50 w-80 p-8 shadow-2xl flex flex-col justify-between ${theme.menuBg}`}
             >
-              <div className="mt-20 space-y-6">
+              <div className="mt-20 space-y-8">
                 {menuItems.map(item => (
-                  <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-2xl font-light tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
+                  <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-light tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
                     {item.label}
                   </button>
                 ))}
-              </div>
-
-              <div className="my-10 border-t border-current border-opacity-10 pt-6">
-                   <div className="flex items-center gap-2 mb-4 opacity-50">
-                        <ImageIcon size={12} />
-                        <span className="text-[9px] uppercase tracking-widest font-bold">Атмосфера</span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-2">
-                        {Object.values(THEMES).map(t => (
-                            <button 
-                            key={t.id} 
-                            onClick={() => setCurrentTheme(t.id)} 
-                            className={`h-10 rounded-lg relative overflow-hidden transition-all duration-300 ${currentTheme === t.id ? 'ring-2 ring-offset-1 ring-current' : 'opacity-60 hover:opacity-100'}`}
-                            >
-                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                            <span className="absolute inset-0 flex items-center justify-center bg-black/20 text-white text-[8px] uppercase font-bold tracking-widest shadow-sm">
-                                {t.label}
-                            </span>
-                            </button>
-                        ))}
-                    </div>
+                
+                {/* ВЫБОР ТЕМЫ В МЕНЮ */}
+                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide opacity-40 hover:opacity-100 flex items-center gap-2">
+                    <ImageIcon size={18}/> Атмосфера
+                </button>
               </div>
               
-              <div className="mt-auto space-y-4">
+              <div className="mb-8 space-y-4">
                   <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs opacity-60 hover:opacity-100">
                      <FileText size={14}/> Соглашение
                   </button>
@@ -284,7 +297,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [view, setView] = useState('flow'); 
+  const [view, setView] = useState('flow'); // 'flow' | 'diary' | 'profile'
   const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || 'dawn');
   const theme = THEMES[currentThemeId] || THEMES.dawn;
   
@@ -295,10 +308,12 @@ const App = () => {
   const [publicPosts, setPublicPosts] = useState([]);
   const [dailyVerse, setDailyVerse] = useState(null);
 
+  // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -425,11 +440,12 @@ const App = () => {
             theme={theme} 
             currentTheme={currentThemeId}
             setCurrentTheme={setCurrentThemeId}
+            openThemeModal={() => setShowThemeModal(true)}
             openLegal={() => setShowLegalModal(true)}
             logout={() => signOut(auth)} 
         />
 
-        {/* ЗАГОЛОВОК ТЕПЕРЬ ОТРИСОВЫВАЕТСЯ ВНУТРИ ВЬЮХ, ЧТОБЫ "СКОЛЬЗИТЬ" В ПРОФИЛЕ */}
+        {/* Заголовок Amen скользит вместе с профилем, но фиксирован в остальных вкладках */}
         {view !== 'profile' && (
              <div className="pt-28 pb-4 px-8 text-center">
                 <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
@@ -442,31 +458,40 @@ const App = () => {
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
                 
+                {/* ПРОЗРАЧНАЯ КАРТОЧКА ФОКУСА */}
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
+                   
                    <div className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-50 mb-8">Фокус дня</div>
+                   
                    <h2 className="text-3xl font-normal leading-tight mb-6 px-2 font-serif">{dailyVerse.title}</h2>
+                   
                    <div className="mb-8 px-2 relative">
                        <span className="text-4xl absolute -top-4 -left-2 opacity-10 font-serif">“</span>
                        <p className="text-lg font-serif italic leading-relaxed opacity-90 relative z-10">{dailyVerse.text}</p>
                        <span className="text-4xl absolute -bottom-8 -right-2 opacity-10 font-serif">”</span>
                    </div>
+                   
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
+                   
+                   {/* ПОДЛОЖКА ПОД ТЕКСТ ДЛЯ ЧИТАЕМОСТИ */}
                    <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
-                           <p className="text-sm font-light leading-relaxed opacity-90">{dailyVerse.thought}</p>
+                           <p className="text-sm font-medium leading-relaxed opacity-90">{dailyVerse.thought}</p>
                        </div>
                    </div>
+
                    <button onClick={() => setShowCreateModal(true)} className={`w-full py-4 text-xs font-bold uppercase tracking-[0.2em] transition rounded-xl ${theme.button}`}>
                        {dailyVerse.action}
                    </button>
                 </Card>
 
+                {/* СТЕНА ЕДИНСТВА */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 opacity-30 justify-center mb-2">
                         <div className="w-1 h-1 bg-current rounded-full"></div>
-                        <span className="text-[10px] uppercase tracking-widest">Единство</span>
+                        <span className="text-[10px] uppercase tracking-widest">Стена Единства</span>
                         <div className="w-1 h-1 bg-current rounded-full"></div>
                     </div>
                     {publicPosts.map(post => {
@@ -478,7 +503,6 @@ const App = () => {
                                      <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
                                  </div>
                                  <p className="mb-6 text-base font-light leading-relaxed whitespace-pre-wrap opacity-95">{post.text}</p>
-                                 {/* КНОПКА AMEN ДЛЯ МОЛИТВЫ */}
                                  <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl flex items-center justify-center gap-2 ${liked ? theme.activeButton : theme.button}`}>
                                      {liked ? "AMEN" : "AMEN"}
                                  </button>
@@ -534,16 +558,15 @@ const App = () => {
 
             {view === 'profile' && (
                 <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center pt-28">
-                    {/* ЗАГОЛОВОК AMEN ВНУТРИ ПРОФИЛЯ, ЧТОБЫ ОН СКРОЛЛИЛСЯ */}
+                    
                     <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm mb-12">Amen</h1>
 
-                    {/* УБРАЛИ ГРАНИЦЫ И КАРТОЧКУ - ТЕПЕРЬ ПРОСТО ЭЛЕМЕНТЫ */}
                     <div className="pb-10">
                         <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton}`}>
                             {user.displayName?.[0] || "A"}
                         </div>
                         
-                        <div className="relative mb-2 px-8 group">
+                        <div className="relative mb-8 px-8 group">
                             <input 
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
@@ -553,6 +576,10 @@ const App = () => {
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                         </div>
+
+                        {/* КАЛЕНДАРЬ АКТИВНОСТИ */}
+                        <ActivityCalendar prayers={myPrayers} theme={theme} />
+
                         <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-20">Тайная комната</p>
                         
                         <div className="text-center opacity-40">
@@ -608,7 +635,36 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* --- LEGAL MODAL (FROM MENU) --- */}
+        {/* --- THEME MODAL (НОВОЕ ОКНО ВЫБОРА ТЕМ) --- */}
+        <AnimatePresence>
+            {showThemeModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-serif">Атмосфера</h3>
+                        <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        {Object.values(THEMES).map(t => (
+                            <button 
+                            key={t.id} 
+                            onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} 
+                            className={`h-20 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}
+                            >
+                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs uppercase font-bold tracking-widest shadow-sm">
+                                {t.label}
+                            </span>
+                            </button>
+                        ))}
+                    </div>
+                </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+
+        {/* --- LEGAL MODAL --- */}
         <AnimatePresence>
             {showLegalModal && (
                 <>
