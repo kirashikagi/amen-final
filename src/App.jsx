@@ -26,7 +26,7 @@ import {
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -58,10 +58,10 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// --- ТЕМЫ (Сделаны более прозрачными /40 для карточек) ---
+// --- ТЕМЫ (МИНИМАЛИСТИЧНЫЕ НАЗВАНИЯ) ---
 const THEMES = {
   dawn: { 
-    id: 'dawn', label: 'Рассвет', bgImage: '/dawn.jpg', 
+    id: 'dawn', label: 'Воздух', bgImage: '/dawn.jpg', // Было Рассвет
     fallbackColor: '#fff7ed', 
     cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-900', subText: 'text-stone-600', 
@@ -71,7 +71,7 @@ const THEMES = {
     menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
   },
   morning: { 
-    id: 'morning', label: 'Утро', bgImage: '/morning.jpg', 
+    id: 'morning', label: 'Свет', bgImage: '/morning.jpg', // Было Утро
     fallbackColor: '#f0f9ff', 
     cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-slate-900', subText: 'text-slate-600', 
@@ -81,7 +81,7 @@ const THEMES = {
     menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
   },
   day: { 
-    id: 'day', label: 'День', bgImage: '/day.jpg', 
+    id: 'day', label: 'Песок', bgImage: '/day.jpg', // Было День
     fallbackColor: '#fdfce7', 
     cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-stone-950', subText: 'text-stone-700', 
@@ -91,7 +91,7 @@ const THEMES = {
     menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
   },
   sunset: { 
-    id: 'sunset', label: 'Закат', bgImage: '/sunset.jpg', 
+    id: 'sunset', label: 'Тепло', bgImage: '/sunset.jpg', // Было Закат
     fallbackColor: '#fff1f2', 
     cardBg: 'bg-[#fff1f2]/40 backdrop-blur-3xl shadow-sm border border-white/40', 
     text: 'text-rose-950', subText: 'text-rose-800', 
@@ -101,7 +101,7 @@ const THEMES = {
     menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/20'
   },
   evening: { 
-    id: 'evening', label: 'Вечер', bgImage: '/evening.jpg', 
+    id: 'evening', label: 'Глубина', bgImage: '/evening.jpg', // Было Вечер
     fallbackColor: '#f5f3ff', 
     cardBg: 'bg-[#2e1065]/30 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-white', subText: 'text-purple-200', 
@@ -111,7 +111,7 @@ const THEMES = {
     menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10'
   },
   midnight: { 
-    id: 'midnight', label: 'Полночь', bgImage: '/midnight.jpg', 
+    id: 'midnight', label: 'Тишина', bgImage: '/midnight.jpg', // Было Полночь
     fallbackColor: '#020617', 
     cardBg: 'bg-black/30 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-slate-100', subText: 'text-slate-400', 
@@ -123,12 +123,12 @@ const THEMES = {
 };
 
 const FALLBACK_READINGS = {
-  "03-01": { title: "Начало пути", source: "Матфея 7:7", text: "Просите, и дано будет вам; ищите, и найдете; стучите, и отворят вам.", thought: "Бог отвечает тем, кто делает шаг.", action: "Сделать шаг веры" }
+  "03-01": { title: "Начало пути", source: "Матфея 7:7", text: "Просите, и дано будет вам; ищите, и найдете.", thought: "Бог отвечает тем, кто делает шаг.", action: "Сделать шаг веры" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 // --- TEXTS ---
-const TERMS_TEXT = `Amen — пространство тишины.\nМы не используем ваши данные.\nДневник — личное, Единство — общее.`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 // --- COMPONENTS ---
@@ -146,7 +146,6 @@ const Card = ({ children, theme, className = "", onClick }) => (
 );
 
 const ActivityCalendar = ({ prayers, theme }) => {
-    // Генерируем последние 14 дней
     const days = Array.from({ length: 14 }, (_, i) => {
         const d = new Date();
         d.setDate(d.getDate() - (13 - i));
@@ -162,7 +161,6 @@ const ActivityCalendar = ({ prayers, theme }) => {
             <div className="flex gap-2">
                 {days.map((day, idx) => {
                     const dateStr = day.toLocaleDateString();
-                    // Проверяем, была ли молитва в этот день
                     const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
                     return (
                         <div 
@@ -238,9 +236,9 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
   );
 };
 
+// Меню: узкое, вертикальное, темы в модальном окне
 const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) => {
   const [isOpen, setIsOpen] = useState(false);
-  // НОВЫЙ ПОРЯДОК: ДНЕВНИК -> ПОТОК -> ПРОФИЛЬ
   const menuItems = [
     { id: 'diary', label: 'ДНЕВНИК' },
     { id: 'flow', label: 'ПОТОК' }, 
@@ -263,24 +261,25 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout }) =>
                 animate={{ x: 0 }} 
                 exit={{ x: "100%" }} 
                 transition={{ type: "tween", duration: 0.3 }} 
-                className={`fixed top-0 right-0 bottom-0 z-50 w-80 p-8 shadow-2xl flex flex-col justify-between ${theme.menuBg}`}
+                // w-64 - делаем меню уже
+                className={`fixed top-0 right-0 bottom-0 z-50 w-64 p-8 shadow-2xl flex flex-col justify-between ${theme.menuBg}`}
             >
-              <div className="mt-20 space-y-8">
+              <div className="mt-20 flex flex-col items-start gap-8">
                 {menuItems.map(item => (
-                  <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-light tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
+                  <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-2xl font-light tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
                     {item.label}
                   </button>
                 ))}
                 
-                {/* ВЫБОР ТЕМЫ В МЕНЮ */}
-                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide opacity-40 hover:opacity-100 flex items-center gap-2">
+                {/* Выбор темы */}
+                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide opacity-40 hover:opacity-100 flex items-center gap-3">
                     <ImageIcon size={18}/> Атмосфера
                 </button>
               </div>
               
-              <div className="mb-8 space-y-4">
-                  <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs opacity-60 hover:opacity-100">
-                     <FileText size={14}/> Соглашение
+              <div className="mb-8 flex flex-col items-start gap-6">
+                  <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs opacity-50 hover:opacity-100 uppercase tracking-widest">
+                     <FileText size={12}/> Соглашение
                   </button>
                   <button onClick={logout} className="text-xs text-red-400 font-medium uppercase tracking-widest">Выйти</button>
               </div>
@@ -297,7 +296,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [view, setView] = useState('flow'); // 'flow' | 'diary' | 'profile'
+  const [view, setView] = useState('flow'); 
   const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || 'dawn');
   const theme = THEMES[currentThemeId] || THEMES.dawn;
   
@@ -308,7 +307,6 @@ const App = () => {
   const [publicPosts, setPublicPosts] = useState([]);
   const [dailyVerse, setDailyVerse] = useState(null);
 
-  // Modals
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -445,7 +443,6 @@ const App = () => {
             logout={() => signOut(auth)} 
         />
 
-        {/* Заголовок Amen скользит вместе с профилем, но фиксирован в остальных вкладках */}
         {view !== 'profile' && (
              <div className="pt-28 pb-4 px-8 text-center">
                 <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
@@ -458,7 +455,6 @@ const App = () => {
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
                 
-                {/* ПРОЗРАЧНАЯ КАРТОЧКА ФОКУСА */}
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
                    
@@ -474,7 +470,6 @@ const App = () => {
                    
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
                    
-                   {/* ПОДЛОЖКА ПОД ТЕКСТ ДЛЯ ЧИТАЕМОСТИ */}
                    <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
@@ -487,13 +482,14 @@ const App = () => {
                    </button>
                 </Card>
 
-                {/* СТЕНА ЕДИНСТВА */}
+                {/* РАЗДЕЛИТЕЛЬ ДЛЯ ЕДИНСТВА */}
+                <div className="flex items-center justify-center my-8 opacity-40">
+                    <div className="h-px bg-current w-16"></div>
+                    <span className="mx-4 text-[10px] uppercase tracking-[0.3em] font-bold">Единство</span>
+                    <div className="h-px bg-current w-16"></div>
+                </div>
+
                 <div className="space-y-4">
-                    <div className="flex items-center gap-2 opacity-30 justify-center mb-2">
-                        <div className="w-1 h-1 bg-current rounded-full"></div>
-                        <span className="text-[10px] uppercase tracking-widest">Стена Единства</span>
-                        <div className="w-1 h-1 bg-current rounded-full"></div>
-                    </div>
                     {publicPosts.map(post => {
                          const liked = post.likes?.includes(user.uid);
                          return (
@@ -577,13 +573,25 @@ const App = () => {
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                         </div>
 
-                        {/* КАЛЕНДАРЬ АКТИВНОСТИ */}
                         <ActivityCalendar prayers={myPrayers} theme={theme} />
 
-                        <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-20">Тайная комната</p>
+                        {/* НАВИГАТОР ПО ФУНКЦИЯМ */}
+                        <div className="text-left max-w-xs mx-auto space-y-6 mt-12 mb-20 opacity-60 px-4">
+                            <div className="flex gap-4 items-start">
+                                <div className="mt-1"><Compass size={16}/></div>
+                                <div>
+                                    <h4 className="text-xs font-bold uppercase tracking-widest mb-1">Навигатор</h4>
+                                    <p className="text-[10px] leading-relaxed">
+                                        <span className="font-bold">Поток:</span> Слово дня и общая молитва.<br/>
+                                        <span className="font-bold">Дневник:</span> Твой личный разговор с Богом.<br/>
+                                        <span className="font-bold">Единство:</span> Место поддержки.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                         
-                        <div className="text-center opacity-40">
-                             <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
+                        <div className="text-center opacity-30 mt-auto">
+                             <p className="text-[9px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                         </div>
                     </div>
                 </motion.div>
@@ -635,7 +643,7 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* --- THEME MODAL (НОВОЕ ОКНО ВЫБОРА ТЕМ) --- */}
+        {/* --- THEME MODAL --- */}
         <AnimatePresence>
             {showThemeModal && (
                 <>
@@ -650,7 +658,7 @@ const App = () => {
                             <button 
                             key={t.id} 
                             onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} 
-                            className={`h-20 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}
+                            className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}
                             >
                             <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
                             <span className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs uppercase font-bold tracking-widest shadow-sm">
