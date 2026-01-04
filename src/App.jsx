@@ -26,7 +26,7 @@ import {
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, UserCog, ChevronRight } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -58,16 +58,16 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// --- ТЕМЫ (Скорректирована непрозрачность для читаемости) ---
+// --- ТЕМЫ (Используем безопасные цвета для воздуха) ---
 const THEMES = {
   dawn: { 
     id: 'dawn', label: 'Рассвет', bgImage: '/dawn.jpg', 
     fallbackColor: '#fff7ed', 
-    // Чуть плотнее фон (80) для контраста текста
     cardBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl shadow-sm border border-white/60', 
     text: 'text-stone-900', subText: 'text-stone-600', 
-    overlay: 'bg-[#78350f]/5', 
-    button: 'border border-stone-800/20 hover:bg-stone-800/5', 
+    // Заменили bg-stone-900/5 на bg-white/50 для надежности
+    containerBg: 'bg-white/60',
+    button: 'border border-stone-800/20 hover:bg-white/40', 
     activeButton: 'bg-stone-800 text-white shadow-lg',
     menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
   },
@@ -76,8 +76,8 @@ const THEMES = {
     fallbackColor: '#f0f9ff', 
     cardBg: 'bg-white/80 backdrop-blur-3xl shadow-sm border border-white/60', 
     text: 'text-slate-900', subText: 'text-slate-600', 
-    overlay: 'bg-sky-900/5', 
-    button: 'border border-slate-800/20 hover:bg-slate-800/5', 
+    containerBg: 'bg-white/60',
+    button: 'border border-slate-800/20 hover:bg-white/40', 
     activeButton: 'bg-sky-900 text-white shadow-lg',
     menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
   },
@@ -86,8 +86,8 @@ const THEMES = {
     fallbackColor: '#fdfce7', 
     cardBg: 'bg-[#fffff0]/85 backdrop-blur-3xl shadow-sm border border-white/60', 
     text: 'text-stone-950', subText: 'text-stone-700', 
-    overlay: 'bg-yellow-900/5', 
-    button: 'border border-stone-900/20 hover:bg-stone-900/5', 
+    containerBg: 'bg-white/60',
+    button: 'border border-stone-900/20 hover:bg-white/40', 
     activeButton: 'bg-amber-900 text-white shadow-lg',
     menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
   },
@@ -96,8 +96,8 @@ const THEMES = {
     fallbackColor: '#fff1f2', 
     cardBg: 'bg-[#fff1f2]/80 backdrop-blur-3xl shadow-sm border border-white/60', 
     text: 'text-rose-950', subText: 'text-rose-800', 
-    overlay: 'bg-rose-900/10', 
-    button: 'border border-rose-900/20 hover:bg-rose-900/5', 
+    containerBg: 'bg-white/60',
+    button: 'border border-rose-900/20 hover:bg-white/40', 
     activeButton: 'bg-rose-900 text-white shadow-lg',
     menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/20'
   },
@@ -106,7 +106,7 @@ const THEMES = {
     fallbackColor: '#f5f3ff', 
     cardBg: 'bg-[#2e1065]/60 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-white', subText: 'text-purple-200', 
-    overlay: 'bg-[#2e1065]/40', 
+    containerBg: 'bg-white/10',
     button: 'border border-white/30 hover:bg-white/10', 
     activeButton: 'bg-white text-purple-950 shadow-lg',
     menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10'
@@ -116,7 +116,7 @@ const THEMES = {
     fallbackColor: '#020617', 
     cardBg: 'bg-black/60 backdrop-blur-3xl shadow-sm border border-white/10', 
     text: 'text-slate-100', subText: 'text-slate-400', 
-    overlay: 'bg-black/60', 
+    containerBg: 'bg-white/10',
     button: 'border border-white/20 hover:bg-white/5', 
     activeButton: 'bg-white text-black shadow-lg',
     menuBg: 'bg-black/90 backdrop-blur-3xl text-slate-100 border-l border-white/10'
@@ -128,9 +128,9 @@ const FALLBACK_READINGS = {
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
-// --- LEGAL TEXTS ---
-const TERMS_TEXT = `Пользовательское соглашение\n\n1. Amen — это пространство тишины и молитвы.\n2. Мы не собираем ваши личные данные для рекламы.\n3. Ваши записи в "Дневнике" видны только вам (хранятся в базе данных Firebase).\n4. Записи, отправленные в "Единство" (с галочкой "Видят все"), становятся публичными.\n5. Будьте уважительны. Контент с ненавистью или насилием будет удален.\n\nИспользуя приложение, вы соглашаетесь с этими принципами.`;
-const DISCLAIMER_TEXT = `Дисклеймер\n\nAmen не является заменой профессиональной психологической помощи.\n\nЕсли вы находитесь в кризисной ситуации, пожалуйста, обратитесь к специалистам или позвоните в службы экстренной помощи.\n\nВесь контент носит духовный и поддерживающий характер.`;
+// --- TEXTS ---
+const TERMS_TEXT = `1. Amen — это пространство тишины и молитвы.\n2. Мы не собираем ваши личные данные для рекламы.\n3. Ваши записи в "Дневнике" видны только вам.\n4. Записи в "Единстве" (с галочкой "Видят все") публичны.\n5. Будьте уважительны.`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nЕсли вы в кризисной ситуации, обратитесь к специалистам.\nВесь контент носит духовный характер.`;
 
 // --- COMPONENTS ---
 
@@ -278,9 +278,9 @@ const App = () => {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [focusPrayerPublic, setFocusPrayerPublic] = useState(false);
   
-  // Новые состояния
-  const [diaryTab, setDiaryTab] = useState('active'); // 'active' | 'answered'
-  const [showLegalModal, setShowLegalModal] = useState(null); // 'terms' | 'disclaimer' | 'editName'
+  // UX State
+  const [diaryTab, setDiaryTab] = useState('active'); 
+  const [expandedLegal, setExpandedLegal] = useState(null); // 'terms' | 'disclaimer'
   const [newName, setNewName] = useState('');
 
   useEffect(() => {
@@ -328,9 +328,8 @@ const App = () => {
   };
 
   const handleUpdateName = async () => {
-      if(!newName.trim()) return;
+      if(!newName.trim() || newName === user.displayName) return;
       await updateProfile(user, { displayName: newName });
-      setShowLegalModal(null);
   };
 
   const handleAmen = async (e, source = "manual") => {
@@ -341,9 +340,6 @@ const App = () => {
     const text = e.target.elements.text.value;
     const isPublic = source === "focus" ? focusPrayerPublic : e.target.elements.pub?.checked;
     
-    // Если мы отправляем ответ на молитву (из дневника отвеченных), статус сразу ставим active,
-    // но если пользователь хочет сразу пометить как ответ, можно добавить логику.
-    // Пока все новые записи - активные.
     const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [] };
     
     await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data);
@@ -427,7 +423,8 @@ const App = () => {
                    
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
                    
-                   <div className="bg-current bg-opacity-[0.03] rounded-2xl p-6 mb-8 mx-2 text-left">
+                   {/* ИСПРАВЛЕННЫЙ КОНТЕЙНЕР (Светлый) */}
+                   <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
                            <p className="text-sm font-light leading-relaxed opacity-90">{dailyVerse.thought}</p>
@@ -454,7 +451,7 @@ const App = () => {
                                      <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
                                  </div>
                                  <p className="mb-6 text-base font-light leading-relaxed whitespace-pre-wrap opacity-95">{post.text}</p>
-                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl ${liked ? theme.activeButton : 'bg-current bg-opacity-5 hover:bg-opacity-10'}`}>
+                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-[10px] font-bold uppercase tracking-widest transition rounded-xl ${liked ? theme.activeButton : theme.button}`}>
                                      {liked ? "МЫ ВМЕСТЕ" : "ПОДДЕРЖАТЬ"} {post.likes?.length > 0 && ` • ${post.likes.length}`}
                                  </button>
                              </Card>
@@ -467,16 +464,15 @@ const App = () => {
             {view === 'diary' && (
                 <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6">
                     
-                    {/* ПЕРЕКЛЮЧАТЕЛЬ: Текущие / Ответы */}
-                    <div className="flex p-1 bg-current bg-opacity-5 rounded-full mb-6 relative">
+                    <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg}`}>
                         <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
-                        <button onClick={() => setDiaryTab('active')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'active' ? 'text-black' : 'opacity-50'}`}>Текущие</button>
-                        <button onClick={() => setDiaryTab('answered')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'answered' ? 'text-black' : 'opacity-50'}`}>Ответы</button>
+                        <button onClick={() => setDiaryTab('active')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-40'}`}>Текущие</button>
+                        <button onClick={() => setDiaryTab('answered')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-40'}`}>Ответы</button>
                     </div>
 
                     {diaryTab === 'active' && (
                         <button onClick={() => setShowCreateModal(true)} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg}`}>
-                            <div className="p-2 bg-current bg-opacity-5 rounded-full"><Plus size={20} /></div>
+                            <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
                             <span className="text-xs font-medium uppercase tracking-widest">Создать запись</span>
                         </button>
                     )}
@@ -518,7 +514,18 @@ const App = () => {
                         <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-6 shadow-xl ${theme.activeButton}`}>
                             {user.displayName?.[0] || "A"}
                         </div>
-                        <h2 className="text-3xl font-light mb-2">{user.displayName || "Пилигрим"}</h2>
+                        
+                        {/* ИМЯ С ПРЯМЫМ РЕДАКТИРОВАНИЕМ */}
+                        <div className="relative mb-2 px-8 group">
+                            <input 
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                onBlur={handleUpdateName}
+                                className="w-full bg-transparent text-center text-3xl font-light outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30"
+                                placeholder="Ваше имя"
+                            />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
+                        </div>
                         <p className="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-10">Тайная комната</p>
                         
                         {/* АТМОСФЕРА */}
@@ -542,31 +549,47 @@ const App = () => {
                            ))}
                         </div>
                         
-                        {/* МЕНЮ НАСТРОЕК */}
-                        <div className="space-y-1 text-left">
-                            <button onClick={() => setShowLegalModal('editName')} className="w-full p-4 hover:bg-current hover:bg-opacity-5 rounded-2xl flex items-center justify-between group transition">
-                                <div className="flex items-center gap-3 opacity-70 group-hover:opacity-100">
-                                    <UserCog size={18} />
-                                    <span className="text-sm font-medium">Изменить имя</span>
-                                </div>
-                                <ChevronRight size={16} className="opacity-30" />
-                            </button>
-                            
-                            <button onClick={() => setShowLegalModal('terms')} className="w-full p-4 hover:bg-current hover:bg-opacity-5 rounded-2xl flex items-center justify-between group transition">
-                                <div className="flex items-center gap-3 opacity-70 group-hover:opacity-100">
-                                    <FileText size={18} />
-                                    <span className="text-sm font-medium">Пользовательское соглашение</span>
-                                </div>
-                                <ChevronRight size={16} className="opacity-30" />
-                            </button>
+                        {/* ВЫПАДАЮЩИЕ СПИСКИ ДОКУМЕНТОВ */}
+                        <div className="space-y-2 text-left">
+                            {/* Соглашение */}
+                            <div className={`rounded-2xl transition-all ${expandedLegal === 'terms' ? theme.containerBg : 'hover:bg-current hover:bg-opacity-5'}`}>
+                                <button onClick={() => setExpandedLegal(expandedLegal === 'terms' ? null : 'terms')} className="w-full p-4 flex items-center justify-between opacity-70 hover:opacity-100">
+                                    <div className="flex items-center gap-3">
+                                        <FileText size={18} />
+                                        <span className="text-sm font-medium">Пользовательское соглашение</span>
+                                    </div>
+                                    {expandedLegal === 'terms' ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                                </button>
+                                <AnimatePresence>
+                                    {expandedLegal === 'terms' && (
+                                        <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden">
+                                            <p className="p-4 pt-0 text-xs whitespace-pre-wrap leading-relaxed opacity-70 font-light border-t border-current border-opacity-5 mx-4 mt-2">
+                                                {TERMS_TEXT}
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
-                            <button onClick={() => setShowLegalModal('disclaimer')} className="w-full p-4 hover:bg-current hover:bg-opacity-5 rounded-2xl flex items-center justify-between group transition">
-                                <div className="flex items-center gap-3 opacity-70 group-hover:opacity-100">
-                                    <ShieldAlert size={18} />
-                                    <span className="text-sm font-medium">Дисклеймер</span>
-                                </div>
-                                <ChevronRight size={16} className="opacity-30" />
-                            </button>
+                            {/* Дисклеймер */}
+                            <div className={`rounded-2xl transition-all ${expandedLegal === 'disclaimer' ? theme.containerBg : 'hover:bg-current hover:bg-opacity-5'}`}>
+                                <button onClick={() => setExpandedLegal(expandedLegal === 'disclaimer' ? null : 'disclaimer')} className="w-full p-4 flex items-center justify-between opacity-70 hover:opacity-100">
+                                    <div className="flex items-center gap-3 text-red-400">
+                                        <ShieldAlert size={18} />
+                                        <span className="text-sm font-medium">Дисклеймер</span>
+                                    </div>
+                                    {expandedLegal === 'disclaimer' ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}
+                                </button>
+                                <AnimatePresence>
+                                    {expandedLegal === 'disclaimer' && (
+                                        <motion.div initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} className="overflow-hidden">
+                                            <p className="p-4 pt-0 text-xs whitespace-pre-wrap leading-relaxed opacity-70 font-light border-t border-current border-opacity-5 mx-4 mt-2">
+                                                {DISCLAIMER_TEXT}
+                                            </p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
 
                     </Card>
@@ -599,7 +622,7 @@ const App = () => {
                         {view === 'diary' && (
                             <input name="title" placeholder="Тема..." className="w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-light outline-none mb-4 placeholder:opacity-40" autoFocus />
                         )}
-                        <textarea name="text" className="w-full bg-current bg-opacity-5 rounded-xl p-4 h-40 outline-none mb-6 text-base font-light placeholder:opacity-40 resize-none" placeholder={view === 'flow' ? "Твой отклик на слово..." : "Мысли, молитвы, благодарность..."} />
+                        <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-40 outline-none mb-6 text-base font-light placeholder:opacity-40 resize-none`} placeholder={view === 'flow' ? "Твой отклик на слово..." : "Мысли, молитвы, благодарность..."} />
                         
                         <div className="flex justify-between items-center">
                              <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
@@ -617,45 +640,6 @@ const App = () => {
             </motion.div>
             </>
         )}
-        </AnimatePresence>
-
-        {/* --- LEGAL & SETTINGS MODAL --- */}
-        <AnimatePresence>
-            {showLegalModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(null)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <button onClick={() => setShowLegalModal(null)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
-                    
-                    {showLegalModal === 'editName' && (
-                        <div className="text-center">
-                            <h3 className="text-xl font-serif mb-6">Как вас называть?</h3>
-                            <input 
-                                value={newName} 
-                                onChange={(e) => setNewName(e.target.value)}
-                                className="w-full bg-current bg-opacity-5 rounded-xl p-4 text-center text-xl outline-none mb-6 font-serif"
-                                placeholder="Ваше имя"
-                            />
-                            <button onClick={handleUpdateName} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton}`}>Сохранить</button>
-                        </div>
-                    )}
-
-                    {showLegalModal === 'terms' && (
-                        <div>
-                            <h3 className="text-lg font-bold uppercase tracking-widest mb-6 opacity-50">Соглашение</h3>
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed opacity-80 font-light">{TERMS_TEXT}</p>
-                        </div>
-                    )}
-
-                    {showLegalModal === 'disclaimer' && (
-                        <div>
-                            <h3 className="text-lg font-bold uppercase tracking-widest mb-6 text-red-400 opacity-80">Важно</h3>
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed opacity-80 font-light">{DISCLAIMER_TEXT}</p>
-                        </div>
-                    )}
-                </motion.div>
-                </>
-            )}
         </AnimatePresence>
 
         {/* --- SUCCESS MODAL --- */}
