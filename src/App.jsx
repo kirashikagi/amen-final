@@ -291,17 +291,17 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
             >
               <div className="mt-20 flex flex-col items-start gap-8">
                 {menuItems.map(item => (
-                  <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-2xl font-light tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
+                  <button key={item.id} onClick={() => { setView(item.id); setIsOpen(false); }} className={`text-left text-2xl font-extralight tracking-wide transition-opacity ${view === item.id ? 'opacity-100 font-normal' : 'opacity-40 hover:opacity-80'}`}>
                     {item.label}
                   </button>
                 ))}
                 
-                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide opacity-40 hover:opacity-100 flex items-center gap-3">
+                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-extralight tracking-wide opacity-40 hover:opacity-100 flex items-center gap-3">
                     <ImageIcon size={18}/> Атмосфера
                 </button>
 
                 {isAdmin && (
-                    <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-xl font-light tracking-wide text-orange-600 hover:text-orange-700 flex items-center gap-3">
+                    <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-xl font-extralight tracking-wide text-orange-600 hover:text-orange-700 flex items-center gap-3">
                         <Mail size={18}/> Входящие
                     </button>
                 )}
@@ -372,7 +372,6 @@ const App = () => {
       const day = String(today.getDate()).padStart(2, '0');
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const key = `${day}-${month}`;
-      // Берем из хардкода, так как БД нет в примере, но логика осталась правильной
       setDailyVerse(CALENDAR_READINGS[key] || DAILY_WORD_DEFAULT);
     };
     fetchDailyWord();
@@ -570,16 +569,20 @@ const App = () => {
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
                 
+                {/* AIRY FOCUS CARD */}
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
-                   <div className="absolute top-0 left-0 w-full h-1 bg-current opacity-10" />
                    <div className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-50 mb-8">Фокус дня</div>
+                   
                    <h2 className="text-3xl font-normal leading-tight mb-6 px-2 font-serif">{dailyVerse.title}</h2>
+                   
                    <div className="mb-8 px-2 relative">
                        <span className="text-4xl absolute -top-4 -left-2 opacity-10 font-serif">“</span>
                        <p className="text-lg font-serif italic leading-relaxed opacity-90 relative z-10">{dailyVerse.text}</p>
                        <span className="text-4xl absolute -bottom-8 -right-2 opacity-10 font-serif">”</span>
                    </div>
+                   
                    <div className="text-xs font-medium uppercase tracking-widest opacity-40 mb-8">{dailyVerse.source}</div>
+                   
                    <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
                        <div className="flex gap-3">
                            <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
@@ -677,6 +680,7 @@ const App = () => {
                                     </>
                                 )}
 
+                                {/* Заметки / Updates */}
                                 {p.updates && p.updates.length > 0 && (
                                     <div className="mb-6 space-y-3 border-l-2 border-current border-opacity-10 pl-4">
                                         {p.updates.map((u, i) => (
