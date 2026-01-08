@@ -28,7 +28,7 @@ import {
   arrayUnion, 
   arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -95,12 +95,13 @@ const THEMES = {
   sunset: { 
     id: 'sunset', label: 'Тепло', bgImage: '/sunset.jpg', 
     fallbackColor: '#fff1f2', 
-    cardBg: 'bg-[#fff1f2]/40 backdrop-blur-3xl shadow-sm border border-white/20', 
-    text: 'text-rose-950', subText: 'text-rose-800', 
-    containerBg: 'bg-white/50',
-    button: 'border border-rose-900/10 hover:bg-white/40', 
-    activeButton: 'bg-rose-900 text-white shadow-md',
-    menuBg: 'bg-[#fff1f2]/95 backdrop-blur-3xl text-rose-950 border-l border-white/20'
+    cardBg: 'bg-stone-900/30 backdrop-blur-3xl shadow-sm border border-orange-100/20', 
+    text: 'text-orange-50', 
+    subText: 'text-orange-200/70', 
+    containerBg: 'bg-black/20', 
+    button: 'border border-orange-100/30 hover:bg-white/10', 
+    activeButton: 'bg-orange-100 text-stone-900 shadow-md', 
+    menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10' 
   },
   evening: { 
     id: 'evening', label: 'Глубина', bgImage: '/evening.jpg', 
@@ -243,7 +244,7 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
   return (
     <>
       <div className="fixed top-12 right-6 z-[60]">
-        <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
+        <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-extralight uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
           {isOpen ? "ЗАКРЫТЬ" : "МЕНЮ"}
         </button>
       </div>
@@ -310,6 +311,7 @@ const App = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false); // Поддержка
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -319,6 +321,7 @@ const App = () => {
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [focusPrayerPublic, setFocusPrayerPublic] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const [diaryTab, setDiaryTab] = useState('active'); 
   const [newName, setNewName] = useState('');
@@ -465,9 +468,15 @@ const App = () => {
       }
       setShowAnswerModal(false);
       setAnsweringId(null);
-      setSuccessMessage("Твой путь важен"); // Универсальное сообщение
+      setSuccessMessage("Твой путь важен"); 
       setShowSuccessModal(true);
       setTimeout(() => setShowSuccessModal(false), 2000);
+  };
+
+  const copyToClipboard = () => {
+        navigator.clipboard.writeText("42301810200082919550");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
   };
 
   const deletePost = async (id) => {
@@ -531,7 +540,6 @@ const App = () => {
             isAdmin={isAdmin}
         />
 
-        {/* УБРАЛИ ЗАГОЛОВОК AMEN ОТСЮДА ДЛЯ ПОТОКА И ПРОФИЛЯ */}
         {view === 'diary' && (
              <div className="pt-28 pb-4 px-8 text-center">
                 <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
@@ -713,6 +721,7 @@ const App = () => {
 
             {view === 'profile' && (
                 <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center pt-28">
+                    
                     <div className="pb-10">
                         <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton}`}>
                             {user.displayName?.[0] || "A"}
@@ -745,9 +754,16 @@ const App = () => {
                         </div>
 
                         {/* КНОПКА ОБРАТНОЙ СВЯЗИ */}
-                        <div className="mb-12">
+                        <div className="mb-4">
                             <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button}`}>
                                 <MessageCircle size={14} /> Написать разработчику
+                            </button>
+                        </div>
+
+                        {/* КНОПКА ПОДДЕРЖКИ */}
+                        <div className="mb-12">
+                            <button onClick={() => setShowSupportModal(true)} className="text-[10px] opacity-40 hover:opacity-100 transition flex items-center gap-2 mx-auto">
+                                <Heart size={12} /> Поддержать проект
                             </button>
                         </div>
                         
@@ -849,6 +865,31 @@ const App = () => {
                     <button onClick={sendFeedback} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition`}>
                         Отправить
                     </button>
+                </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+
+        {/* --- SUPPORT MODAL --- */}
+        <AnimatePresence>
+            {showSupportModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-serif">Поддержка</h3>
+                        <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                    </div>
+                    <p className="text-sm opacity-80 mb-6 leading-relaxed">
+                        Ваша поддержка очень ценна для разработки, поддержания и развития проекта. Спасибо, что вы с нами.
+                    </p>
+                    
+                    <button onClick={copyToClipboard} className={`w-full p-4 rounded-xl mb-2 flex items-center justify-between group ${theme.containerBg} hover:bg-current hover:bg-opacity-10 transition`}>
+                        <span className="font-mono text-sm tracking-wider opacity-80">42301810200082919550</span>
+                        {copied ? <Check size={16} className="text-emerald-500"/> : <Copy size={16} className="opacity-40 group-hover:opacity-100"/>}
+                    </button>
+                    
+                    {copied && <p className="text-[10px] text-center text-emerald-500 mt-2">Реквизиты скопированы</p>}
                 </motion.div>
                 </>
             )}
