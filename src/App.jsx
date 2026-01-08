@@ -244,7 +244,7 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
   return (
     <>
       <div className="fixed top-12 right-6 z-[60]">
-        <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-extralight uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
+        <button onClick={() => setIsOpen(!isOpen)} className={`text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-full border border-stone-800/10 backdrop-blur-md ${theme.text} hover:bg-black/5 transition`}>
           {isOpen ? "ЗАКРЫТЬ" : "МЕНЮ"}
         </button>
       </div>
@@ -328,7 +328,8 @@ const App = () => {
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', text: '' });
-  const [noteText, setNoteText] = useState('');
+  // noteText is not used in UI anymore but keeping state just in case
+  const [noteText, setNoteText] = useState(''); 
   const [answeringId, setAnsweringId] = useState(null);
   const [answerText, setAnswerText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
@@ -433,14 +434,6 @@ const App = () => {
       setEditingId(null);
   };
 
-  const addNote = async (prayerId) => {
-      if(!noteText.trim()) return;
-      await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', prayerId), {
-          updates: arrayUnion({ text: noteText, createdAt: new Date().toISOString() })
-      });
-      setNoteText('');
-  };
-
   const openAnswerModal = (prayerId) => {
       setAnsweringId(prayerId);
       setAnswerText('');
@@ -504,7 +497,12 @@ const App = () => {
       alert("Отправлено!");
   };
 
-  if (loading || !dailyVerse) return <div className="h-screen bg-[#f4f5f0] flex items-center justify-center text-stone-400 font-light italic">Amen...</div>;
+  if (loading || !dailyVerse) return (
+      <div className="h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light">
+        <span className="italic">Загрузка тишины...</span>
+        <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-500 rounded-full animate-spin"></div>
+      </div>
+  );
 
   if (!user) return (
       <div className="fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7]">
@@ -683,15 +681,9 @@ const App = () => {
                                     <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-[10px] text-red-400 opacity-50 hover:opacity-100 uppercase tracking-widest transition">Удалить</button>
                                     
                                     {p.status !== 'answered' ? (
-                                        <div className="flex gap-3">
-                                            <div className="flex items-center gap-2">
-                                                <input value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Заметка..." className="bg-transparent text-xs outline-none w-20 border-b border-current border-opacity-20" />
-                                                <button onClick={() => addNote(p.id)} className="opacity-50 hover:opacity-100"><Plus size={14}/></button>
-                                            </div>
-                                            <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
-                                                <CheckCircle2 size={14}/> Это отвечено
-                                            </button>
-                                        </div>
+                                        <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
+                                            <CheckCircle2 size={14}/> Есть ответ
+                                        </button>
                                     ) : null}
                                 </div>
                             </Card>
