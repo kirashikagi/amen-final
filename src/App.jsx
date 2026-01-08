@@ -124,7 +124,6 @@ const THEMES = {
   }
 };
 
-// --- CALENDAR READINGS (8.01 - 31.01) ---
 const CALENDAR_READINGS = {
   "08-01": { title: "Направление", source: "Псалом 31:8", text: "Вразумлю тебя, наставлю тебя на путь, по которому тебе идти; буду руководить тебя, око Мое над тобою.", thought: "Бог не просто дает карту, Он Сам становится Проводником.", action: "Спроси Бога о следующем шаге." },
   "09-01": { title: "Сила в слабости", source: "2 Коринфянам 12:9", text: "Довольно для тебя благодати Моей, ибо сила Моя совершается в немощи.", thought: "Твоя слабость — это площадка для проявления Божьей силы.", action: "Признай свою слабость перед Ним." },
@@ -171,36 +170,6 @@ const Card = ({ children, theme, className = "", onClick }) => (
     {children}
   </motion.div>
 );
-
-const ActivityCalendar = ({ prayers, theme }) => {
-    const days = Array.from({ length: 14 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (13 - i));
-        return d;
-    });
-
-    return (
-        <div className="flex flex-col items-center gap-3 mb-8">
-            <div className="flex items-center gap-2 opacity-50">
-                <CalendarDays size={12} />
-                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
-            </div>
-            <div className="flex gap-2">
-                {days.map((day, idx) => {
-                    const dateStr = day.toLocaleDateString();
-                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
-                    return (
-                        <div 
-                            key={idx} 
-                            className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`}
-                            title={dateStr}
-                        />
-                    );
-                })}
-            </div>
-        </div>
-    );
-};
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }) => {
   const audioRef = useRef(null);
@@ -345,6 +314,7 @@ const App = () => {
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("Услышано");
 
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -433,6 +403,7 @@ const App = () => {
     setTimeout(() => {
         setIsAmenAnimating(false);
         setShowCreateModal(false);
+        setSuccessMessage("Услышано");
         setShowSuccessModal(true);
         e.target.reset();
         setFocusPrayerPublic(false);
@@ -494,6 +465,9 @@ const App = () => {
       }
       setShowAnswerModal(false);
       setAnsweringId(null);
+      setSuccessMessage("Твой путь важен"); // Универсальное сообщение
+      setShowSuccessModal(true);
+      setTimeout(() => setShowSuccessModal(false), 2000);
   };
 
   const deletePost = async (id) => {
@@ -557,7 +531,8 @@ const App = () => {
             isAdmin={isAdmin}
         />
 
-        {view !== 'profile' && (
+        {/* УБРАЛИ ЗАГОЛОВОК AMEN ОТСЮДА ДЛЯ ПОТОКА И ПРОФИЛЯ */}
+        {view === 'diary' && (
              <div className="pt-28 pb-4 px-8 text-center">
                 <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
              </div>
@@ -567,9 +542,8 @@ const App = () => {
           <AnimatePresence mode="wait">
             
             {view === 'flow' && (
-              <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8">
+              <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8 pt-24">
                 
-                {/* AIRY FOCUS CARD */}
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className="text-[10px] font-bold uppercase tracking-[0.25em] opacity-50 mb-8">Фокус дня</div>
                    
@@ -680,7 +654,6 @@ const App = () => {
                                     </>
                                 )}
 
-                                {/* Заметки / Updates */}
                                 {p.updates && p.updates.length > 0 && (
                                     <div className="mb-6 space-y-3 border-l-2 border-current border-opacity-10 pl-4">
                                         {p.updates.map((u, i) => (
@@ -740,9 +713,6 @@ const App = () => {
 
             {view === 'profile' && (
                 <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center pt-28">
-                    
-                    <h1 className="text-4xl font-light tracking-tight opacity-90 drop-shadow-sm mb-12">Amen</h1>
-
                     <div className="pb-10">
                         <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton}`}>
                             {user.displayName?.[0] || "A"}
@@ -759,9 +729,8 @@ const App = () => {
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                         </div>
 
-                        <ActivityCalendar prayers={myPrayers} theme={theme} />
-
-                        <div className="text-left max-w-xs mx-auto space-y-6 mt-12 mb-20 opacity-60 px-4">
+                        {/* NAVIGATOR */}
+                        <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
                             <div className="flex gap-4 items-start">
                                 <div className="mt-1"><Compass size={16}/></div>
                                 <div>
@@ -777,12 +746,12 @@ const App = () => {
 
                         {/* КНОПКА ОБРАТНОЙ СВЯЗИ */}
                         <div className="mb-12">
-                            <button onClick={() => setShowFeedbackModal(true)} className="flex items-center gap-2 mx-auto text-xs opacity-50 hover:opacity-100 transition">
+                            <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button}`}>
                                 <MessageCircle size={14} /> Написать разработчику
                             </button>
                         </div>
                         
-                        <div className="text-center opacity-30 mt-auto">
+                        <div className="text-center opacity-80 mt-auto">
                              <p className="text-[9px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                         </div>
                     </div>
@@ -798,7 +767,7 @@ const App = () => {
         {showCreateModal && (
             <>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}/>
-            <motion.div initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}} transition={{type:"spring", damping:25}} className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-[2.5rem] p-8 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] ${theme.cardBg} backdrop-blur-3xl border-t border-white/20`}>
+            <motion.div initial={{y:"100%"}} animate={{y:0}} exit={{y:"100%"}} transition={{type:"spring", damping:25}} className={`fixed top-24 left-4 right-4 z-50 rounded-[2rem] p-8 pb-12 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] ${theme.cardBg} backdrop-blur-3xl border-t border-white/20`}>
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-light">Новая запись</h3>
                     <button onClick={() => setShowCreateModal(false)}><X size={20} className="opacity-40" /></button>
@@ -935,7 +904,7 @@ const App = () => {
                         <div className="w-16 h-16 bg-stone-800 text-white rounded-full flex items-center justify-center">
                             <Check size={32} />
                         </div>
-                        <h3 className="text-xl font-light tracking-wide text-stone-900">Услышано</h3>
+                        <h3 className="text-xl font-light tracking-wide text-stone-900">{successMessage}</h3>
                     </div>
                 </motion.div>
             )}
