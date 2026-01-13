@@ -26,9 +26,10 @@ import {
   onSnapshot, 
   serverTimestamp, 
   arrayUnion, 
-  arrayRemove 
+  arrayRemove,
+  increment 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -171,6 +172,36 @@ const Card = ({ children, theme, className = "", onClick }) => (
     {children}
   </motion.div>
 );
+
+const ActivityCalendar = ({ prayers, theme }) => {
+    const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (13 - i));
+        return d;
+    });
+
+    return (
+        <div className="flex flex-col items-center gap-3 mb-8">
+            <div className="flex items-center gap-2 opacity-50">
+                <CalendarDays size={12} />
+                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
+            </div>
+            <div className="flex gap-2">
+                {days.map((day, idx) => {
+                    const dateStr = day.toLocaleDateString();
+                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
+                    return (
+                        <div 
+                            key={idx} 
+                            className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`}
+                            title={dateStr}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }) => {
   const audioRef = useRef(null);
@@ -395,7 +426,7 @@ const App = () => {
     const text = e.target.elements.text.value;
     const isPublic = focusPrayerPublic; 
     
-    const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [] };
+    const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 };
     await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data);
     
     if(isPublic) {
@@ -415,6 +446,12 @@ const App = () => {
     }, 1500);
   };
 
+  const incrementPrayerCount = async (id, currentCount) => {
+      await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', id), {
+          prayerCount: (currentCount || 1) + 1
+      });
+  };
+
   const toggleLike = async (id, likes) => {
     const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id);
     await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) });
@@ -432,6 +469,14 @@ const App = () => {
           text: editForm.text
       });
       setEditingId(null);
+  };
+
+  const addNote = async (prayerId) => {
+      if(!noteText.trim()) return;
+      await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', prayerId), {
+          updates: arrayUnion({ text: noteText, createdAt: new Date().toISOString() })
+      });
+      setNoteText('');
   };
 
   const openAnswerModal = (prayerId) => {
@@ -499,8 +544,8 @@ const App = () => {
 
   if (loading || !dailyVerse) return (
       <div className="h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light">
-        <span className="italic">Загрузка тишины...</span>
-        <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-500 rounded-full animate-spin"></div>
+        <span className="italic animate-pulse">Загрузка тишины...</span>
+        <div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin"></div>
       </div>
   );
 
@@ -681,9 +726,14 @@ const App = () => {
                                     <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-[10px] text-red-400 opacity-50 hover:opacity-100 uppercase tracking-widest transition">Удалить</button>
                                     
                                     {p.status !== 'answered' ? (
-                                        <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
-                                            <CheckCircle2 size={14}/> Есть ответ
-                                        </button>
+                                        <div className="flex items-center gap-4">
+                                            <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
+                                                <Hand size={14}/> {p.prayerCount || 1}
+                                            </button>
+                                            <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition">
+                                                <CheckCircle2 size={14}/> Есть ответ
+                                            </button>
+                                        </div>
                                     ) : null}
                                 </div>
                             </Card>
