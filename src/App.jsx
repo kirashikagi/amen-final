@@ -26,9 +26,10 @@ import {
   onSnapshot, 
   serverTimestamp, 
   arrayUnion, 
-  arrayRemove 
+  arrayRemove,
+  increment 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Copy, Hand, Share2 } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -132,21 +133,15 @@ const THEMES = {
 const CALENDAR_READINGS = {
   "08-01": { title: "Направление", source: "Псалом 31:8", text: "Вразумлю тебя, наставлю тебя на путь, по которому тебе идти; буду руководить тебя, око Мое над тобою.", thought: "Бог не просто дает карту, Он Сам становится Проводником.", action: "Спросить Бога о шаге" },
   "09-01": { title: "Сила в слабости", source: "2 Коринфянам 12:9", text: "Довольно для тебя благодати Моей, ибо сила Моя совершается в немощи.", thought: "Твоя слабость — это площадка для проявления Божьей силы.", action: "Признать слабость" },
-  // ... (Оставим сокращенный список для краткости, он работает из предыдущих версий)
   "10-01": { title: "Свет во тьме", source: "Иоанна 1:5", text: "И свет во тьме светит, и тьма не объяла его.", thought: "Даже самая густая тьма не может погасить самую маленькую свечу веры.", action: "Быть светом" },
   "11-01": { title: "Мир Божий", source: "Филиппийцам 4:7", text: "И мир Божий, который превыше всякого ума, соблюдет сердца ваши...", thought: "Мир — это не отсутствие проблем, а присутствие Бога в них.", action: "Вдохнуть мир" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
-// --- TEXTS ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
-// --- FONTS ---
-const fonts = { 
-    ui: "font-sans", 
-    content: "font-serif" 
-};
+const fonts = { ui: "font-sans", content: "font-serif" };
 
 // --- COMPONENTS ---
 
@@ -163,7 +158,8 @@ const Card = ({ children, theme, className = "", onClick }) => (
     className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-700 ${theme.cardBg} ${theme.text} ${className}`}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, ease: "easeOut" }}
+    exit={{ opacity: 0, transition: { duration: 0.2 } }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
   >
     {children}
   </motion.div>
@@ -291,9 +287,7 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
-                {/* AMEN LOGO IN MENU */}
                 <div className={`${fonts.ui} text-4xl font-light tracking-wide mb-10 opacity-30 uppercase`}>Amen</div>
-
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-extralight transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
                     {item.label}
@@ -339,7 +333,6 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
-  // UI States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -430,17 +423,11 @@ const App = () => {
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
-        {view === 'diary' && (
-             <div className={`pt-28 pb-4 px-8 text-center ${fonts.ui} flex flex-col items-center`}>
-                <div className={`w-3 h-3 bg-current opacity-20 rounded-full mb-4`}></div>
-             </div>
-        )}
-
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth">
           <AnimatePresence mode="wait">
             
             {view === 'flow' && (
-              <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8 pt-24">
+              <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="space-y-8 pt-24">
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
                    <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
@@ -494,7 +481,11 @@ const App = () => {
             )}
 
             {view === 'diary' && (
-                <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6 pt-24">
+                <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="space-y-6 pt-24">
+                    <div className={`pt-4 pb-4 px-8 text-center ${fonts.ui} flex flex-col items-center`}>
+                        <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                    </div>
+
                     <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
                         <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
                         <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Текущие</button>
@@ -579,7 +570,7 @@ const App = () => {
             )}
 
             {view === 'admin_feedback' && isAdmin && (
-                <motion.div key="admin_feedback" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-4 pt-28">
+                <motion.div key="admin_feedback" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="space-y-4 pt-28">
                      <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
                      {feedbacks.map(msg => (
                          <Card key={msg.id} theme={theme} className="relative">
@@ -597,7 +588,7 @@ const App = () => {
             )}
 
             {view === 'profile' && (
-                <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="text-center pt-28">
+                <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="text-center pt-28">
                     <div className="pb-10">
                         <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
                             {user.displayName?.[0] || "A"}
@@ -664,6 +655,7 @@ const App = () => {
             )}
         </AnimatePresence>
 
+        {/* --- OTHER MODALS --- */}
         <AnimatePresence>
         {showCreateModal && (
             <>
@@ -702,7 +694,6 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* --- ANSWER MODAL --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
@@ -719,7 +710,6 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- FEEDBACK MODAL --- */}
         <AnimatePresence>
             {showFeedbackModal && (
                 <>
@@ -741,7 +731,7 @@ const App = () => {
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
                         <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
