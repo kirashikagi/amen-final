@@ -26,10 +26,9 @@ import {
   onSnapshot, 
   serverTimestamp, 
   arrayUnion, 
-  arrayRemove,
-  increment 
+  arrayRemove 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Copy, Hand, Share2 } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -48,11 +47,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- HAPTICS HELPER ---
+// --- HAPTICS ---
 const triggerHaptic = () => {
-    if (navigator.vibrate) {
-        navigator.vibrate(10);
-    }
+    if (navigator.vibrate) navigator.vibrate(10);
 };
 
 // --- AUDIO TRACKS ---
@@ -135,19 +132,20 @@ const THEMES = {
 const CALENDAR_READINGS = {
   "08-01": { title: "Направление", source: "Псалом 31:8", text: "Вразумлю тебя, наставлю тебя на путь, по которому тебе идти; буду руководить тебя, око Мое над тобою.", thought: "Бог не просто дает карту, Он Сам становится Проводником.", action: "Спросить Бога о шаге" },
   "09-01": { title: "Сила в слабости", source: "2 Коринфянам 12:9", text: "Довольно для тебя благодати Моей, ибо сила Моя совершается в немощи.", thought: "Твоя слабость — это площадка для проявления Божьей силы.", action: "Признать слабость" },
+  // ... (Оставим сокращенный список для краткости, он работает из предыдущих версий)
   "10-01": { title: "Свет во тьме", source: "Иоанна 1:5", text: "И свет во тьме светит, и тьма не объяла его.", thought: "Даже самая густая тьма не может погасить самую маленькую свечу веры.", action: "Быть светом" },
-  "11-01": { title: "Мир Божий", source: "Филиппийцам 4:7", text: "И мир Божий, который превыше всякого ума, соблюдет сердца ваши...", thought: "Мир — это не отсутствие проблем, а присутствие Бога в них.", action: "Вдохнуть мир" },
-  // ...
+  "11-01": { title: "Мир Божий", source: "Филиппийцам 4:7", text: "И мир Божий, который превыше всякого ума, соблюдет сердца ваши...", thought: "Мир — это не отсутствие проблем, а присутствие Бога в них.", action: "Вдохнуть мир" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
+// --- TEXTS ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
-// --- FONTS & STYLES ---
+// --- FONTS ---
 const fonts = { 
-    ui: "font-sans", // Inter
-    content: "font-serif", // Spectral
+    ui: "font-sans", 
+    content: "font-serif" 
 };
 
 // --- COMPONENTS ---
@@ -165,7 +163,7 @@ const Card = ({ children, theme, className = "", onClick }) => (
     className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-700 ${theme.cardBg} ${theme.text} ${className}`}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.8, ease: "easeOut" }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
   >
     {children}
   </motion.div>
@@ -293,8 +291,8 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
-                {/* AMEN LOGO IN MENU - UPDATED FONT */}
-                <div className={`${fonts.ui} text-3xl font-semibold tracking-tight mb-10 opacity-30 uppercase`}>Amen</div>
+                {/* AMEN LOGO IN MENU */}
+                <div className={`${fonts.ui} text-4xl font-light tracking-wide mb-10 opacity-30 uppercase`}>Amen</div>
 
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-extralight transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
@@ -432,8 +430,12 @@ const App = () => {
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
-        {/* DIARY HEADER REMOVED - CLEAN START */}
-        
+        {view === 'diary' && (
+             <div className={`pt-28 pb-4 px-8 text-center ${fonts.ui} flex flex-col items-center`}>
+                <div className={`w-3 h-3 bg-current opacity-20 rounded-full mb-4`}></div>
+             </div>
+        )}
+
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth">
           <AnimatePresence mode="wait">
             
@@ -639,7 +641,7 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
+        {/* --- SUPPORT MODAL --- */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
@@ -700,7 +702,7 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* --- FEEDBACK, ANSWER, THEME, LEGAL, SUCCESS MODALS (SAME AS BEFORE) --- */}
+        {/* --- ANSWER MODAL --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
@@ -717,6 +719,7 @@ const App = () => {
             )}
         </AnimatePresence>
 
+        {/* --- FEEDBACK MODAL --- */}
         <AnimatePresence>
             {showFeedbackModal && (
                 <>
