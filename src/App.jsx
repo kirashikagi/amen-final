@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initializeApp } from "firebase/app";
 import { 
@@ -29,7 +29,7 @@ import {
   arrayRemove,
   increment 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2 } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -158,8 +158,7 @@ const Card = ({ children, theme, className = "", onClick }) => (
     className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-700 ${theme.cardBg} ${theme.text} ${className}`}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, transition: { duration: 0.2 } }}
-    transition={{ duration: 0.8, ease: "easeOut" }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
   >
     {children}
   </motion.div>
@@ -287,13 +286,15 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
+                {/* AMEN LOGO IN MENU */}
                 <div className={`${fonts.ui} text-4xl font-light tracking-wide mb-10 opacity-30 uppercase`}>Amen</div>
+
                 {menuItems.map(item => (
-                  <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-extralight transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
+                  <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
                     {item.label}
                   </button>
                 ))}
-                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-3xl font-extralight opacity-100 hover:opacity-80">
+                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light opacity-100 hover:opacity-80">
                     Атмосфера
                 </button>
                 {isAdmin && (
@@ -333,6 +334,7 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
+  // UI States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -362,6 +364,13 @@ const App = () => {
 
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const mainScrollRef = useRef(null);
+
+  // Reset scroll on view change
+  useLayoutEffect(() => {
+      if (mainScrollRef.current) {
+          mainScrollRef.current.scrollTo(0, 0);
+      }
+  }, [view]);
 
   const handleScroll = (e) => {
       const top = e.target.scrollTop;
@@ -423,216 +432,228 @@ const App = () => {
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
-        <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth">
+        <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28"> 
+          {/* pt-28 in MAIN ensures stable layout, preventing flickering */}
+          
           <AnimatePresence mode="wait">
             
-            {view === 'flow' && (
-              <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="space-y-8 pt-24">
-                <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
-                   <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
-                   <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
-                   <div className="mb-8 px-2 relative">
-                       <span className={`text-4xl absolute -top-4 -left-2 opacity-10 ${fonts.content}`}>“</span>
-                       <p className={`text-lg leading-[1.75] opacity-90 relative z-10 ${fonts.content}`}>{dailyVerse.text}</p>
-                       <span className={`text-4xl absolute -bottom-8 -right-2 opacity-10 ${fonts.content}`}>”</span>
-                   </div>
-                   <div className={`text-sm opacity-50 mb-8 ${fonts.ui}`}>{dailyVerse.source}</div>
-                   <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
-                       <div className="flex gap-3">
-                           <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
-                           <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>{dailyVerse.thought}</p>
+            <motion.div 
+                key={view}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, transition: { duration: 0 } }} 
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="space-y-8"
+            >
+                {view === 'flow' && (
+                  <>
+                    <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
+                       <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
+                       <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
+                       <div className="mb-8 px-2 relative">
+                           <span className={`text-4xl absolute -top-4 -left-2 opacity-10 ${fonts.content}`}>“</span>
+                           <p className={`text-lg leading-[1.75] opacity-90 relative z-10 ${fonts.content}`}>{dailyVerse.text}</p>
+                           <span className={`text-4xl absolute -bottom-8 -right-2 opacity-10 ${fonts.content}`}>”</span>
                        </div>
-                   </div>
-                   <button onClick={() => { triggerHaptic(); setShowCreateModal(true); }} className={`w-full py-4 text-sm font-medium rounded-xl transition ${theme.button} ${fonts.ui}`}>
-                       {dailyVerse.action}
-                   </button>
-                </Card>
+                       <div className={`text-sm opacity-50 mb-8 ${fonts.ui}`}>{dailyVerse.source}</div>
+                       <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
+                           <div className="flex gap-3">
+                               <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
+                               <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>{dailyVerse.thought}</p>
+                           </div>
+                       </div>
+                       <button onClick={() => { triggerHaptic(); setShowCreateModal(true); }} className={`w-full py-4 text-sm font-medium rounded-xl transition ${theme.button} ${fonts.ui}`}>
+                           {dailyVerse.action}
+                       </button>
+                    </Card>
 
-                <div className="flex items-center justify-center my-8 opacity-40">
-                    <div className="h-px bg-current w-16"></div>
-                    <span className={`mx-4 text-xs font-medium uppercase tracking-widest ${fonts.ui}`}>Единство</span>
-                    <div className="h-px bg-current w-16"></div>
-                </div>
-
-                <div className="space-y-4">
-                    {publicPosts.map(post => {
-                         const liked = post.likes?.includes(user.uid);
-                         const isAnswered = post.status === 'answered';
-                         return (
-                             <Card key={post.id} theme={theme} className="!p-6 relative group">
-                                 <div className={`flex justify-between mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
-                                     <span>{post.authorName}</span>
-                                     <div className="flex gap-2 mr-0">
-                                        {isAnswered && <span className="text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Чудо</span>}
-                                        <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
-                                     </div>
-                                 </div>
-                                 <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-90 ${fonts.content}`}>{post.text}</p>
-                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${liked ? theme.activeButton : theme.button} ${fonts.ui}`}>
-                                     {liked ? "Amen" : "Amen"}
-                                     {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
-                                 </button>
-                                 {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-20 hover:opacity-100"><Trash2 size={16} /></button>}
-                             </Card>
-                         );
-                     })}
-                </div>
-              </motion.div>
-            )}
-
-            {view === 'diary' && (
-                <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="space-y-6 pt-24">
-                    <div className={`pt-4 pb-4 px-8 text-center ${fonts.ui} flex flex-col items-center`}>
-                        <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                    <div className="flex items-center justify-center my-8 opacity-40">
+                        <div className="h-px bg-current w-16"></div>
+                        <span className={`mx-4 text-xs font-medium uppercase tracking-widest ${fonts.ui}`}>Единство</span>
+                        <div className="h-px bg-current w-16"></div>
                     </div>
-
-                    <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
-                        <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
-                        <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Текущие</button>
-                        <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
-                    </div>
-
-                    {diaryTab === 'active' && (
-                        <button onClick={() => { triggerHaptic(); setShowCreateModal(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
-                            <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
-                            <span className="text-sm font-medium">Создать запись</span>
-                        </button>
-                    )}
 
                     <div className="space-y-4">
-                        {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
-                            <div className={`text-center opacity-40 py-10 text-lg ${fonts.content}`}>
-                                {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
-                            </div>
+                        {publicPosts.map(post => {
+                             const liked = post.likes?.includes(user.uid);
+                             const isAnswered = post.status === 'answered';
+                             return (
+                                 <Card key={post.id} theme={theme} className="!p-6 relative group">
+                                     <div className={`flex justify-between mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
+                                         <span>{post.authorName}</span>
+                                         <div className="flex gap-2 mr-0">
+                                            {isAnswered && <span className="text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Чудо</span>}
+                                            <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
+                                         </div>
+                                     </div>
+                                     <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-90 ${fonts.content}`}>{post.text}</p>
+                                     <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${liked ? theme.activeButton : theme.button} ${fonts.ui}`}>
+                                         {liked ? "Amen" : "Amen"}
+                                         {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
+                                     </button>
+                                     {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-20 hover:opacity-100"><Trash2 size={16} /></button>}
+                                 </Card>
+                             );
+                         })}
+                    </div>
+                  </>
+                )}
+
+                {view === 'diary' && (
+                    <div className="space-y-6">
+                        <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
+                            <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                        </div>
+
+                        <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
+                            <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
+                            <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Текущие</button>
+                            <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
+                        </div>
+
+                        {diaryTab === 'active' && (
+                            <button onClick={() => { triggerHaptic(); setShowCreateModal(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
+                                <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
+                                <span className="text-sm font-medium">Создать запись</span>
+                            </button>
                         )}
-                        {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
-                            <Card key={p.id} theme={theme}>
-                                <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
-                                    <span className="text-xs font-normal opacity-50">{p.createdAt?.toDate().toLocaleDateString()}</span>
-                                    {p.status === 'answered' ? (
-                                        <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Ответ</span>
-                                    ) : (
-                                        <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
-                                    )}
+
+                        <div className="space-y-4">
+                            {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
+                                <div className={`text-center opacity-40 py-10 text-lg ${fonts.content}`}>
+                                    {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
                                 </div>
-
-                                {editingId === p.id ? (
-                                    <div className={`mb-4 space-y-2 ${fonts.ui}`}>
-                                        <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-lg font-medium`} />
-                                        <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
-                                        <div className="flex justify-end gap-3 pt-2">
-                                            <button onClick={() => setEditingId(null)} className="text-xs opacity-50">Отмена</button>
-                                            <button onClick={saveEdit} className="text-xs font-medium">Сохранить</button>
-                                        </div>
+                            )}
+                            {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
+                                <Card key={p.id} theme={theme}>
+                                    <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
+                                        <span className="text-xs font-normal opacity-50">{p.createdAt?.toDate().toLocaleDateString()}</span>
+                                        {p.status === 'answered' ? (
+                                            <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Ответ</span>
+                                        ) : (
+                                            <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
+                                        )}
                                     </div>
-                                ) : (
-                                    <>
-                                        <h3 className={`text-xl font-medium mb-3 leading-snug ${fonts.ui}`}>{p.title}</h3>
-                                        <p className={`text-[17px] leading-[1.75] opacity-90 whitespace-pre-wrap mb-6 ${fonts.content}`}>{p.text}</p>
-                                    </>
-                                )}
 
-                                {p.updates && p.updates.length > 0 && (
-                                    <div className="mb-6 space-y-3 border-l border-current border-opacity-20 pl-4">
-                                        {p.updates.map((u, i) => (
-                                            <div key={i} className={`text-sm opacity-70 ${fonts.content}`}>
-                                                <p>{u.text}</p>
+                                    {editingId === p.id ? (
+                                        <div className={`mb-4 space-y-2 ${fonts.ui}`}>
+                                            <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-lg font-medium`} />
+                                            <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
+                                            <div className="flex justify-end gap-3 pt-2">
+                                                <button onClick={() => setEditingId(null)} className="text-xs opacity-50">Отмена</button>
+                                                <button onClick={saveEdit} className="text-xs font-medium">Сохранить</button>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {p.status === 'answered' && p.answerNote && (
-                                    <div className="bg-emerald-500/10 p-5 rounded-2xl mb-4 border border-emerald-500/20">
-                                        <p className={`text-xs font-medium text-emerald-700 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
-                                        <p className={`text-[17px] leading-relaxed text-emerald-900 ${fonts.content}`}>{p.answerNote}</p>
-                                    </div>
-                                )}
-                                
-                                <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
-                                    <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs text-red-400 opacity-50 hover:opacity-100 transition">Удалить</button>
-                                    
-                                    {p.status !== 'answered' ? (
-                                        <div className="flex items-center gap-4">
-                                            <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-60 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
-                                                <Hand size={14}/> {p.prayerCount || 1}
-                                            </button>
-                                            <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-60 hover:opacity-100 transition">
-                                                <CheckCircle2 size={14}/> Есть ответ
-                                            </button>
                                         </div>
-                                    ) : null}
-                                </div>
-                            </Card>
-                        ))}
+                                    ) : (
+                                        <>
+                                            <h3 className={`text-xl font-medium mb-3 leading-snug ${fonts.ui}`}>{p.title}</h3>
+                                            <p className={`text-[17px] leading-[1.75] opacity-90 whitespace-pre-wrap mb-6 ${fonts.content}`}>{p.text}</p>
+                                        </>
+                                    )}
+
+                                    {p.updates && p.updates.length > 0 && (
+                                        <div className="mb-6 space-y-3 border-l border-current border-opacity-20 pl-4">
+                                            {p.updates.map((u, i) => (
+                                                <div key={i} className={`text-sm opacity-70 ${fonts.content}`}>
+                                                    <p>{u.text}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {p.status === 'answered' && p.answerNote && (
+                                        <div className="bg-emerald-500/10 p-5 rounded-2xl mb-4 border border-emerald-500/20">
+                                            <p className={`text-xs font-medium text-emerald-700 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
+                                            <p className={`text-[17px] leading-relaxed text-emerald-900 ${fonts.content}`}>{p.answerNote}</p>
+                                        </div>
+                                    )}
+                                    
+                                    <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
+                                        <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs text-red-400 opacity-50 hover:opacity-100 transition">Удалить</button>
+                                        
+                                        {p.status !== 'answered' ? (
+                                            <div className="flex items-center gap-4">
+                                                <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-60 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
+                                                    <Hand size={14}/> {p.prayerCount || 1}
+                                                </button>
+                                                <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-60 hover:opacity-100 transition">
+                                                    <CheckCircle2 size={14}/> Есть ответ
+                                                </button>
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
                     </div>
-                </motion.div>
-            )}
+                )}
 
-            {view === 'admin_feedback' && isAdmin && (
-                <motion.div key="admin_feedback" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="space-y-4 pt-28">
-                     <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
-                     {feedbacks.map(msg => (
-                         <Card key={msg.id} theme={theme} className="relative">
-                             <div className={`flex justify-between mb-3 opacity-50 text-xs font-normal ${fonts.ui}`}>
-                                 <span>{msg.userName}</span>
-                                 <span>{msg.createdAt?.toDate().toLocaleDateString()}</span>
-                             </div>
-                             <p className={`mb-4 text-sm leading-relaxed opacity-90 ${fonts.content}`}>{msg.text}</p>
-                             <div className="flex justify-end">
-                                 <button onClick={() => deleteFeedback(msg.id)} className="p-2 text-red-400 bg-red-500/10 rounded-full hover:bg-red-500/20"><Trash2 size={16} /></button>
-                             </div>
-                         </Card>
-                     ))}
-                </motion.div>
-            )}
+                {view === 'admin_feedback' && isAdmin && (
+                    <div className="space-y-4">
+                         <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
+                         {feedbacks.map(msg => (
+                             <Card key={msg.id} theme={theme} className="relative">
+                                 <div className={`flex justify-between mb-3 opacity-50 text-xs font-normal ${fonts.ui}`}>
+                                     <span>{msg.userName}</span>
+                                     <span>{msg.createdAt?.toDate().toLocaleDateString()}</span>
+                                 </div>
+                                 <p className={`mb-4 text-sm leading-relaxed opacity-90 ${fonts.content}`}>{msg.text}</p>
+                                 <div className="flex justify-end">
+                                     <button onClick={() => deleteFeedback(msg.id)} className="p-2 text-red-400 bg-red-500/10 rounded-full hover:bg-red-500/20"><Trash2 size={16} /></button>
+                                 </div>
+                             </Card>
+                         ))}
+                    </div>
+                )}
 
-            {view === 'profile' && (
-                <motion.div key="profile" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0, transition: {duration: 0.1}}} transition={{duration: 0.8, ease: "easeOut"}} className="text-center pt-28">
-                    <div className="pb-10">
-                        <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
-                            {user.displayName?.[0] || "A"}
-                        </div>
-                        <div className="relative mb-8 px-8 group">
-                            <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
-                        </div>
-                        <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
-                            <div className="flex gap-4 items-start">
-                                <div className="mt-1"><Compass size={16}/></div>
-                                <div>
-                                    <h4 className={`text-xs font-bold uppercase tracking-widest mb-2 ${fonts.ui}`}>Навигатор</h4>
-                                    <p className={`text-sm leading-relaxed ${fonts.content}`}>
-                                        <span className="font-medium">Поток:</span> Слово дня и общая молитва.<br/>
-                                        <span className="font-medium">Дневник:</span> Твой личный разговор с Богом.<br/>
-                                        <span className="font-medium">Единство:</span> Место поддержки.
-                                    </p>
+                {view === 'profile' && (
+                    <div className="text-center">
+                        <div className="pb-10">
+                            <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
+                                {user.displayName?.[0] || "A"}
+                            </div>
+                            <div className="relative mb-8 px-8 group">
+                                <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
+                            </div>
+                            <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
+                                <div className="flex gap-4 items-start">
+                                    <div className="mt-1"><Compass size={16}/></div>
+                                    <div>
+                                        <h4 className={`text-xs font-bold uppercase tracking-widest mb-2 ${fonts.ui}`}>Навигатор</h4>
+                                        <p className={`text-sm leading-relaxed ${fonts.content}`}>
+                                            <span className="font-medium">Поток:</span> Слово дня и общая молитва.<br/>
+                                            <span className="font-medium">Дневник:</span> Твой личный разговор с Богом.<br/>
+                                            <span className="font-medium">Единство:</span> Место поддержки.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="mb-4">
-                            <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button} ${fonts.ui}`}>
-                                <MessageCircle size={14} /> Написать разработчику
-                            </button>
-                        </div>
-                        <div className="mb-12">
-                            <button onClick={() => setShowSupportModal(true)} className={`text-xs opacity-50 hover:opacity-100 transition flex items-center gap-2 mx-auto ${fonts.ui}`}>
-                                <Heart size={12} /> Поддержать проект
-                            </button>
-                        </div>
-                        <div className={`text-center opacity-60 mt-auto ${fonts.ui}`}>
-                             <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
+                            <div className="mb-4">
+                                <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button} ${fonts.ui}`}>
+                                    <MessageCircle size={14} /> Написать разработчику
+                                </button>
+                            </div>
+                            <div className="mb-12">
+                                <button onClick={() => setShowSupportModal(true)} className={`text-xs opacity-50 hover:opacity-100 transition flex items-center gap-2 mx-auto ${fonts.ui}`}>
+                                    <Heart size={12} /> Поддержать проект
+                                </button>
+                            </div>
+                            <div className={`text-center opacity-60 mt-auto ${fonts.ui}`}>
+                                 <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
+                            </div>
                         </div>
                     </div>
-                </motion.div>
-            )}
+                )}
 
+            </motion.div>
           </AnimatePresence>
         </main>
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- SUPPORT MODAL --- */}
+        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
+        {/* Support, Create, Feedback, etc. modals remain here unchanged */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
@@ -655,7 +676,6 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- OTHER MODALS --- */}
         <AnimatePresence>
         {showCreateModal && (
             <>
@@ -694,6 +714,7 @@ const App = () => {
         )}
         </AnimatePresence>
 
+        {/* --- ANSWER MODAL --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
@@ -710,6 +731,7 @@ const App = () => {
             )}
         </AnimatePresence>
 
+        {/* --- FEEDBACK MODAL --- */}
         <AnimatePresence>
             {showFeedbackModal && (
                 <>
