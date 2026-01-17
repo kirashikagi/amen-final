@@ -179,6 +179,36 @@ const Card = ({ children, theme, className = "", onClick }) => (
   </motion.div>
 );
 
+const ActivityCalendar = ({ prayers, theme }) => {
+    const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (13 - i));
+        return d;
+    });
+
+    return (
+        <div className="flex flex-col items-center gap-3 mb-8">
+            <div className="flex items-center gap-2 opacity-50">
+                <CalendarDays size={12} />
+                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
+            </div>
+            <div className="flex gap-2">
+                {days.map((day, idx) => {
+                    const dateStr = day.toLocaleDateString();
+                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
+                    return (
+                        <div 
+                            key={idx} 
+                            className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`}
+                            title={dateStr}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }) => {
   const audioRef = useRef(null);
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -189,6 +219,12 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
       else audioRef.current.pause();
     }
   }, [isPlaying, currentTrack]);
+
+  const handleNextTrack = () => {
+      const currentIndex = AUDIO_TRACKS.findIndex(t => t.id === currentTrack.id);
+      const nextIndex = (currentIndex + 1) % AUDIO_TRACKS.length;
+      changeTrack(AUDIO_TRACKS[nextIndex]);
+  };
 
   return (
     <>
@@ -218,7 +254,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
       </AnimatePresence>
 
       <div className={`fixed bottom-6 left-6 right-6 z-40 h-12 px-5 rounded-full backdrop-blur-xl border border-white/20 shadow-sm flex items-center justify-between ${theme.menuBg} ${fonts.ui}`}>
-        <audio ref={audioRef} src={currentTrack.url} onEnded={() => {}} loop />
+        <audio ref={audioRef} src={currentTrack.url} onEnded={handleNextTrack} />
         <div className="flex items-center gap-3 overflow-hidden" onClick={() => setShowPlaylist(true)}>
            <div className={`p-1.5 rounded-full bg-black/5 dark:bg-white/10`}>
              <Disc size={14} className={isPlaying ? "animate-spin-slow" : ""} />
@@ -243,9 +279,9 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme }
 const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAdmin }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [
-    { id: 'diary', label: 'Дневник' },
-    { id: 'flow', label: 'Поток' }, 
-    { id: 'profile', label: 'Профиль' },
+    { id: 'diary', label: 'ДНЕВНИК' },
+    { id: 'flow', label: 'ПОТОК' }, 
+    { id: 'profile', label: 'ПРОФИЛЬ' },
   ];
 
   return (
@@ -273,7 +309,6 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                   </button>
                 ))}
                 
-                {/* АТМОСФЕРА теперь идентична остальным пунктам */}
                 <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-3xl font-extralight opacity-100 hover:opacity-80">
                     Атмосфера
                 </button>
@@ -319,7 +354,7 @@ const App = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showSupportModal, setShowSupportModal] = useState(false); // Поддержка
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -336,6 +371,7 @@ const App = () => {
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', text: '' });
+  // noteText is not used in UI anymore but keeping state just in case
   const [noteText, setNoteText] = useState(''); 
   const [answeringId, setAnsweringId] = useState(null);
   const [answerText, setAnswerText] = useState('');
