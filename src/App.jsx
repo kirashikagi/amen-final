@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
@@ -29,7 +29,7 @@ import {
   arrayRemove,
   increment 
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share, Share2 } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -51,7 +51,7 @@ const db = getFirestore(app);
 // --- HAPTICS HELPER ---
 const triggerHaptic = () => {
     if (navigator.vibrate) {
-        navigator.vibrate(10); // Light tick
+        navigator.vibrate(10);
     }
 };
 
@@ -135,7 +135,9 @@ const THEMES = {
 const CALENDAR_READINGS = {
   "08-01": { title: "Направление", source: "Псалом 31:8", text: "Вразумлю тебя, наставлю тебя на путь, по которому тебе идти; буду руководить тебя, око Мое над тобою.", thought: "Бог не просто дает карту, Он Сам становится Проводником.", action: "Спросить Бога о шаге" },
   "09-01": { title: "Сила в слабости", source: "2 Коринфянам 12:9", text: "Довольно для тебя благодати Моей, ибо сила Моя совершается в немощи.", thought: "Твоя слабость — это площадка для проявления Божьей силы.", action: "Признать слабость" },
-  // ... (Остальные дни, для краткости кода не дублирую весь список, логика та же)
+  "10-01": { title: "Свет во тьме", source: "Иоанна 1:5", text: "И свет во тьме светит, и тьма не объяла его.", thought: "Даже самая густая тьма не может погасить самую маленькую свечу веры.", action: "Быть светом" },
+  "11-01": { title: "Мир Божий", source: "Филиппийцам 4:7", text: "И мир Божий, который превыше всякого ума, соблюдет сердца ваши...", thought: "Мир — это не отсутствие проблем, а присутствие Бога в них.", action: "Вдохнуть мир" },
+  // ...
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
@@ -143,11 +145,14 @@ const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы 
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 // --- FONTS & STYLES ---
-const fonts = { ui: "font-sans", content: "font-serif" };
+const fonts = { 
+    ui: "font-sans", // Inter
+    content: "font-serif", // Spectral
+    logo: "font-['Pinyon_Script']" // Logo font
+};
 
 // --- COMPONENTS ---
 
-// Grain Overlay Component
 const FilmGrain = () => (
     <div className="fixed inset-0 pointer-events-none z-[100] opacity-[0.07] mix-blend-overlay"
          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
@@ -194,15 +199,12 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
   const audioRef = useRef(null);
   const [showPlaylist, setShowPlaylist] = useState(false);
 
-  // Fade In/Out Effect Logic
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
     if (isPlaying) {
         audio.volume = 0;
         audio.play().catch(e => console.log(e));
-        // Fade In
         let vol = 0;
         const interval = setInterval(() => {
             if (vol < 1) { vol += 0.1; audio.volume = Math.min(vol, 1); } 
@@ -212,7 +214,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
     } else {
         audio.pause();
     }
-  }, [isPlaying, currentTrack]); // Trigger fade on play or track change
+  }, [isPlaying, currentTrack]);
 
   const handleNextTrack = () => {
       const currentIndex = AUDIO_TRACKS.findIndex(t => t.id === currentTrack.id);
@@ -291,7 +293,10 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.4, ease: "easeOut" }} 
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
-              <div className="mt-24 flex flex-col items-start gap-8">
+              <div className="mt-8 flex flex-col items-start gap-8">
+                {/* AMEN LOGO IN MENU */}
+                <div className={`${fonts.logo} text-5xl mb-8 opacity-40 ml-1`}>Amen</div>
+
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-extralight transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
                     {item.label}
@@ -326,15 +331,7 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   
   const [view, setView] = useState('flow'); 
-  // Auto-detect theme logic
-  const getInitialTheme = () => {
-      const h = new Date().getHours();
-      if (h >= 5 && h < 11) return 'morning';
-      if (h >= 11 && h < 17) return 'day';
-      if (h >= 17 && h < 21) return 'sunset';
-      return 'midnight';
-  };
-  const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || getInitialTheme());
+  const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || 'dawn');
   const theme = THEMES[currentThemeId] || THEMES.dawn;
   
   const [currentTrack, setCurrentTrack] = useState(AUDIO_TRACKS[0]);
@@ -353,12 +350,10 @@ const App = () => {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false); // New Share Modal
-  const [shareContent, setShareContent] = useState(null);
 
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
   const [successMessage, setSuccessMessage] = useState("Услышано");
-  const [isUiVisible, setIsUiVisible] = useState(true); // Deep Reading Mode
+  const [isUiVisible, setIsUiVisible] = useState(true); 
 
   const [authError, setAuthError] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -378,7 +373,6 @@ const App = () => {
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const mainScrollRef = useRef(null);
 
-  // SCROLL LISTENER FOR DEEP READING
   const handleScroll = (e) => {
       const top = e.target.scrollTop;
       if (top > 50 && isUiVisible) setIsUiVisible(false);
@@ -425,14 +419,12 @@ const App = () => {
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) { await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); } };
   const sendFeedback = async () => { if(!feedbackText.trim()) return; await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { text: feedbackText, userId: user.uid, userName: user.displayName, createdAt: serverTimestamp() }); setFeedbackText(''); setShowFeedbackModal(false); alert("Отправлено!"); };
   
-  const openShare = (content) => { triggerHaptic(); setShareContent(content); setShowShareModal(true); };
-
   if (loading || !dailyVerse) return <div className={`h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light ${fonts.ui}`}><span className="italic animate-pulse">Загрузка тишины...</span><div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin"></div></div>;
   if (!user) return <div className={`fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7] ${fonts.ui}`}><div className="w-full max-w-xs space-y-8 text-center"><h1 className="text-6xl font-semibold text-stone-900 tracking-tight">Amen</h1><p className="text-stone-400 text-sm">Пространство тишины</p><form onSubmit={handleLogin} className="space-y-4 pt-8"><input name="username" type="text" placeholder="Имя" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required /><input name="password" type="password" placeholder="Пароль" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required />{authError && <p className="text-red-500 text-xs">{authError}</p>}<button disabled={isAuthLoading} className="w-full py-4 bg-stone-900 text-white text-sm font-medium rounded-xl">{isAuthLoading ? "..." : "Войти"}</button></form><button onClick={() => signInAnonymously(auth)} className="text-stone-400 text-sm">Войти тихо</button></div></div>;
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&family=Pinyon+Script&display=swap" rel="stylesheet" />
       <FilmGrain />
       
       <div className={`fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000`} style={{ backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none', backgroundColor: theme.fallbackColor }} />
@@ -441,19 +433,14 @@ const App = () => {
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
-        {view === 'diary' && (
-             <motion.div animate={{ opacity: isUiVisible ? 1 : 0 }} className={`pt-28 pb-4 px-8 text-center ${fonts.ui}`}>
-                <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
-             </motion.div>
-        )}
-
+        {/* DIARY HEADER REMOVED - CLEAN START */}
+        
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth">
           <AnimatePresence mode="wait">
             
             {view === 'flow' && (
               <motion.div key="flow" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-8 pt-24">
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
-                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-50 transition"><Share2 size={16} onClick={(e) => { e.stopPropagation(); openShare(dailyVerse.text); }} /></div>
                    <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
                    <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
                    <div className="mb-8 px-2 relative">
@@ -485,10 +472,9 @@ const App = () => {
                          const isAnswered = post.status === 'answered';
                          return (
                              <Card key={post.id} theme={theme} className="!p-6 relative group">
-                                 <button onClick={(e) => { e.stopPropagation(); openShare(post.text); }} className="absolute top-6 right-6 opacity-0 group-hover:opacity-40 hover:opacity-100 transition"><Share2 size={14}/></button>
                                  <div className={`flex justify-between mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
                                      <span>{post.authorName}</span>
-                                     <div className="flex gap-2 mr-6">
+                                     <div className="flex gap-2 mr-0">
                                         {isAnswered && <span className="text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Чудо</span>}
                                         <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
                                      </div>
@@ -507,7 +493,7 @@ const App = () => {
             )}
 
             {view === 'diary' && (
-                <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6">
+                <motion.div key="diary" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="space-y-6 pt-24">
                     <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
                         <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
                         <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Текущие</button>
@@ -654,20 +640,7 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS --- */}
-        <AnimatePresence>
-            {showShareModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[70] bg-black/40 backdrop-blur-md" onClick={() => setShowShareModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} flex flex-col items-center justify-center text-center`}>
-                    <h3 className={`text-xs uppercase tracking-[0.3em] opacity-50 mb-6 ${fonts.ui}`}>Amen</h3>
-                    <p className={`text-xl leading-relaxed font-serif italic mb-8 ${fonts.content}`}>“{shareContent}”</p>
-                    <button onClick={() => setShowShareModal(false)} className={`px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton}`}>Закрыть</button>
-                </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-
+        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
@@ -678,10 +651,10 @@ const App = () => {
                         <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
                     </div>
                     <p className={`text-[17px] leading-relaxed opacity-90 mb-8 ${fonts.content}`}>
-                        Развитие Amen — это наше общее дело. Ваша поддержка помогает оплачивать серверы и создавать новые функции, сохраняя чистоту и тишину приложения. Спасибо, что вы рядом!
+                        Ваша поддержка очень ценна для разработки, поддержания и развития проекта. Вот счёт по которому вы сможете направить вашу поддержку. Спасибо, что вы с нами.
                     </p>
                     <button onClick={copyToClipboard} className={`w-full p-4 rounded-xl mb-4 flex items-center justify-between ${theme.containerBg} active:scale-95 transition`}>
-                        <span className={`text-base tracking-wider font-bold ${fonts.ui}`}>42301810200082919550</span>
+                        <span className={`text-base tracking-wider font-medium ${fonts.ui}`}>42301810200082919550</span>
                         {copied ? <Check size={18} className="text-emerald-500"/> : <Copy size={18} className="opacity-60"/>}
                     </button>
                     {copied && <p className={`text-xs text-center text-emerald-500 ${fonts.ui}`}>Реквизиты скопированы</p>}
@@ -728,15 +701,14 @@ const App = () => {
         )}
         </AnimatePresence>
 
+        {/* --- FEEDBACK, ANSWER, THEME, LEGAL, SUCCESS MODALS (SAME AS BEFORE) --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}/>
                 <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-yellow-500/20`}>
                     <div className="text-center mb-6">
-                        <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <CheckCircle2 size={24} />
-                        </div>
+                        <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle2 size={24} /></div>
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Чудо произошло?</h3>
                     </div>
                     <textarea value={answerText} onChange={(e) => setAnswerText(e.target.value)} placeholder="Напиши краткое свидетельство..." className={`w-full p-4 rounded-xl outline-none h-32 text-sm resize-none mb-6 ${theme.containerBg} ${fonts.content}`} />
