@@ -151,17 +151,14 @@ const FilmGrain = () => (
     />
 );
 
+// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
-  <motion.div 
-    layout
+  <div 
     onClick={onClick} 
-    className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-700 ${theme.cardBg} ${theme.text} ${className}`}
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6, ease: "easeOut" }}
+    className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-300 ${theme.cardBg} ${theme.text} ${className}`}
   >
     {children}
-  </motion.div>
+  </div>
 );
 
 const ActivityCalendar = ({ prayers, theme }) => {
@@ -286,9 +283,7 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
-                {/* AMEN LOGO IN MENU */}
                 <div className={`${fonts.ui} text-4xl font-light tracking-wide mb-10 opacity-30 uppercase`}>Amen</div>
-
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
                     {item.label}
@@ -334,7 +329,6 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
-  // UI States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -365,7 +359,7 @@ const App = () => {
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const mainScrollRef = useRef(null);
 
-  // Reset scroll on view change
+  // FIX: Reset scroll on view change
   useLayoutEffect(() => {
       if (mainScrollRef.current) {
           mainScrollRef.current.scrollTo(0, 0);
@@ -439,10 +433,10 @@ const App = () => {
             
             <motion.div 
                 key={view}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, transition: { duration: 0 } }} 
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
                 className="space-y-8"
             >
                 {view === 'flow' && (
@@ -753,7 +747,7 @@ const App = () => {
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
                         <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
