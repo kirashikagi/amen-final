@@ -148,7 +148,6 @@ const DISCLAIMER_TEXT = `Amen не заменяет профессиональн
 const fonts = { 
     ui: "font-sans", // Inter
     content: "font-serif", // Spectral
-    logo: "font-['Pinyon_Script']" // Logo font
 };
 
 // --- COMPONENTS ---
@@ -294,8 +293,8 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
-                {/* AMEN LOGO IN MENU */}
-                <div className={`${fonts.logo} text-5xl mb-8 opacity-40 ml-1`}>Amen</div>
+                {/* AMEN LOGO IN MENU - UPDATED FONT */}
+                <div className={`${fonts.ui} text-3xl font-semibold tracking-tight mb-10 opacity-30 uppercase`}>Amen</div>
 
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-extralight transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
@@ -424,7 +423,7 @@ const App = () => {
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&family=Pinyon+Script&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
       <div className={`fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000`} style={{ backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none', backgroundColor: theme.fallbackColor }} />
