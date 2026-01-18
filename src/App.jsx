@@ -76,7 +76,8 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-stone-800/10 hover:bg-white/40', 
     activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
-    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
+    // Сделал прозрачность 80% (было 95%) для эффекта стекла
+    menuBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl text-stone-900 border-l border-white/20'
   },
   morning: { 
     id: 'morning', label: 'Величие', bgImage: '/morning.jpg', 
@@ -86,7 +87,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-slate-800/10 hover:bg-white/40', 
     activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
-    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
+    menuBg: 'bg-white/80 backdrop-blur-3xl text-slate-900 border-l border-white/20'
   },
   day: { 
     id: 'day', label: 'Гармония', bgImage: '/day.jpg', 
@@ -96,7 +97,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-stone-900/10 hover:bg-white/40', 
     activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
-    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
+    menuBg: 'bg-[#fffff0]/80 backdrop-blur-3xl text-stone-950 border-l border-white/20'
   },
   sunset: { 
     id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', 
@@ -106,7 +107,7 @@ const THEMES = {
     containerBg: 'bg-black/20', 
     button: 'border border-orange-100/30 hover:bg-white/10', 
     activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
-    menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10' 
+    menuBg: 'bg-[#2c1810]/80 backdrop-blur-3xl text-orange-50 border-l border-white/10' 
   },
   evening: { 
     id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', 
@@ -116,7 +117,7 @@ const THEMES = {
     containerBg: 'bg-white/10',
     button: 'border border-white/20 hover:bg-white/10', 
     activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
-    menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10'
+    menuBg: 'bg-[#2e1065]/80 backdrop-blur-3xl text-white border-l border-white/10'
   },
   midnight: { 
     id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', 
@@ -126,7 +127,7 @@ const THEMES = {
     containerBg: 'bg-white/10',
     button: 'border border-white/10 hover:bg-white/5', 
     activeButton: 'bg-white text-black shadow-lg shadow-white/10',
-    menuBg: 'bg-black/90 backdrop-blur-3xl text-slate-100 border-l border-white/10'
+    menuBg: 'bg-black/80 backdrop-blur-3xl text-slate-100 border-l border-white/10'
   }
 };
 
@@ -151,7 +152,6 @@ const FilmGrain = () => (
     />
 );
 
-// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
   <div 
     onClick={onClick} 
@@ -646,7 +646,7 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
+        {/* --- MODALS --- */}
         {/* Support, Create, Feedback, etc. modals remain here unchanged */}
         <AnimatePresence>
             {showSupportModal && (
@@ -747,7 +747,7 @@ const App = () => {
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
                         <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
