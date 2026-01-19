@@ -18,7 +18,15 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <script type="module" src="/src/main.jsx"></<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((reg) => console.log('Amen SW registered:', reg.scope))
+        .catch((err) => console.log('Amen SW failed:', err));
+    });
+  }
+</script>
+</body>
 </html>
 
