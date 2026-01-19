@@ -53,42 +53,43 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (PURE FADE / NO MOVEMENT) ---
+// --- ANIMATIONS (FAST & SMOOTH) ---
 
-// 1. Страницы (Только прозрачность)
+// 1. Страницы (Быстрое проявление)
 const pageVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.8, ease: "easeInOut" } },
-  exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }
+  animate: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }, // Ускорил с 0.8 до 0.4
+  exit: { opacity: 0, transition: { duration: 0.2 } }
 };
 
-// 2. Список (Каскадное проявление на месте)
+// 2. Список (Быстрый каскад)
 const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.05 }
+    transition: { staggerChildren: 0.05, delayChildren: 0.02 } // Очень быстрый старт
   }
 };
 
-// Исправлено: Убрал Y смещение. Теперь карточки просто проявляются.
 const itemAnim = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.8, ease: "easeOut" } }
+  show: { opacity: 1, transition: { duration: 0.3, ease: "easeOut" } } // Мгновенное мягкое появление
 };
 
-// 3. Шторка написания (Сохраняем эффект "С Небес", так как это действие)
+// 3. Шторка "С Небес" (БЫСТРАЯ ПРУЖИНА)
 const heavenCurtainAnim = {
     hidden: { y: "-110%" }, 
-    visible: { y: "0%", transition: { type: "spring", damping: 28, stiffness: 180, mass: 1 } },
-    exit: { y: "-110%", transition: { duration: 0.5, ease: "easeInOut" } }
+    // Stiffness 300 = очень упругая и быстрая пружина. Mass 0.8 = легкая шторка.
+    visible: { y: "0%", transition: { type: "spring", damping: 30, stiffness: 300, mass: 0.8 } },
+    exit: { y: "-110%", transition: { duration: 0.3, ease: "easeIn" } } // Быстрый улет наверх
 };
 
-// 4. Модальные окна (Только прозрачность, без Scale)
+// 4. Модальные окна (МГНОВЕННОЕ ПРОЯВЛЕНИЕ)
+// Добавил scale: 0.98 -> 1, чтобы глаз фиксировал движение, а не мерцание прозрачности
 const modalAnim = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } },
-    exit: { opacity: 0, transition: { duration: 0.3, ease: "easeIn" } }
+    hidden: { opacity: 0, scale: 0.98 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: "easeOut" } }, // 0.2 сек - это очень быстро и плавно
+    exit: { opacity: 0, scale: 0.98, transition: { duration: 0.15 } }
 };
 
 // --- HAPTICS ---
@@ -809,7 +810,7 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- OTHER MODALS (Using modalAnim - opacity only) --- */}
+        {/* --- OTHER MODALS --- */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
