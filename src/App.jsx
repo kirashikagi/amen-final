@@ -27,9 +27,10 @@ import {
   serverTimestamp, 
   arrayUnion, 
   arrayRemove,
-  increment 
+  increment,
+  enableIndexedDbPersistence // ИМПОРТИРУЕМ ФУНКЦИЮ ОФФЛАЙНА
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2 } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2, WifiOff } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -47,6 +48,19 @@ const ADMIN_NAMES = ['Admin', 'Founder', 'admin', 'founder', 'Киря'];
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// --- ВКЛЮЧЕНИЕ ОФФЛАЙН РЕЖИМА ---
+try {
+  enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code == 'failed-precondition') {
+          console.log('Невозможно включить оффлайн (открыто много вкладок)');
+      } else if (err.code == 'unimplemented') {
+          console.log('Браузер не поддерживает оффлайн');
+      }
+  });
+} catch (e) {
+  console.log("Persistence already enabled");
+}
 
 // --- HAPTICS ---
 const triggerHaptic = () => {
@@ -159,8 +173,8 @@ const CALENDAR_READINGS = {
   "12-02": { title: "Вера и будущее", source: "Евреям 11:1", text: "Вера же есть осуществление ожидаемого.", thought: "Будущее начинается с доверия. Позволь надежде направлять твои шаги.", action: "Довериться надежде" },
   "13-02": { title: "Новое имя", source: "Бытие 17:5", text: "…и не будешь ты больше называться Аврамом.", thought: "Богу важнее то, кем ты являешься, чем твоя роль. Вспомни свою идентичность во Христе.", action: "Вспомнить кто я" },
   "14-02": { title: "Трудная истина", source: "Иоанна 6:60", text: "Какие странные слова! кто может это слушать?", thought: "Истина может быть непростой. Останься с ней, даже если она вызывает напряжение.", action: "Принять истину" },
-  "15-02": { title: "Слезы", source: "Откровение 21:4", text: "И отрёт Бог всякую слезу.", thought: "История ещё продолжается. Живи с ожиданием того, что Бог ведёт к восстановлению.", action: "Ждать восстановления" },
-  "16-02": { title: "Сосуд для слез", source: "Псалом 55:9", text: "Положи слёзы мои в сосуд у Тебя.", thought: "Боль не остаётся незамеченной. Принеси её Богу в тишине молитвы.", action: "Принести боль Богу" },
+  "15-02": { title: "Надежда", source: "Откровение 21:4", text: "И отрёт Бог всякую слезу.", thought: "История ещё продолжается. Живи с ожиданием того, что Бог ведёт к восстановлению.", action: "Ждать восстановления" },
+  "16-02": { title: "Он видит боль", source: "Псалом 55:9", text: "Положи слёзы мои в сосуд у Тебя.", thought: "Боль не остаётся незамеченной. Принеси её Богу в тишине молитвы.", action: "Принести боль Богу" },
   "17-02": { title: "Творю новое", source: "Исаия 43:19", text: "Вот, Я делаю новое.", thought: "Перед Богом открыто будущее. Будь готов принять то новое, что Он приготовил.", action: "Принять новое" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
@@ -358,6 +372,7 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
+  // UI States
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -384,6 +399,19 @@ const App = () => {
   const [answeringId, setAnsweringId] = useState(null);
   const [answerText, setAnswerText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
+
+  // OFFLINE INDICATOR
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+      const handleStatusChange = () => setIsOnline(navigator.onLine);
+      window.addEventListener('online', handleStatusChange);
+      window.addEventListener('offline', handleStatusChange);
+      return () => {
+          window.removeEventListener('online', handleStatusChange);
+          window.removeEventListener('offline', handleStatusChange);
+      };
+  }, []);
 
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const mainScrollRef = useRef(null);
@@ -458,6 +486,14 @@ const App = () => {
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28"> 
           {/* pt-28 in MAIN ensures stable layout, preventing flickering */}
           
+          {!isOnline && (
+              <div className="mb-4 text-center">
+                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-500 text-xs font-medium ${fonts.ui}`}>
+                      <WifiOff size={12}/> Оффлайн режим
+                  </span>
+              </div>
+          )}
+
           <AnimatePresence mode="wait">
             
             <motion.div 
