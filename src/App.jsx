@@ -53,14 +53,12 @@ const db = getFirestore(app);
 try {
   enableIndexedDbPersistence(db).catch((err) => {
       if (err.code == 'failed-precondition') {
-          console.log('Multiple tabs open, persistence can only be enabled in one tab at a a time.');
+          console.log('Multiple tabs open');
       } else if (err.code == 'unimplemented') {
-          console.log('The current browser does not support all of the features required to enable persistence');
+          console.log('Browser not supported');
       }
   });
-} catch (e) {
-  // Persistence already enabled
-}
+} catch (e) {}
 
 // --- HAPTICS ---
 const triggerHaptic = () => {
@@ -144,7 +142,6 @@ const THEMES = {
   }
 };
 
-// --- CALENDAR READINGS (19.01 - 17.02) ---
 const CALENDAR_READINGS = {
   "19-01": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно.", action: "Оценить, где я духовно" },
   "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом. Попробуй сегодня отнестись к своей работе как к служению, а не просто обязанности.", action: "Работа как служение" },
@@ -192,7 +189,6 @@ const FilmGrain = () => (
     />
 );
 
-// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
   <div 
     onClick={onClick} 
@@ -474,13 +470,23 @@ const App = () => {
 
   return (
     <>
+      <style>{`
+        html, body {
+          position: fixed;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
+      
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
       <div className={`fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000`} style={{ backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none', backgroundColor: theme.fallbackColor }} />
       <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay}`} />
 
-      <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
+      <div className={`relative z-10 h-full w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28"> 
@@ -710,8 +716,32 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS --- */}
-        {/* CREATE MODAL (Fixed Bottom/Center) */}
+        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
+        {/* Support, Create, Feedback, etc. modals remain here unchanged */}
+        <AnimatePresence>
+            {showSupportModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+                    <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Поддержка</h3>
+                            <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                        </div>
+                        <p className={`text-[17px] leading-relaxed opacity-90 mb-8 ${fonts.content}`}>
+                            Ваша поддержка очень ценна для разработки, поддержания и развития проекта. Вот счёт по которому вы сможете направить вашу поддержку. Спасибо, что вы с нами.
+                        </p>
+                        <button onClick={copyToClipboard} className={`w-full p-4 rounded-xl mb-4 flex items-center justify-between ${theme.containerBg} active:scale-95 transition`}>
+                            <span className={`text-base tracking-wider font-medium ${fonts.ui}`}>42301810200082919550</span>
+                            {copied ? <Check size={18} className="text-emerald-500"/> : <Copy size={18} className="opacity-60"/>}
+                        </button>
+                        {copied && <p className={`text-xs text-center text-emerald-500 ${fonts.ui}`}>Реквизиты скопированы</p>}
+                    </motion.div>
+                </div>
+                </>
+            )}
+        </AnimatePresence>
+
         <AnimatePresence>
         {showCreateModal && (
             <>
@@ -758,7 +788,7 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* ANSWER MODAL (Fixed Bottom/Center) */}
+        {/* --- ANSWER MODAL --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
@@ -777,7 +807,7 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* FEEDBACK MODAL (Fixed Bottom/Center) */}
+        {/* --- FEEDBACK MODAL --- */}
         <AnimatePresence>
             {showFeedbackModal && (
                 <>
@@ -797,47 +827,27 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* OTHER MODALS (Support, Theme, etc.) */}
-        <AnimatePresence>
-            {showSupportModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Поддержка</h3>
-                        <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                    </div>
-                    <p className={`text-[17px] leading-relaxed opacity-90 mb-8 ${fonts.content}`}>
-                        Ваша поддержка очень ценна для разработки, поддержания и развития проекта. Вот счёт по которому вы сможете направить вашу поддержку. Спасибо, что вы с нами.
-                    </p>
-                    <button onClick={copyToClipboard} className={`w-full p-4 rounded-xl mb-4 flex items-center justify-between ${theme.containerBg} active:scale-95 transition`}>
-                        <span className={`text-base tracking-wider font-medium ${fonts.ui}`}>42301810200082919550</span>
-                        {copied ? <Check size={18} className="text-emerald-500"/> : <Copy size={18} className="opacity-60"/>}
-                    </button>
-                    {copied && <p className={`text-xs text-center text-emerald-500 ${fonts.ui}`}>Реквизиты скопированы</p>}
-                </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-
+        {/* --- THEME MODAL (Fixed Center, no keyboard input) --- */}
         <AnimatePresence>
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
-                        <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        {Object.values(THEMES).map(t => (
-                            <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
-                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                            <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
+                            <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            {Object.values(THEMES).map(t => (
+                                <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
+                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
                 </>
             )}
         </AnimatePresence>
@@ -846,13 +856,15 @@ const App = () => {
             {showLegalModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
-                    <div>
-                        <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
-                        <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
-                    </div>
-                </motion.div>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto relative`}>
+                        <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
+                        <div>
+                            <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
+                            <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
+                        </div>
+                    </motion.div>
+                </div>
                 </>
             )}
         </AnimatePresence>
