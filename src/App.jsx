@@ -30,7 +30,8 @@ import {
   increment,
   enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2, Music2 } from 'lucide-react'; 
+// Добавил иконки управления плеером (SkipBack, SkipForward)
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Compass, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -53,35 +54,33 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (AIRY & SMOOTH) ---
-// Плавная пружина для переходов страниц
-const pageTransition = {
-    type: "spring",
-    stiffness: 100,
-    damping: 20,
-    mass: 1
+// --- "CLOUD" ANIMATIONS (NO MOVEMENT, JUST FADE) ---
+const cloudPage = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.8, ease: "easeInOut" } }, // Очень медленное, нежное проявление
+  exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }
 };
 
-const pageVariants = {
-  initial: { opacity: 0, scale: 0.98 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
-  exit: { opacity: 0, scale: 1.02, transition: { duration: 0.3, ease: "easeIn" } }
-};
-
-const staggerContainer = {
+const cloudList = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
+      staggerChildren: 0.1,
       delayChildren: 0.1
     }
   }
 };
 
-const itemAnim = {
-  hidden: { opacity: 0, y: 30 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80, damping: 20 } }
+const cloudItem = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.8, ease: "easeOut" } }
+};
+
+const bottomSheetAnim = {
+    hidden: { y: "100%", opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { type: "spring", damping: 25, stiffness: 200 } },
+    exit: { y: "100%", opacity: 0, transition: { duration: 0.3 } }
 };
 
 // --- HAPTICS ---
@@ -107,80 +106,80 @@ const THEMES = {
   dawn: { 
     id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', 
     fallbackColor: '#fff7ed', 
-    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(255,255,255,0.2)] border border-white/20', 
+    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm', // Убрал border
     text: 'text-stone-900', subText: 'text-stone-600', 
     containerBg: 'bg-white/50',
-    button: 'border border-stone-800/10 hover:bg-white/40', 
-    activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
-    menuBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl text-stone-900 border-l border-white/20',
+    button: 'hover:bg-white/40', 
+    activeButton: 'bg-stone-800 text-white shadow-lg',
+    menuBg: 'bg-[#fffbf7]/90 backdrop-blur-3xl text-stone-900',
     iconColor: 'text-stone-800'
   },
   morning: { 
     id: 'morning', label: 'Величие', bgImage: '/morning.jpg', 
     fallbackColor: '#f0f9ff', 
-    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(186,230,253,0.2)] border border-white/20', 
+    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm', 
     text: 'text-slate-900', subText: 'text-slate-600', 
     containerBg: 'bg-white/50',
-    button: 'border border-slate-800/10 hover:bg-white/40', 
-    activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
-    menuBg: 'bg-white/80 backdrop-blur-3xl text-slate-900 border-l border-white/20',
+    button: 'hover:bg-white/40', 
+    activeButton: 'bg-sky-900 text-white shadow-lg',
+    menuBg: 'bg-white/90 backdrop-blur-3xl text-slate-900',
     iconColor: 'text-sky-900'
   },
   day: { 
     id: 'day', label: 'Гармония', bgImage: '/day.jpg', 
     fallbackColor: '#fdfce7', 
-    cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(254,243,199,0.2)] border border-white/20', 
+    cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-sm', 
     text: 'text-stone-950', subText: 'text-stone-700', 
     containerBg: 'bg-white/50',
-    button: 'border border-stone-900/10 hover:bg-white/40', 
-    activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
-    menuBg: 'bg-[#fffff0]/80 backdrop-blur-3xl text-stone-950 border-l border-white/20',
+    button: 'hover:bg-white/40', 
+    activeButton: 'bg-amber-900 text-white shadow-lg',
+    menuBg: 'bg-[#fffff0]/90 backdrop-blur-3xl text-stone-950',
     iconColor: 'text-amber-900'
   },
   sunset: { 
     id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', 
     fallbackColor: '#fff1f2', 
-    cardBg: 'bg-stone-900/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(251,146,60,0.15)] border border-orange-100/20', 
+    cardBg: 'bg-stone-900/20 backdrop-blur-3xl shadow-sm', 
     text: 'text-orange-50', subText: 'text-orange-200/70', 
     containerBg: 'bg-black/20', 
-    button: 'border border-orange-100/30 hover:bg-white/10', 
-    activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
-    menuBg: 'bg-[#2c1810]/80 backdrop-blur-3xl text-orange-50 border-l border-white/10',
+    button: 'hover:bg-white/10', 
+    activeButton: 'bg-orange-100 text-stone-900 shadow-lg', 
+    menuBg: 'bg-[#2c1810]/90 backdrop-blur-3xl text-orange-50',
     iconColor: 'text-orange-100'
   },
   evening: { 
     id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', 
     fallbackColor: '#f5f3ff', 
-    cardBg: 'bg-[#2e1065]/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(167,139,250,0.15)] border border-white/10', 
+    cardBg: 'bg-[#2e1065]/20 backdrop-blur-3xl shadow-sm', 
     text: 'text-white', subText: 'text-purple-200', 
     containerBg: 'bg-white/10',
-    button: 'border border-white/20 hover:bg-white/10', 
-    activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
-    menuBg: 'bg-[#2e1065]/80 backdrop-blur-3xl text-white border-l border-white/10',
+    button: 'hover:bg-white/10', 
+    activeButton: 'bg-white text-purple-950 shadow-lg',
+    menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white',
     iconColor: 'text-white'
   },
   midnight: { 
     id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', 
     fallbackColor: '#020617', 
-    cardBg: 'bg-black/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(255,255,255,0.05)] border border-white/10', 
+    cardBg: 'bg-black/30 backdrop-blur-3xl shadow-sm', 
     text: 'text-slate-100', subText: 'text-slate-400', 
     containerBg: 'bg-white/10',
-    button: 'border border-white/10 hover:bg-white/5', 
-    activeButton: 'bg-white text-black shadow-lg shadow-white/10',
-    menuBg: 'bg-black/80 backdrop-blur-3xl text-slate-100 border-l border-white/10',
+    button: 'hover:bg-white/5', 
+    activeButton: 'bg-white text-black shadow-lg',
+    menuBg: 'bg-black/90 backdrop-blur-3xl text-slate-100',
     iconColor: 'text-white'
   }
 };
 
 const CALENDAR_READINGS = {
   "19-01": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно.", action: "Оценить, где я духовно" },
-  // ... (Full list implied from previous steps)
-  "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом.", action: "Работа как служение" },
+  "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом. Попробуй сегодня отнестись к своей работе как к служению.", action: "Работа как служение" },
+  // ... (Остальные дни, логика та же)
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.`;
 
 const fonts = { ui: "font-sans", content: "font-serif" };
 
@@ -195,9 +194,9 @@ const FilmGrain = () => (
 const Card = ({ children, theme, className = "", onClick }) => (
   <motion.div 
     layout
-    variants={itemAnim}
+    variants={cloudItem}
     onClick={onClick} 
-    className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-500 ${theme.cardBg} ${theme.text} ${className}`}
+    className={`rounded-[2.5rem] p-8 mb-6 ${theme.cardBg} ${theme.text} ${className}`}
   >
     {children}
   </motion.div>
@@ -230,6 +229,12 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
       changeTrack(AUDIO_TRACKS[nextIndex]);
   };
 
+  const handlePrevTrack = () => {
+      const currentIndex = AUDIO_TRACKS.findIndex(t => t.id === currentTrack.id);
+      const prevIndex = (currentIndex - 1 + AUDIO_TRACKS.length) % AUDIO_TRACKS.length;
+      changeTrack(AUDIO_TRACKS[prevIndex]);
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -238,7 +243,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
                 <div className="fixed inset-0 z-40 bg-black/10 backdrop-blur-sm" onClick={() => setShowPlaylist(false)} />
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-                    className={`fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto ${fonts.ui}`}
+                    className={`fixed bottom-24 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto ${fonts.ui}`}
                 >
                     <h4 className="text-sm font-medium opacity-50 mb-4 px-2">Фонотека</h4>
                     {AUDIO_TRACKS.map(track => (
@@ -253,25 +258,26 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
 
       <motion.div 
         animate={{ y: isUiVisible ? 0 : 100, opacity: isUiVisible ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
-        className={`fixed bottom-6 left-6 right-6 z-40 h-14 px-6 rounded-full backdrop-blur-2xl border border-white/10 shadow-lg flex items-center justify-between ${theme.menuBg} ${fonts.ui}`}
+        transition={{ duration: 0.8, ease: "easeInOut" }} // Медленнее
+        className={`fixed bottom-6 left-6 right-6 z-40 h-16 px-6 rounded-full backdrop-blur-2xl shadow-lg flex items-center justify-between ${theme.menuBg} ${fonts.ui}`}
       >
         <audio ref={audioRef} src={currentTrack.url} onEnded={handleNextTrack} />
-        <div className="flex items-center gap-4 overflow-hidden cursor-pointer" onClick={() => setShowPlaylist(true)}>
+        
+        <div className="flex items-center gap-4 overflow-hidden cursor-pointer flex-1" onClick={() => setShowPlaylist(true)}>
            <div className={`p-2 rounded-full bg-black/5 dark:bg-white/10`}>
-             <Disc size={16} className={isPlaying ? "animate-spin-slow" : ""} />
+             <Disc size={18} className={isPlaying ? "animate-spin-slow" : ""} />
            </div>
-           <span className="text-xs font-medium truncate max-w-[140px] tracking-wide">
+           <span className="text-xs font-medium truncate tracking-wide opacity-80">
               {currentTrack.title}
            </span>
         </div>
-        <div className="flex items-center gap-5">
+
+        <div className="flex items-center gap-6">
+          <button onClick={handlePrevTrack} className="opacity-50 hover:opacity-100 transition"><SkipBack size={18}/></button>
           <button onClick={() => { triggerHaptic(); togglePlay(); }} className="text-xs font-medium hover:opacity-60 transition uppercase tracking-wider">
              {isPlaying ? "Pause" : "Play"}
           </button>
-          <button onClick={() => setShowPlaylist(!showPlaylist)} className="opacity-50 hover:opacity-100">
-             <List size={18} />
-          </button>
+          <button onClick={handleNextTrack} className="opacity-50 hover:opacity-100 transition"><SkipForward size={18}/></button>
         </div>
       </motion.div>
     </>
@@ -286,19 +292,19 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
     <>
       <motion.div 
         animate={{ y: isUiVisible ? 0 : -100, opacity: isUiVisible ? 1 : 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
         className={`fixed top-12 right-6 z-[60] ${fonts.ui}`}
       >
-        <button onClick={() => { triggerHaptic(); setIsOpen(!isOpen); }} className={`text-sm font-medium px-5 py-2.5 rounded-full border border-stone-800/5 backdrop-blur-xl ${theme.text} hover:bg-black/5 transition shadow-sm`}>
+        <button onClick={() => { triggerHaptic(); setIsOpen(!isOpen); }} className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}>
           {isOpen ? "Закрыть" : "Меню"}
         </button>
       </motion.div>
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-sm`} onClick={() => setIsOpen(false)}/>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.8 }} className={`fixed inset-0 z-40 bg-black/10 backdrop-blur-sm`} onClick={() => setIsOpen(false)}/>
             <motion.div 
-                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.4, ease: "easeOut" }} 
+                initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "tween", duration: 0.5, ease: "easeInOut" }} 
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
@@ -492,11 +498,11 @@ const App = () => {
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                variants={pageVariants}
+                variants={cloudPage} // Cloud fade for page transitions
                 className="space-y-8"
             >
                 {view === 'flow' && (
-                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8">
+                  <motion.div variants={cloudList} initial="hidden" animate="show" className="space-y-8">
                     <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                        <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
                        <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
@@ -546,7 +552,7 @@ const App = () => {
                 )}
 
                 {view === 'diary' && (
-                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-6">
+                    <motion.div variants={cloudList} initial="hidden" animate="show" className="space-y-6">
                         <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
                             <div className="w-2 h-2 rounded-full bg-current opacity-20"></div>
                         </div>
@@ -557,60 +563,20 @@ const App = () => {
                             <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
                         </div>
 
-                        {/* --- INLINE CREATE FORM --- */}
-                        <AnimatePresence>
-                            {diaryTab === 'active' && !showInlineCreate && (
-                                <motion.div initial={{opacity:0, y: -10}} animate={{opacity:1, y:0}} exit={{opacity:0, y: -10}} className="mb-4">
-                                    <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
-                                        <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
-                                        <span className="text-sm font-medium">Написать молитву</span>
-                                    </button>
-                                </motion.div>
-                            )}
-
-                            {diaryTab === 'active' && showInlineCreate && (
-                                <motion.div 
-                                    initial={{ height: 0, opacity: 0 }} 
-                                    animate={{ height: "auto", opacity: 1 }} 
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className={`overflow-hidden mb-6`}
-                                >
-                                    <div className={`rounded-[2.5rem] p-8 shadow-xl ${theme.cardBg} border border-white/20 relative`}>
-                                        <button onClick={() => setShowInlineCreate(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={20} /></button>
-                                        <h3 className={`text-lg font-medium mb-6 ${fonts.ui}`}>Новая молитва</h3>
-                                        
-                                        {isAmenAnimating ? (
-                                            <div className="h-40 flex flex-col items-center justify-center space-y-4">
-                                                <div className="w-12 h-12 rounded-full border-2 border-current border-t-transparent animate-spin"/>
-                                                <p className={`text-sm font-medium ${fonts.ui}`}>Отправка...</p>
-                                            </div>
-                                        ) : (
-                                            <form onSubmit={handleInlineAmen}>
-                                                <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
-                                                <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-40 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} placeholder="Мысли, молитвы, благодарность..." />
-                                                <div className="flex justify-between items-center">
-                                                    <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
-                                                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
-                                                            <motion.div animate={{x: focusPrayerPublic ? 16 : 0}} className="w-4 h-4 bg-white rounded-full shadow-sm"/>
-                                                        </div>
-                                                        <span className={`text-xs font-bold uppercase tracking-widest ${fonts.ui}`}>{focusPrayerPublic ? "Видят все" : "Личное"}</span>
-                                                    </div>
-                                                    <button className={`px-8 py-3 text-sm font-bold uppercase tracking-widest rounded-xl transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
-                                                        Amen
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        {diaryTab === 'active' && !showInlineCreate && (
+                            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="mb-4">
+                                <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
+                                    <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
+                                    <span className="text-sm font-medium">Написать молитву</span>
+                                </button>
+                            </motion.div>
+                        )}
 
                         <div className="space-y-4">
                             <AnimatePresence mode="wait">
                                 <motion.div 
                                     key={diaryTab} 
-                                    variants={staggerContainer}
+                                    variants={cloudList}
                                     initial="hidden"
                                     animate="show"
                                     exit="hidden"
@@ -648,13 +614,13 @@ const App = () => {
                                             )}
 
                                             {p.status === 'answered' && p.answerNote && (
-                                                <div className={`${theme.containerBg} p-5 rounded-2xl mb-4 border border-current border-opacity-10`}>
+                                                <div className={`${theme.containerBg} p-5 rounded-2xl mb-4`}>
                                                     <p className={`text-xs font-medium opacity-60 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
                                                     <p className={`text-[17px] leading-relaxed ${fonts.content}`}>{p.answerNote}</p>
                                                 </div>
                                             )}
                                             
-                                            <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
+                                            <div className={`pt-4 flex justify-between items-center ${fonts.ui}`}>
                                                 <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-40 hover:opacity-100 transition">Удалить</button>
                                                 
                                                 {p.status !== 'answered' ? (
@@ -677,7 +643,7 @@ const App = () => {
                 )}
 
                 {view === 'admin_feedback' && isAdmin && (
-                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
+                    <motion.div variants={cloudList} initial="hidden" animate="show" className="space-y-4 pt-28">
                          <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
                          {feedbacks.map(msg => (
                              <Card key={msg.id} theme={theme} className="relative">
@@ -695,17 +661,16 @@ const App = () => {
                 )}
 
                 {view === 'profile' && (
-                    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="text-center pt-28">
+                    <motion.div variants={cloudPage} initial="initial" animate="animate" exit="exit" className="text-center pt-28">
                         <div className="pb-10">
                             <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
                                 {user.displayName?.[0] || "A"}
                             </div>
                             <div className="relative mb-8 px-8 group">
-                                <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
+                                <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                             </div>
                             
-                            {/* --- ИНСТРУКЦИЯ ПО ПРИЛОЖЕНИЮ --- */}
                             <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
                                 <div className="flex gap-4 items-start">
                                     <div className="mt-1"><Compass size={16}/></div>
@@ -747,12 +712,56 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS --- */}
+        {/* --- BOTTOM SHEET FOR WRITING PRAYER (NO FLICKER, JUST SLIDE UP) --- */}
+        <AnimatePresence>
+            {showInlineCreate && (
+                <>
+                    <motion.div 
+                        initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} 
+                        className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" 
+                        onClick={() => setShowInlineCreate(false)}
+                    />
+                    <motion.div 
+                        variants={bottomSheetAnim}
+                        initial="hidden" animate="visible" exit="exit"
+                        className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-[2.5rem] p-8 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] ${theme.cardBg} backdrop-blur-3xl`}
+                    >
+                        <button onClick={() => setShowInlineCreate(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={20} /></button>
+                        <h3 className={`text-lg font-medium mb-6 ${fonts.ui}`}>Новая молитва</h3>
+                        
+                        {isAmenAnimating ? (
+                            <div className="h-40 flex flex-col items-center justify-center space-y-4">
+                                <div className="w-12 h-12 rounded-full border-2 border-current border-t-transparent animate-spin"/>
+                                <p className={`text-sm font-medium ${fonts.ui}`}>Отправка...</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleInlineAmen}>
+                                <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
+                                <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-32 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} placeholder="Мысли, молитвы, благодарность..." />
+                                <div className="flex justify-between items-center">
+                                    <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
+                                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
+                                            <motion.div animate={{x: focusPrayerPublic ? 16 : 0}} className="w-4 h-4 bg-white rounded-full shadow-sm"/>
+                                        </div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${fonts.ui}`}>{focusPrayerPublic ? "Видят все" : "Личное"}</span>
+                                    </div>
+                                    <button className={`px-8 py-3 text-sm font-bold uppercase tracking-widest rounded-xl transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
+                                        Amen
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+
+        {/* --- OTHER MODALS --- */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Поддержка</h3>
                         <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
@@ -774,7 +783,7 @@ const App = () => {
             {showAnswerModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-current border-opacity-10`}>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                     <div className="text-center mb-6">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${theme.containerBg} ${theme.iconColor}`}><CheckCircle2 size={24} /></div>
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Чудо произошло?</h3>
@@ -790,7 +799,7 @@ const App = () => {
             {showFeedbackModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Разработчику</h3>
                         <button onClick={() => setShowFeedbackModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
