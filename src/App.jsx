@@ -53,43 +53,54 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (FAST & SMOOTH) ---
+// --- ANIMATIONS (INSTANT MATTE / NO GHOSTING) ---
 
-// 1. Страницы (Быстрое проявление)
+// 1. Страницы (Плавное проявление)
 const pageVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } }, // Ускорил с 0.8 до 0.4
-  exit: { opacity: 0, transition: { duration: 0.2 } }
+  animate: { opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
+  exit: { opacity: 0, transition: { duration: 0.3 } }
 };
 
-// 2. Список (Быстрый каскад)
+// 2. Список
 const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.02 } // Очень быстрый старт
+    transition: { staggerChildren: 0.05 }
   }
 };
 
 const itemAnim = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.3, ease: "easeOut" } } // Мгновенное мягкое появление
+  show: { opacity: 1, transition: { duration: 0.4 } }
 };
 
-// 3. Шторка "С Небес" (БЫСТРАЯ ПРУЖИНА)
+// 3. Шторка "С Небес" (Написание молитвы)
 const heavenCurtainAnim = {
     hidden: { y: "-110%" }, 
-    // Stiffness 300 = очень упругая и быстрая пружина. Mass 0.8 = легкая шторка.
-    visible: { y: "0%", transition: { type: "spring", damping: 30, stiffness: 300, mass: 0.8 } },
-    exit: { y: "-110%", transition: { duration: 0.3, ease: "easeIn" } } // Быстрый улет наверх
+    visible: { y: "0%", transition: { type: "spring", damping: 28, stiffness: 220, mass: 1 } },
+    exit: { y: "-110%", transition: { duration: 0.4, ease: "easeInOut" } }
 };
 
-// 4. Модальные окна (МГНОВЕННОЕ ПРОЯВЛЕНИЕ)
-// Добавил scale: 0.98 -> 1, чтобы глаз фиксировал движение, а не мерцание прозрачности
+// 4. Модальные окна (SOLID POP)
+// Секрет здесь: opacity меняется мгновенно (почти), а scale плавно.
+// Это убирает эффект "призрака" и делает окно сразу матовым.
 const modalAnim = {
-    hidden: { opacity: 0, scale: 0.98 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: "easeOut" } }, // 0.2 сек - это очень быстро и плавно
-    exit: { opacity: 0, scale: 0.98, transition: { duration: 0.15 } }
+    hidden: { opacity: 0, scale: 0.92 },
+    visible: { 
+        opacity: 1, 
+        scale: 1, 
+        transition: { 
+            scale: { type: "spring", damping: 25, stiffness: 300 }, // Пружинистый зум
+            opacity: { duration: 0.1 } // Почти мгновенное появление
+        } 
+    },
+    exit: { 
+        opacity: 0, 
+        scale: 0.95, 
+        transition: { duration: 0.15 } 
+    }
 };
 
 // --- HAPTICS ---
