@@ -370,7 +370,7 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   // UI States
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  // removed showCreateModal since 'create' is now a view
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
@@ -453,7 +453,7 @@ const App = () => {
 
   const handleLogin = async (e) => { e.preventDefault(); setAuthError(''); setIsAuthLoading(true); const { username, password } = e.target.elements; const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; try { await signInWithEmailAndPassword(auth, fakeEmail, password.value); } catch (err) { if(err.code.includes('not-found') || err.code.includes('invalid-credential')) { try { const u = await createUserWithEmailAndPassword(auth, fakeEmail, password.value); await updateProfile(u.user, { displayName: username.value }); } catch(ce) { setAuthError("Ошибка: " + ce.code); } } else { setAuthError("Ошибка: " + err.code); } } setIsAuthLoading(false); };
   const handleUpdateName = async () => { if(!newName.trim() || newName === user.displayName) return; await updateProfile(user, { displayName: newName }); };
-  const handleAmen = async (e, source = "manual") => { e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }; await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data); if(isPublic) { await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: [] }); } setTimeout(() => { setIsAmenAnimating(false); setShowCreateModal(false); setSuccessMessage("Услышано"); setShowSuccessModal(true); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 1500); };
+  const handleAmen = async (e, source = "manual") => { e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }; await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data); if(isPublic) { await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: [] }); } setTimeout(() => { setIsAmenAnimating(false); setView('diary'); setSuccessMessage("Услышано"); setShowSuccessModal(true); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 1500); };
   const incrementPrayerCount = async (id, currentCount) => { triggerHaptic(); await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', id), { prayerCount: (currentCount || 1) + 1 }); };
   const toggleLike = async (id, likes) => { triggerHaptic(); const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) }); };
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
@@ -527,7 +527,7 @@ const App = () => {
                                <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>{dailyVerse.thought}</p>
                            </div>
                        </div>
-                       <button onClick={() => { triggerHaptic(); setShowCreateModal(true); }} className={`w-full py-4 text-sm font-medium rounded-xl transition ${theme.button} ${fonts.ui}`}>
+                       <button onClick={() => { triggerHaptic(); setView('create'); }} className={`w-full py-4 text-sm font-medium rounded-xl transition ${theme.button} ${fonts.ui}`}>
                            {dailyVerse.action}
                        </button>
                     </Card>
@@ -567,7 +567,7 @@ const App = () => {
                 {view === 'diary' && (
                     <div className="space-y-6">
                         <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
-                            <div className="w-2 h-2 rounded-full bg-current opacity-20"></div>
+                            <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
                         </div>
 
                         <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
@@ -577,7 +577,7 @@ const App = () => {
                         </div>
 
                         {diaryTab === 'active' && (
-                            <button onClick={() => { triggerHaptic(); setShowCreateModal(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
+                            <button onClick={() => { triggerHaptic(); setView('create'); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
                                 <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
                                 <span className="text-sm font-medium">Создать запись</span>
                             </button>
@@ -653,6 +653,38 @@ const App = () => {
                     </div>
                 )}
 
+                {view === 'create' && (
+                   <motion.div key="create" className="space-y-6">
+                        <div className={`flex justify-between items-center mb-6`}>
+                            <h3 className={`text-lg font-medium ${fonts.ui}`}>Новая запись</h3>
+                            <button onClick={() => setView('diary')} className="opacity-40 hover:opacity-100"><X size={20}/></button>
+                        </div>
+                        
+                        {isAmenAnimating ? (
+                            <div className="h-60 flex flex-col items-center justify-center space-y-4">
+                                <div className="w-16 h-16 rounded-full border-2 border-current border-t-transparent animate-spin"/>
+                                <p className={`text-sm font-medium ${fonts.ui}`}>Отправка...</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={(e) => handleAmen(e, view === 'flow' ? "focus" : "manual")}>
+                                <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
+                                <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-40 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} placeholder="Мысли, молитвы, благодарность..." />
+                                <div className="flex justify-between items-center">
+                                    <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
+                                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
+                                            <motion.div animate={{x: focusPrayerPublic ? 16 : 0}} className="w-4 h-4 bg-white rounded-full shadow-sm"/>
+                                        </div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${fonts.ui}`}>{focusPrayerPublic ? "Видят все" : "Личное"}</span>
+                                    </div>
+                                    <button className={`px-8 py-3 text-sm font-bold uppercase tracking-widest rounded-xl transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
+                                        Amen
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                   </motion.div>
+                )}
+
                 {view === 'admin_feedback' && isAdmin && (
                     <div className="space-y-4">
                          <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
@@ -717,56 +749,7 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS --- */}
-        {/* CREATE MODAL (Fixed Bottom/Center + h-[100dvh]) */}
-        <AnimatePresence>
-        {showCreateModal && (
-            <>
-            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}/>
-            {/* WRAPPER: items-center + h-dvh creates stable centering that moves with keyboard resize */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none h-[100dvh]">
-                <motion.div 
-                    initial={{y: 50, opacity: 0}} 
-                    animate={{y: 0, opacity: 1}} 
-                    exit={{y: 50, opacity: 0}} 
-                    transition={{type:"spring", damping:25}} 
-                    className={`w-full max-w-md pointer-events-auto rounded-[2.5rem] p-8 pb-12 shadow-2xl ${theme.cardBg} backdrop-blur-3xl border-t border-white/20`}
-                >
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className={`text-lg font-medium ${fonts.ui}`}>Новая запись</h3>
-                        <button onClick={() => setShowCreateModal(false)}><X size={20} className="opacity-40" /></button>
-                    </div>
-                    {isAmenAnimating ? (
-                        <div className="h-60 flex flex-col items-center justify-center space-y-4">
-                            <div className="w-16 h-16 rounded-full border-2 border-current border-t-transparent animate-spin"/>
-                            <p className={`text-sm font-medium ${fonts.ui}`}>Отправка...</p>
-                        </div>
-                    ) : (
-                        <form onSubmit={(e) => handleAmen(e, view === 'flow' ? "focus" : "manual")}>
-                            {view === 'diary' && (
-                                <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
-                            )}
-                            <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-40 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} placeholder={view === 'flow' ? "Твой отклик на слово..." : "Мысли, молитвы, благодарность..."} />
-                            <div className="flex justify-between items-center">
-                                <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
-                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
-                                        <motion.div animate={{x: focusPrayerPublic ? 16 : 0}} className="w-4 h-4 bg-white rounded-full shadow-sm"/>
-                                    </div>
-                                    <span className={`text-xs font-bold uppercase tracking-widest ${fonts.ui}`}>{focusPrayerPublic ? "Видят все" : "Личное"}</span>
-                                </div>
-                                <button className={`px-8 py-3 text-sm font-bold uppercase tracking-widest rounded-xl transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
-                                    Amen
-                                </button>
-                            </div>
-                        </form>
-                    )}
-                </motion.div>
-            </div>
-            </>
-        )}
-        </AnimatePresence>
-
-        {/* ANSWER MODAL (Fixed Bottom/Center + h-[100dvh]) */}
+        {/* --- ANSWER MODAL --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
@@ -785,7 +768,7 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* FEEDBACK MODAL (Fixed Bottom/Center + h-[100dvh]) */}
+        {/* --- FEEDBACK MODAL --- */}
         <AnimatePresence>
             {showFeedbackModal && (
                 <>
@@ -805,24 +788,27 @@ const App = () => {
             )}
         </AnimatePresence>
 
+        {/* --- THEME MODAL (No keyboard interaction, so just center) --- */}
         <AnimatePresence>
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
-                        <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        {Object.values(THEMES).map(t => (
-                            <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
-                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                            <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
+                            <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            {Object.values(THEMES).map(t => (
+                                <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
+                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
                 </>
             )}
         </AnimatePresence>
@@ -831,13 +817,15 @@ const App = () => {
             {showLegalModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
-                    <div>
-                        <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
-                        <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
-                    </div>
-                </motion.div>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                        <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
+                        <div>
+                            <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
+                            <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
+                        </div>
+                    </motion.div>
+                </div>
                 </>
             )}
         </AnimatePresence>
