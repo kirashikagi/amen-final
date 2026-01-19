@@ -1,25 +1,36 @@
-const CACHE_NAME = 'amen-app-cache-v2';
+const CACHE_NAME = 'amen-app-v3'; // Версия кэша. Меняйте цифру, когда обновляете картинки/код.
 
-// 1. При установке кэшируем "скелет" приложения
+// Список самых важных файлов, которые нужно скачать сразу
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon.png'
+  // Если ваши фоны лежат в public, лучше добавить их сюда явно, например:
+  // '/dawn.jpg',
+  // '/day.jpg',
+  // '/sunset.jpg',
+  // ...
+];
+
+// 1. Установка (Install): Кэшируем "скелет"
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Сразу активировать новый воркер
+  self.skipWaiting(); // Заставляет браузер немедленно использовать этот новый воркер
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html'
-      ]);
+      return cache.addAll(STATIC_ASSETS);
     })
   );
 });
 
-// 2. Активация и удаление старых кэшей
+// 2. Активация (Activate): Удаляем старый кэш (чтобы обновить фоны у пользователей)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Amen SW: Deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -29,28 +40,31 @@ self.addEventListener('activate', (event) => {
   return self.clients.claim();
 });
 
-// 3. Перехват запросов (Стратегия: Сначала Кэш, потом Сеть)
+// 3. Перехват запросов (Fetch): Стратегия "Кэш, потом Сеть"
 self.addEventListener('fetch', (event) => {
-  // Игнорируем запросы к базе данных (Firebase сам их обрабатывает) и внешним API, кроме шрифтов
   const url = new URL(event.request.url);
-  if (url.origin.includes('firestore') || url.origin.includes('googleapis') && !url.origin.includes('fonts')) {
+
+  // Игнорируем запросы к базе данных Firebase (Firebase SDK сам их кэширует через IndexedDB)
+  // Игнорируем загрузку музыки (слишком тяжелая для авто-кэша)
+  if (url.origin.includes('firestore.googleapis.com') || url.pathname.endsWith('.mp3')) {
     return;
   }
 
-  // Для всего остального (картинки, скрипты, стили, html)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Если есть в кэше — отдаем мгновенно
+      // А. Если файл есть в памяти телефона — отдаем мгновенно
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      // Если нет — идем в сеть, берем файл И сохраняем в кэш на будущее
+      // Б. Если нет — идем в интернет
       return fetch(event.request).then((networkResponse) => {
+        // Проверяем, что ответ нормальный
         if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
           return networkResponse;
         }
 
+        // В. Сохраняем скачанный файл в кэш на будущее
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
@@ -58,7 +72,7 @@ self.addEventListener('fetch', (event) => {
 
         return networkResponse;
       }).catch(() => {
-        // Если сети нет и в кэше нет — можно вернуть заглушку, но для SPA обычно достаточно index.html
+        // Г. Если интернета нет и файла нет в кэше — возвращаем главную страницу (чтобы не было "динозаврика")
         if (event.request.mode === 'navigate') {
             return caches.match('/index.html');
         }
