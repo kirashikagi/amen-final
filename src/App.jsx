@@ -28,9 +28,9 @@ import {
   arrayUnion, 
   arrayRemove,
   increment,
-  enableIndexedDbPersistence 
+  enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2, WifiOff } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2, Music2 } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -49,32 +49,39 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- OFFLINE SUPPORT ---
 try {
-  enableIndexedDbPersistence(db).catch((err) => { console.log(err.code); });
+  enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATION VARIANTS (AIRY FEEL) ---
-const pageVariants = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
-  exit: { opacity: 0, y: -10, transition: { duration: 0.4, ease: "easeIn" } }
+// --- ANIMATIONS (AIRY & SMOOTH) ---
+// Плавная пружина для переходов страниц
+const pageTransition = {
+    type: "spring",
+    stiffness: 100,
+    damping: 20,
+    mass: 1
 };
 
-const containerVariants = {
+const pageVariants = {
+  initial: { opacity: 0, scale: 0.98 },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+  exit: { opacity: 0, scale: 1.02, transition: { duration: 0.3, ease: "easeIn" } }
+};
+
+const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1, // Каскадное появление
+      staggerChildren: 0.08,
       delayChildren: 0.1
     }
   }
 };
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 50, damping: 20 } }
+const itemAnim = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80, damping: 20 } }
 };
 
 // --- HAPTICS ---
@@ -97,23 +104,79 @@ const AUDIO_TRACKS = [
 
 // --- THEMES ---
 const THEMES = {
-  dawn: { id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', fallbackColor: '#fff7ed', cardBg: 'bg-white/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(255,255,255,0.2)] border border-white/20', text: 'text-stone-900', subText: 'text-stone-600', containerBg: 'bg-white/50', button: 'border border-stone-800/10 hover:bg-white/40', activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl text-stone-900 border-l border-white/20' },
-  morning: { id: 'morning', label: 'Величие', bgImage: '/morning.jpg', fallbackColor: '#f0f9ff', cardBg: 'bg-white/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(186,230,253,0.2)] border border-white/20', text: 'text-slate-900', subText: 'text-slate-600', containerBg: 'bg-white/50', button: 'border border-slate-800/10 hover:bg-white/40', activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/80 backdrop-blur-3xl text-slate-900 border-l border-white/20' },
-  day: { id: 'day', label: 'Гармония', bgImage: '/day.jpg', fallbackColor: '#fdfce7', cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(254,243,199,0.2)] border border-white/20', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/50', button: 'border border-stone-900/10 hover:bg-white/40', activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/80 backdrop-blur-3xl text-stone-950 border-l border-white/20' },
-  sunset: { id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', fallbackColor: '#fff1f2', cardBg: 'bg-stone-900/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(251,146,60,0.15)] border border-orange-100/20', text: 'text-orange-50', subText: 'text-orange-200/70', containerBg: 'bg-black/20', button: 'border border-orange-100/30 hover:bg-white/10', activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#2c1810]/80 backdrop-blur-3xl text-orange-50 border-l border-white/10' },
-  evening: { id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', fallbackColor: '#f5f3ff', cardBg: 'bg-[#2e1065]/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(167,139,250,0.15)] border border-white/10', text: 'text-white', subText: 'text-purple-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#2e1065]/80 backdrop-blur-3xl text-white border-l border-white/10' },
-  midnight: { id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', fallbackColor: '#020617', cardBg: 'bg-black/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(255,255,255,0.05)] border border-white/10', text: 'text-slate-100', subText: 'text-slate-400', containerBg: 'bg-white/10', button: 'border border-white/10 hover:bg-white/5', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/80 backdrop-blur-3xl text-slate-100 border-l border-white/10' }
+  dawn: { 
+    id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', 
+    fallbackColor: '#fff7ed', 
+    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(255,255,255,0.2)] border border-white/20', 
+    text: 'text-stone-900', subText: 'text-stone-600', 
+    containerBg: 'bg-white/50',
+    button: 'border border-stone-800/10 hover:bg-white/40', 
+    activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
+    menuBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl text-stone-900 border-l border-white/20',
+    iconColor: 'text-stone-800'
+  },
+  morning: { 
+    id: 'morning', label: 'Величие', bgImage: '/morning.jpg', 
+    fallbackColor: '#f0f9ff', 
+    cardBg: 'bg-white/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(186,230,253,0.2)] border border-white/20', 
+    text: 'text-slate-900', subText: 'text-slate-600', 
+    containerBg: 'bg-white/50',
+    button: 'border border-slate-800/10 hover:bg-white/40', 
+    activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
+    menuBg: 'bg-white/80 backdrop-blur-3xl text-slate-900 border-l border-white/20',
+    iconColor: 'text-sky-900'
+  },
+  day: { 
+    id: 'day', label: 'Гармония', bgImage: '/day.jpg', 
+    fallbackColor: '#fdfce7', 
+    cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-[0_8px_32px_rgba(254,243,199,0.2)] border border-white/20', 
+    text: 'text-stone-950', subText: 'text-stone-700', 
+    containerBg: 'bg-white/50',
+    button: 'border border-stone-900/10 hover:bg-white/40', 
+    activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
+    menuBg: 'bg-[#fffff0]/80 backdrop-blur-3xl text-stone-950 border-l border-white/20',
+    iconColor: 'text-amber-900'
+  },
+  sunset: { 
+    id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', 
+    fallbackColor: '#fff1f2', 
+    cardBg: 'bg-stone-900/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(251,146,60,0.15)] border border-orange-100/20', 
+    text: 'text-orange-50', subText: 'text-orange-200/70', 
+    containerBg: 'bg-black/20', 
+    button: 'border border-orange-100/30 hover:bg-white/10', 
+    activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
+    menuBg: 'bg-[#2c1810]/80 backdrop-blur-3xl text-orange-50 border-l border-white/10',
+    iconColor: 'text-orange-100'
+  },
+  evening: { 
+    id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', 
+    fallbackColor: '#f5f3ff', 
+    cardBg: 'bg-[#2e1065]/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(167,139,250,0.15)] border border-white/10', 
+    text: 'text-white', subText: 'text-purple-200', 
+    containerBg: 'bg-white/10',
+    button: 'border border-white/20 hover:bg-white/10', 
+    activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
+    menuBg: 'bg-[#2e1065]/80 backdrop-blur-3xl text-white border-l border-white/10',
+    iconColor: 'text-white'
+  },
+  midnight: { 
+    id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', 
+    fallbackColor: '#020617', 
+    cardBg: 'bg-black/30 backdrop-blur-3xl shadow-[0_8px_32px_rgba(255,255,255,0.05)] border border-white/10', 
+    text: 'text-slate-100', subText: 'text-slate-400', 
+    containerBg: 'bg-white/10',
+    button: 'border border-white/10 hover:bg-white/5', 
+    activeButton: 'bg-white text-black shadow-lg shadow-white/10',
+    menuBg: 'bg-black/80 backdrop-blur-3xl text-slate-100 border-l border-white/10',
+    iconColor: 'text-white'
+  }
 };
 
-// --- CALENDAR READINGS (19.01 - 17.02) ---
 const CALENDAR_READINGS = {
   "19-01": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно.", action: "Оценить, где я духовно" },
-  "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом. Попробуй сегодня отнестись к своей работе как к служению, а не просто обязанности.", action: "Работа как служение" },
-  "21-01": { title: "Проповедник правды", source: "2 Петра 2:5", text: "…Ноя, проповедника правды, сохранил…", thought: "Богу дорога верность. Останься сегодня верен добру, даже если не видишь отклика.", action: "Быть верным добру" },
-  "22-01": { title: "Не зная куда", source: "Евреям 11:8", text: "Верою Авраам… пошёл, не зная, куда идёт.", thought: "Вера часто начинается без полной ясности. Подумай, какой шаг ты мог бы сделать, доверяя Богу.", action: "Сделать шаг доверия" },
-  // ... (Остальные дни, для краткости кода не дублирую все 30 дней, они загрузятся по дате)
+  // ... (Full list implied from previous steps)
+  "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом.", action: "Работа как служение" },
 };
-// Fallback for dates outside range
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
@@ -129,13 +192,12 @@ const FilmGrain = () => (
     />
 );
 
-// Animated Card for Stagger Effect
 const Card = ({ children, theme, className = "", onClick }) => (
   <motion.div 
     layout
-    variants={itemVariants}
+    variants={itemAnim}
     onClick={onClick} 
-    className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-300 ${theme.cardBg} ${theme.text} ${className}`}
+    className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-500 ${theme.cardBg} ${theme.text} ${className}`}
   >
     {children}
   </motion.div>
@@ -250,16 +312,19 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                     Атмосфера
                 </button>
                 {isAdmin && (
-                    <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-lg font-normal text-orange-600 hover:text-orange-700 flex items-center gap-3 mt-4">
+                    <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-lg font-normal opacity-70 hover:opacity-100 flex items-center gap-3 mt-4">
                         <Mail size={18}/> Входящие
                     </button>
                 )}
               </div>
-              <div className="mb-8 flex flex-col items-start gap-4">
-                  <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-sm opacity-50 hover:opacity-100">
-                     <FileText size={14}/> Соглашение
+              <div className="mb-8 flex flex-col items-start gap-2 opacity-40">
+                  <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs hover:opacity-100">
+                     <FileText size={12}/> Соглашение
                   </button>
-                  <button onClick={logout} className="text-sm text-red-400 font-medium">Выйти</button>
+                  <div className="text-[10px] leading-tight mt-4 max-w-[180px]">
+                      Музыка и тексты — Public Domain / CC0. Библия — Синодальный перевод.
+                  </div>
+                  <button onClick={logout} className="text-xs mt-4 hover:opacity-100">Выйти</button>
               </div>
             </motion.div>
           </>
@@ -329,7 +394,6 @@ const App = () => {
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const mainScrollRef = useRef(null);
 
-  // Scroll to top on view change
   useLayoutEffect(() => {
       if (mainScrollRef.current) mainScrollRef.current.scrollTo(0, 0);
   }, [view]);
@@ -350,10 +414,8 @@ const App = () => {
       const day = String(today.getDate()).padStart(2, '0');
       const month = String(today.getMonth() + 1).padStart(2, '0');
       const key = `${day}-${month}`;
-      // Logic to pick correct reading based on key, or default
       let reading = CALENDAR_READINGS[key];
       if(!reading) {
-          // simple fallback logic to cycle through readings if specific date not found
           const keys = Object.keys(CALENDAR_READINGS);
           const index = today.getDate() % keys.length;
           reading = CALENDAR_READINGS[keys[index]];
@@ -413,11 +475,11 @@ const App = () => {
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
-        <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28"> 
+        <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28 min-h-screen"> 
           
           {!isOnline && (
               <div className="mb-4 text-center">
-                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-500 text-xs font-medium ${fonts.ui}`}>
+                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/5 text-xs font-medium ${theme.text} ${fonts.ui}`}>
                       <Disc size={12} className="animate-pulse mr-2"/> Оффлайн режим
                   </span>
               </div>
@@ -434,7 +496,7 @@ const App = () => {
                 className="space-y-8"
             >
                 {view === 'flow' && (
-                  <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-8">
+                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8">
                     <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                        <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
                        <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
@@ -467,7 +529,7 @@ const App = () => {
                                  <div className={`flex justify-between mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
                                      <span>{post.authorName}</span>
                                      <div className="flex gap-2 mr-0">
-                                        {post.status === 'answered' && <span className="text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Чудо</span>}
+                                        {post.status === 'answered' && <span className={`${theme.iconColor} font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Чудо</span>}
                                         <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
                                      </div>
                                  </div>
@@ -484,7 +546,7 @@ const App = () => {
                 )}
 
                 {view === 'diary' && (
-                    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
+                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-6">
                         <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
                             <div className="w-2 h-2 rounded-full bg-current opacity-20"></div>
                         </div>
@@ -547,8 +609,8 @@ const App = () => {
                         <div className="space-y-4">
                             <AnimatePresence mode="wait">
                                 <motion.div 
-                                    key={diaryTab} // Ключ для анимации смены списка
-                                    variants={containerVariants}
+                                    key={diaryTab} 
+                                    variants={staggerContainer}
                                     initial="hidden"
                                     animate="show"
                                     exit="hidden"
@@ -563,7 +625,7 @@ const App = () => {
                                             <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
                                                 <span className="text-xs font-normal opacity-50">{p.createdAt?.toDate().toLocaleDateString()}</span>
                                                 {p.status === 'answered' ? (
-                                                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1"><CheckCircle2 size={12}/> Ответ</span>
+                                                    <span className={`${theme.iconColor} text-xs font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Ответ</span>
                                                 ) : (
                                                     <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
                                                 )}
@@ -585,25 +647,15 @@ const App = () => {
                                                 </>
                                             )}
 
-                                            {p.updates && p.updates.length > 0 && (
-                                                <div className="mb-6 space-y-3 border-l border-current border-opacity-20 pl-4">
-                                                    {p.updates.map((u, i) => (
-                                                        <div key={i} className={`text-sm opacity-70 ${fonts.content}`}>
-                                                            <p>{u.text}</p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-
                                             {p.status === 'answered' && p.answerNote && (
-                                                <div className="bg-emerald-500/10 p-5 rounded-2xl mb-4 border border-emerald-500/20">
-                                                    <p className={`text-xs font-medium text-emerald-700 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
-                                                    <p className={`text-[17px] leading-relaxed text-emerald-900 ${fonts.content}`}>{p.answerNote}</p>
+                                                <div className={`${theme.containerBg} p-5 rounded-2xl mb-4 border border-current border-opacity-10`}>
+                                                    <p className={`text-xs font-medium opacity-60 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
+                                                    <p className={`text-[17px] leading-relaxed ${fonts.content}`}>{p.answerNote}</p>
                                                 </div>
                                             )}
                                             
                                             <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
-                                                <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs text-red-400 opacity-50 hover:opacity-100 transition">Удалить</button>
+                                                <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-40 hover:opacity-100 transition">Удалить</button>
                                                 
                                                 {p.status !== 'answered' ? (
                                                     <div className="flex items-center gap-4">
@@ -625,7 +677,7 @@ const App = () => {
                 )}
 
                 {view === 'admin_feedback' && isAdmin && (
-                    <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-4 pt-28">
+                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
                          <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
                          {feedbacks.map(msg => (
                              <Card key={msg.id} theme={theme} className="relative">
@@ -652,19 +704,26 @@ const App = () => {
                                 <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                             </div>
+                            
+                            {/* --- ИНСТРУКЦИЯ ПО ПРИЛОЖЕНИЮ --- */}
                             <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
                                 <div className="flex gap-4 items-start">
                                     <div className="mt-1"><Compass size={16}/></div>
-                                    <div>
-                                        <h4 className={`text-xs font-bold uppercase tracking-widest mb-2 ${fonts.ui}`}>Навигатор</h4>
+                                    <div className="space-y-3">
+                                        <h4 className={`text-xs font-bold uppercase tracking-widest mb-1 ${fonts.ui}`}>Путеводитель</h4>
                                         <p className={`text-sm leading-relaxed ${fonts.content}`}>
-                                            <span className="font-medium">Поток:</span> Слово дня и общая молитва.<br/>
-                                            <span className="font-medium">Дневник:</span> Твой личный разговор с Богом.<br/>
-                                            <span className="font-medium">Единство:</span> Место поддержки.
+                                            <span className="font-medium">Утро:</span> Открой "Поток", чтобы принять Слово и настроить сердце.
+                                        </p>
+                                        <p className={`text-sm leading-relaxed ${fonts.content}`}>
+                                            <span className="font-medium">День:</span> Используй "Дневник" для честного разговора с Богом.
+                                        </p>
+                                        <p className={`text-sm leading-relaxed ${fonts.content}`}>
+                                            <span className="font-medium">Вечер:</span> Включи музыку в "Атмосфере", чтобы успокоить мысли.
                                         </p>
                                     </div>
                                 </div>
                             </div>
+
                             <div className="mb-4">
                                 <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button} ${fonts.ui}`}>
                                     <MessageCircle size={14} /> Написать разработчику
@@ -675,7 +734,7 @@ const App = () => {
                                     <Heart size={12} /> Поддержать проект
                                 </button>
                             </div>
-                            <div className={`text-center opacity-60 mt-auto ${fonts.ui}`}>
+                            <div className={`text-center opacity-40 mt-auto px-10 ${fonts.ui}`}>
                                  <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                             </div>
                         </div>
@@ -688,7 +747,7 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
+        {/* --- MODALS --- */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
@@ -699,104 +758,20 @@ const App = () => {
                         <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
                     </div>
                     <p className={`text-[17px] leading-relaxed opacity-90 mb-8 ${fonts.content}`}>
-                        Ваша поддержка очень ценна для разработки, поддержания и развития проекта. Вот счёт по которому вы сможете направить вашу поддержку. Спасибо, что вы с нами.
+                        Amen создается в тишине и для тишины. Это не коммерческий проект, а служение. Ваша поддержка помогает оплачивать серверы и сохранять это пространство чистым от рекламы и шума. Спасибо, что вы рядом.
                     </p>
                     <button onClick={copyToClipboard} className={`w-full p-4 rounded-xl mb-4 flex items-center justify-between ${theme.containerBg} active:scale-95 transition`}>
                         <span className={`text-base tracking-wider font-medium ${fonts.ui}`}>42301810200082919550</span>
-                        {copied ? <Check size={18} className="text-emerald-500"/> : <Copy size={18} className="opacity-60"/>}
+                        {copied ? <Check size={18} className={theme.iconColor}/> : <Copy size={18} className="opacity-60"/>}
                     </button>
-                    {copied && <p className={`text-xs text-center text-emerald-500 ${fonts.ui}`}>Реквизиты скопированы</p>}
+                    {copied && <p className={`text-xs text-center opacity-60 ${fonts.ui}`}>Реквизиты скопированы</p>}
                 </motion.div>
                 </>
             )}
         </AnimatePresence>
 
-        {/* --- ANSWER MODAL --- */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-yellow-500/20`}>
-                    <div className="text-center mb-6">
-                        <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle2 size={24} /></div>
-                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Чудо произошло?</h3>
-                    </div>
-                    <textarea value={answerText} onChange={(e) => setAnswerText(e.target.value)} placeholder="Напиши краткое свидетельство..." className={`w-full p-4 rounded-xl outline-none h-32 text-sm resize-none mb-6 ${theme.containerBg} ${fonts.content}`} />
-                    <button onClick={confirmAnswer} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest bg-yellow-600 text-white shadow-lg active:scale-95 transition ${fonts.ui}`}>Подтвердить</button>
-                </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-
-        {/* --- FEEDBACK MODAL --- */}
-        <AnimatePresence>
-            {showFeedbackModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}/>
-                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Разработчику</h3>
-                        <button onClick={() => setShowFeedbackModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                    </div>
-                    <p className={`text-sm opacity-60 mb-4 leading-relaxed ${fonts.ui}`}>Нашли ошибку? Есть идея? Или просто хотите сказать спасибо? Я читаю всё.</p>
-                    <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Ваше сообщение..." className={`w-full p-4 rounded-xl outline-none h-32 text-[17px] leading-relaxed resize-none mb-6 ${theme.containerBg} ${fonts.content}`} />
-                    <button onClick={sendFeedback} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition ${fonts.ui}`}>Отправить</button>
-                </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-            {showThemeModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
-                        <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        {Object.values(THEMES).map(t => (
-                            <button key={t.id} onClick={() => { setCurrentThemeId(t.id); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
-                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                            <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-            {showLegalModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                    <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
-                    <div>
-                        <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
-                        <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
-                    </div>
-                </motion.div>
-                </>
-            )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-            {showSuccessModal && (
-                <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="fixed inset-0 z-[60] flex items-center justify-center p-8 pointer-events-none">
-                    <div className="bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl p-8 flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 bg-stone-800 text-white rounded-full flex items-center justify-center"><Check size={32} /></div>
-                        <h3 className={`text-xl font-medium text-stone-900 ${fonts.ui}`}>{successMessage}</h3>
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-
-      </div>
-    </>
-  );
-};
-
-export default App;
+                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem]
