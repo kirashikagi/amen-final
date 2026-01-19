@@ -53,34 +53,43 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS ---
+// --- ANIMATIONS (STABLE & MATTE) ---
+
+// 1. Страницы (Плавное проявление)
 const pageVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.8, ease: "easeInOut" } },
-  exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }
+  animate: { opacity: 1, transition: { duration: 0.6, ease: "easeOut" } },
+  exit: { opacity: 0, transition: { duration: 0.3 } }
 };
 
+// 2. Список (Каскад)
 const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1
-    }
+    transition: { staggerChildren: 0.05, delayChildren: 0.05 }
   }
 };
 
 const itemAnim = {
   hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
-// Анимация "Шторка с небес"
+// 3. Шторка "С Небес" (БЕЗ OPACITY - ЧТОБЫ НЕ МОРГАЛА)
+// Она сразу матовая, просто выезжает за пределы экрана
 const heavenCurtainAnim = {
-    hidden: { y: "-120%", opacity: 0 }, // Спрятано высоко вверху
-    visible: { y: 0, opacity: 1, transition: { type: "spring", damping: 25, stiffness: 100, mass: 1.2 } }, // Плавно опускается
-    exit: { y: "-120%", opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } } // Улетает обратно в небо
+    hidden: { y: "-110%" }, 
+    visible: { y: "0%", transition: { type: "spring", damping: 28, stiffness: 180, mass: 1 } },
+    exit: { y: "-110%", transition: { duration: 0.5, ease: "easeInOut" } }
+};
+
+// 4. Модальные окна (Центр)
+// Появляются через Scale, чтобы сохранить матовость
+const modalAnim = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
 };
 
 // --- HAPTICS ---
@@ -111,7 +120,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-stone-800/10 hover:bg-white/40', 
     activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
-    menuBg: 'bg-[#fffbf7]/90 backdrop-blur-3xl text-stone-900 border-l border-white/20',
+    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20',
     iconColor: 'text-stone-800'
   },
   morning: { 
@@ -122,7 +131,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-slate-800/10 hover:bg-white/40', 
     activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
-    menuBg: 'bg-white/80 backdrop-blur-3xl text-slate-900 border-l border-white/20',
+    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20',
     iconColor: 'text-sky-900'
   },
   day: { 
@@ -133,7 +142,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-stone-900/10 hover:bg-white/40', 
     activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
-    menuBg: 'bg-[#fffff0]/80 backdrop-blur-3xl text-stone-950 border-l border-white/20',
+    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20',
     iconColor: 'text-amber-900'
   },
   sunset: { 
@@ -144,7 +153,7 @@ const THEMES = {
     containerBg: 'bg-black/20', 
     button: 'border border-orange-100/30 hover:bg-white/10', 
     activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
-    menuBg: 'bg-[#2c1810]/90 backdrop-blur-3xl text-orange-50 border-l border-white/10',
+    menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10',
     iconColor: 'text-orange-100'
   },
   evening: { 
@@ -155,7 +164,7 @@ const THEMES = {
     containerBg: 'bg-white/10',
     button: 'border border-white/20 hover:bg-white/10', 
     activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
-    menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10',
+    menuBg: 'bg-[#2e1065]/95 backdrop-blur-3xl text-white border-l border-white/10',
     iconColor: 'text-white'
   },
   midnight: { 
@@ -166,7 +175,7 @@ const THEMES = {
     containerBg: 'bg-white/10',
     button: 'border border-white/10 hover:bg-white/5', 
     activeButton: 'bg-white text-black shadow-lg shadow-white/10',
-    menuBg: 'bg-black/90 backdrop-blur-3xl text-slate-100 border-l border-white/10',
+    menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-100 border-l border-white/10',
     iconColor: 'text-white'
   }
 };
@@ -206,7 +215,7 @@ const CALENDAR_READINGS = {
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.`;
 
 const fonts = { ui: "font-sans", content: "font-serif" };
 
@@ -220,37 +229,13 @@ const FilmGrain = () => (
 
 const Card = ({ children, theme, className = "", onClick }) => (
   <motion.div 
-    layout
-    variants={itemAnim}
+    variants={itemAnim} // Removed layout prop to stop flickering
     onClick={onClick} 
     className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-500 ${theme.cardBg} ${theme.text} ${className}`}
   >
     {children}
   </motion.div>
 );
-
-const ActivityCalendar = ({ prayers, theme }) => {
-    const days = Array.from({ length: 14 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (13 - i));
-        return d;
-    });
-    return (
-        <div className="flex flex-col items-center gap-3 mb-8">
-            <div className="flex items-center gap-2 opacity-50">
-                <CalendarDays size={12} />
-                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
-            </div>
-            <div className="flex gap-2">
-                {days.map((day, idx) => {
-                    const dateStr = day.toLocaleDateString();
-                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
-                    return <div key={idx} className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`} title={dateStr} />;
-                })}
-            </div>
-        </div>
-    );
-};
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
   const audioRef = useRef(null);
