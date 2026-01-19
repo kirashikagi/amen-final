@@ -373,8 +373,6 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   // UI States
-  // 'isWriting' controls the inline form in the Diary
-  const [isWriting, setIsWriting] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
@@ -457,7 +455,7 @@ const App = () => {
 
   const handleLogin = async (e) => { e.preventDefault(); setAuthError(''); setIsAuthLoading(true); const { username, password } = e.target.elements; const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; try { await signInWithEmailAndPassword(auth, fakeEmail, password.value); } catch (err) { if(err.code.includes('not-found') || err.code.includes('invalid-credential')) { try { const u = await createUserWithEmailAndPassword(auth, fakeEmail, password.value); await updateProfile(u.user, { displayName: username.value }); } catch(ce) { setAuthError("Ошибка: " + ce.code); } } else { setAuthError("Ошибка: " + err.code); } } setIsAuthLoading(false); };
   const handleUpdateName = async () => { if(!newName.trim() || newName === user.displayName) return; await updateProfile(user, { displayName: newName }); };
-  const handleAmen = async (e, source = "manual") => { e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }; await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data); if(isPublic) { await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: [] }); } setTimeout(() => { setIsAmenAnimating(false); setIsWriting(false); setSuccessMessage("Услышано"); setShowSuccessModal(true); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 1500); };
+  const handleAmen = async (e, source = "manual") => { e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }; await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data); if(isPublic) { await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: [] }); } setTimeout(() => { setIsAmenAnimating(false); setShowSuccessModal(true); setSuccessMessage("Услышано"); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 1500); };
   const incrementPrayerCount = async (id, currentCount) => { triggerHaptic(); await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', id), { prayerCount: (currentCount || 1) + 1 }); };
   const toggleLike = async (id, likes) => { triggerHaptic(); const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) }); };
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
@@ -470,12 +468,21 @@ const App = () => {
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) { await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); } };
   const sendFeedback = async () => { if(!feedbackText.trim()) return; await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { text: feedbackText, userId: user.uid, userName: user.displayName, createdAt: serverTimestamp() }); setFeedbackText(''); setShowFeedbackModal(false); alert("Отправлено!"); };
   
-  // Helper to open inline editor
+  // New: Inline Create Logic
+  const [showInlineCreate, setShowInlineCreate] = useState(false);
+
+  // Helper to open editor
   const openEditor = () => {
       setView('diary');
       setDiaryTab('active');
-      setIsWriting(true);
+      setShowInlineCreate(true);
   };
+
+  const handleInlineAmen = async (e) => {
+      e.preventDefault();
+      await handleAmen(e);
+      setShowInlineCreate(false);
+  }
 
   if (loading || !dailyVerse) return <div className={`h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light ${fonts.ui}`}><span className="italic animate-pulse">Загрузка тишины...</span><div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin"></div></div>;
   if (!user) return <div className={`fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7] ${fonts.ui}`}><div className="w-full max-w-xs space-y-8 text-center"><h1 className="text-6xl font-semibold text-stone-900 tracking-tight">Amen</h1><p className="text-stone-400 text-sm">Пространство тишины</p><form onSubmit={handleLogin} className="space-y-4 pt-8"><input name="username" type="text" placeholder="Имя" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required /><input name="password" type="password" placeholder="Пароль" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required />{authError && <p className="text-red-500 text-xs">{authError}</p>}<button disabled={isAuthLoading} className="w-full py-4 bg-stone-900 text-white text-sm font-medium rounded-xl">{isAuthLoading ? "..." : "Войти"}</button></form><button onClick={() => signInAnonymously(auth)} className="text-stone-400 text-sm">Войти тихо</button></div></div>;
@@ -492,7 +499,6 @@ const App = () => {
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28"> 
-          {/* pt-28 in MAIN ensures stable layout, preventing flickering */}
           
           {!isOnline && (
               <div className="mb-4 text-center">
@@ -569,7 +575,7 @@ const App = () => {
                 {view === 'diary' && (
                     <div className="space-y-6">
                         <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
-                            <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                            <div className="w-2 h-2 rounded-full bg-current opacity-20"></div>
                         </div>
 
                         <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
@@ -578,28 +584,27 @@ const App = () => {
                             <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
                         </div>
 
-                        {/* INLINE WRITE FORM */}
+                        {/* --- INLINE CREATE FORM --- */}
                         <AnimatePresence>
-                            {diaryTab === 'active' && !isWriting && (
-                                <motion.div 
-                                    initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
-                                    className="mb-4"
-                                >
-                                    <button onClick={() => { triggerHaptic(); setIsWriting(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
+                            {diaryTab === 'active' && !showInlineCreate && (
+                                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+                                    <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
                                         <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
                                         <span className="text-sm font-medium">Написать молитву</span>
                                     </button>
                                 </motion.div>
                             )}
-                            
-                            {diaryTab === 'active' && isWriting && (
+
+                            {diaryTab === 'active' && showInlineCreate && (
                                 <motion.div 
-                                    initial={{height:0, opacity:0}} animate={{height:'auto', opacity:1}} exit={{height:0, opacity:0}} 
+                                    initial={{ height: 0, opacity: 0 }} 
+                                    animate={{ height: "auto", opacity: 1 }} 
+                                    exit={{ height: 0, opacity: 0 }}
                                     className={`overflow-hidden mb-6`}
                                 >
                                     <div className={`rounded-[2.5rem] p-8 shadow-xl ${theme.cardBg} border border-white/20 relative`}>
-                                        <button onClick={() => setIsWriting(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={20}/></button>
-                                        <h3 className={`text-lg font-medium mb-6 ${fonts.ui}`}>Новая запись</h3>
+                                        <button onClick={() => setShowInlineCreate(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={20} /></button>
+                                        <h3 className={`text-lg font-medium mb-6 ${fonts.ui}`}>Новая молитва</h3>
                                         
                                         {isAmenAnimating ? (
                                             <div className="h-40 flex flex-col items-center justify-center space-y-4">
@@ -607,7 +612,7 @@ const App = () => {
                                                 <p className={`text-sm font-medium ${fonts.ui}`}>Отправка...</p>
                                             </div>
                                         ) : (
-                                            <form onSubmit={(e) => handleAmen(e, view === 'flow' ? "focus" : "manual")}>
+                                            <form onSubmit={handleInlineAmen}>
                                                 <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
                                                 <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-40 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} placeholder="Мысли, молитвы, благодарность..." />
                                                 <div className="flex justify-between items-center">
