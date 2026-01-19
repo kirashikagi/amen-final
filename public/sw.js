@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v8'; // Версия 8 (Speed Update)
+const CACHE_NAME = 'amen-app-v9'; // Версия 9 (Instant Matte Update)
 
 const STATIC_ASSETS = [
   '/',
