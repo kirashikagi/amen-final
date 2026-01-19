@@ -28,9 +28,10 @@ import {
   arrayUnion, 
   arrayRemove,
   increment,
-  enableIndexedDbPersistence 
+  enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2, WifiOff } from 'lucide-react'; 
+// Убрал WifiOff, так как он может отсутствовать в старых версиях библиотек и вызывать белый экран
+import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2 } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -49,17 +50,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- ВКЛЮЧЕНИЕ ОФФЛАЙНА ---
+// --- БЕЗОПАСНОЕ ВКЛЮЧЕНИЕ ОФФЛАЙНА ---
+// Это предотвращает краш при многократной перезагрузке страницы
 try {
   enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code == 'failed-precondition') {
-          console.log('Multiple tabs open');
-      } else if (err.code == 'unimplemented') {
-          console.log('Browser not supported');
-      }
+      console.log('Offline persistence error:', err.code);
   });
 } catch (e) {
-  // Persistence already enabled
+  // Игнорируем, если уже включено
 }
 
 // --- HAPTICS ---
@@ -144,7 +142,6 @@ const THEMES = {
   }
 };
 
-// --- CALENDAR READINGS (19.01 - 17.02) ---
 const CALENDAR_READINGS = {
   "19-01": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно.", action: "Оценить, где я духовно" },
   "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом. Попробуй сегодня отнестись к своей работе как к служению, а не просто обязанности.", action: "Работа как служение" },
@@ -192,7 +189,6 @@ const FilmGrain = () => (
     />
 );
 
-// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
   <div 
     onClick={onClick} 
@@ -373,6 +369,7 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   // UI States
+  const [showInlineCreate, setShowInlineCreate] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
@@ -455,7 +452,7 @@ const App = () => {
 
   const handleLogin = async (e) => { e.preventDefault(); setAuthError(''); setIsAuthLoading(true); const { username, password } = e.target.elements; const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; try { await signInWithEmailAndPassword(auth, fakeEmail, password.value); } catch (err) { if(err.code.includes('not-found') || err.code.includes('invalid-credential')) { try { const u = await createUserWithEmailAndPassword(auth, fakeEmail, password.value); await updateProfile(u.user, { displayName: username.value }); } catch(ce) { setAuthError("Ошибка: " + ce.code); } } else { setAuthError("Ошибка: " + err.code); } } setIsAuthLoading(false); };
   const handleUpdateName = async () => { if(!newName.trim() || newName === user.displayName) return; await updateProfile(user, { displayName: newName }); };
-  const handleAmen = async (e, source = "manual") => { e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }; await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data); if(isPublic) { await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: [] }); } setTimeout(() => { setIsAmenAnimating(false); setShowSuccessModal(true); setSuccessMessage("Услышано"); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 1500); };
+  const handleAmen = async (e, source = "manual") => { e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; const data = { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }; await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), data); if(isPublic) { await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", createdAt: serverTimestamp(), likes: [] }); } setTimeout(() => { setIsAmenAnimating(false); setShowInlineCreate(false); setSuccessMessage("Услышано"); setShowSuccessModal(true); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 1500); };
   const incrementPrayerCount = async (id, currentCount) => { triggerHaptic(); await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', id), { prayerCount: (currentCount || 1) + 1 }); };
   const toggleLike = async (id, likes) => { triggerHaptic(); const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) }); };
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
@@ -468,10 +465,6 @@ const App = () => {
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) { await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); } };
   const sendFeedback = async () => { if(!feedbackText.trim()) return; await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { text: feedbackText, userId: user.uid, userName: user.displayName, createdAt: serverTimestamp() }); setFeedbackText(''); setShowFeedbackModal(false); alert("Отправлено!"); };
   
-  // New: Inline Create Logic
-  const [showInlineCreate, setShowInlineCreate] = useState(false);
-
-  // Helper to open editor
   const openEditor = () => {
       setView('diary');
       setDiaryTab('active');
@@ -481,8 +474,7 @@ const App = () => {
   const handleInlineAmen = async (e) => {
       e.preventDefault();
       await handleAmen(e);
-      setShowInlineCreate(false);
-  }
+  };
 
   if (loading || !dailyVerse) return <div className={`h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light ${fonts.ui}`}><span className="italic animate-pulse">Загрузка тишины...</span><div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin"></div></div>;
   if (!user) return <div className={`fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7] ${fonts.ui}`}><div className="w-full max-w-xs space-y-8 text-center"><h1 className="text-6xl font-semibold text-stone-900 tracking-tight">Amen</h1><p className="text-stone-400 text-sm">Пространство тишины</p><form onSubmit={handleLogin} className="space-y-4 pt-8"><input name="username" type="text" placeholder="Имя" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required /><input name="password" type="password" placeholder="Пароль" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required />{authError && <p className="text-red-500 text-xs">{authError}</p>}<button disabled={isAuthLoading} className="w-full py-4 bg-stone-900 text-white text-sm font-medium rounded-xl">{isAuthLoading ? "..." : "Войти"}</button></form><button onClick={() => signInAnonymously(auth)} className="text-stone-400 text-sm">Войти тихо</button></div></div>;
@@ -503,7 +495,7 @@ const App = () => {
           {!isOnline && (
               <div className="mb-4 text-center">
                   <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 text-red-500 text-xs font-medium ${fonts.ui}`}>
-                      <WifiOff size={12}/> Оффлайн режим
+                      <Disc size={12} className="animate-pulse"/> Оффлайн режим
                   </span>
               </div>
           )}
@@ -584,10 +576,9 @@ const App = () => {
                             <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
                         </div>
 
-                        {/* --- INLINE CREATE FORM --- */}
                         <AnimatePresence>
                             {diaryTab === 'active' && !showInlineCreate && (
-                                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
+                                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="mb-4">
                                     <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`w-full py-6 rounded-[2rem] border-2 border-dashed border-current border-opacity-10 flex items-center justify-center gap-3 opacity-60 hover:opacity-100 hover:border-opacity-30 transition group ${theme.cardBg} ${fonts.ui}`}>
                                         <div className={`p-2 rounded-full ${theme.containerBg}`}><Plus size={20} /></div>
                                         <span className="text-sm font-medium">Написать молитву</span>
