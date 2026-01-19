@@ -28,7 +28,7 @@ import {
   arrayUnion, 
   arrayRemove,
   increment,
-  enableIndexedDbPersistence // Оффлайн модуль
+  enableIndexedDbPersistence 
 } from "firebase/firestore";
 import { List, X, Check, Disc, Plus, Image as ImageIcon, CheckCircle2, FileText, ChevronRight, Heart, CalendarDays, Compass, Edit3, Send, MessageCircle, Trash2, Mail, Shield, Copy, Hand, Share2, WifiOff } from 'lucide-react'; 
 
@@ -192,6 +192,7 @@ const FilmGrain = () => (
     />
 );
 
+// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
   <div 
     onClick={onClick} 
@@ -372,6 +373,7 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   // UI States
+  // 'isWriting' controls the inline form in the Diary
   const [isWriting, setIsWriting] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -468,7 +470,7 @@ const App = () => {
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) { await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); } };
   const sendFeedback = async () => { if(!feedbackText.trim()) return; await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { text: feedbackText, userId: user.uid, userName: user.displayName, createdAt: serverTimestamp() }); setFeedbackText(''); setShowFeedbackModal(false); alert("Отправлено!"); };
   
-  // Helper to open editor
+  // Helper to open inline editor
   const openEditor = () => {
       setView('diary');
       setDiaryTab('active');
@@ -490,6 +492,7 @@ const App = () => {
         <TopMenu view={view} setView={setView} theme={theme} currentTheme={currentThemeId} setCurrentTheme={setCurrentThemeId} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28"> 
+          {/* pt-28 in MAIN ensures stable layout, preventing flickering */}
           
           {!isOnline && (
               <div className="mb-4 text-center">
@@ -566,7 +569,7 @@ const App = () => {
                 {view === 'diary' && (
                     <div className="space-y-6">
                         <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
-                            <div className="w-2 h-2 rounded-full bg-current opacity-20"></div>
+                            <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
                         </div>
 
                         <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
@@ -829,7 +832,7 @@ const App = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         {Object.values(THEMES).map(t => (
-                            <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
+                            <button key={t.id} onClick={() => { setCurrentThemeId(t.id); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
                             <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
                             <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
                             </button>
