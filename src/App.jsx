@@ -53,43 +53,42 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (STABLE & MATTE) ---
+// --- ANIMATIONS (PURE FADE / NO MOVEMENT) ---
 
-// 1. Страницы (Плавное проявление)
+// 1. Страницы (Только прозрачность)
 const pageVariants = {
   initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.6, ease: "easeOut" } },
-  exit: { opacity: 0, transition: { duration: 0.3 } }
+  animate: { opacity: 1, transition: { duration: 0.8, ease: "easeInOut" } },
+  exit: { opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }
 };
 
-// 2. Список (Каскад)
+// 2. Список (Каскадное проявление на месте)
 const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.05 }
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 }
   }
 };
 
+// Исправлено: Убрал Y смещение. Теперь карточки просто проявляются.
 const itemAnim = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.8, ease: "easeOut" } }
 };
 
-// 3. Шторка "С Небес" (БЕЗ OPACITY - ЧТОБЫ НЕ МОРГАЛА)
-// Она сразу матовая, просто выезжает за пределы экрана
+// 3. Шторка написания (Сохраняем эффект "С Небес", так как это действие)
 const heavenCurtainAnim = {
     hidden: { y: "-110%" }, 
     visible: { y: "0%", transition: { type: "spring", damping: 28, stiffness: 180, mass: 1 } },
     exit: { y: "-110%", transition: { duration: 0.5, ease: "easeInOut" } }
 };
 
-// 4. Модальные окна (Центр)
-// Появляются через Scale, чтобы сохранить матовость
+// 4. Модальные окна (Только прозрачность, без Scale)
 const modalAnim = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
-    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.4, ease: "easeOut" } },
+    exit: { opacity: 0, transition: { duration: 0.3, ease: "easeIn" } }
 };
 
 // --- HAPTICS ---
@@ -215,7 +214,7 @@ const CALENDAR_READINGS = {
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.`;
 
 const fonts = { ui: "font-sans", content: "font-serif" };
 
@@ -229,13 +228,36 @@ const FilmGrain = () => (
 
 const Card = ({ children, theme, className = "", onClick }) => (
   <motion.div 
-    variants={itemAnim} // Removed layout prop to stop flickering
+    variants={itemAnim}
     onClick={onClick} 
     className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-500 ${theme.cardBg} ${theme.text} ${className}`}
   >
     {children}
   </motion.div>
 );
+
+const ActivityCalendar = ({ prayers, theme }) => {
+    const days = Array.from({ length: 14 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (13 - i));
+        return d;
+    });
+    return (
+        <div className="flex flex-col items-center gap-3 mb-8">
+            <div className="flex items-center gap-2 opacity-50">
+                <CalendarDays size={12} />
+                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
+            </div>
+            <div className="flex gap-2">
+                {days.map((day, idx) => {
+                    const dateStr = day.toLocaleDateString();
+                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
+                    return <div key={idx} className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`} title={dateStr} />;
+                })}
+            </div>
+        </div>
+    );
+};
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
   const audioRef = useRef(null);
@@ -787,12 +809,12 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- OTHER MODALS --- */}
+        {/* --- OTHER MODALS (Using modalAnim - opacity only) --- */}
         <AnimatePresence>
             {showSupportModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Поддержка</h3>
                         <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
@@ -814,7 +836,7 @@ const App = () => {
             {showAnswerModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-current border-opacity-10`}>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-current border-opacity-10`}>
                     <div className="text-center mb-6">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${theme.containerBg} ${theme.iconColor}`}><CheckCircle2 size={24} /></div>
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Чудо произошло?</h3>
@@ -830,7 +852,7 @@ const App = () => {
             {showFeedbackModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Разработчику</h3>
                         <button onClick={() => setShowFeedbackModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
@@ -847,7 +869,7 @@ const App = () => {
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
                         <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
@@ -869,7 +891,7 @@ const App = () => {
             {showLegalModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}/>
-                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
                     <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
                     <div>
                         <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
