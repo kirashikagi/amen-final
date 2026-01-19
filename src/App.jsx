@@ -76,8 +76,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-stone-800/10 hover:bg-white/40', 
     activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
-    // Сделал прозрачность 80% (было 95%) для эффекта стекла
-    menuBg: 'bg-[#fffbf7]/80 backdrop-blur-3xl text-stone-900 border-l border-white/20'
+    menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20'
   },
   morning: { 
     id: 'morning', label: 'Величие', bgImage: '/morning.jpg', 
@@ -87,7 +86,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-slate-800/10 hover:bg-white/40', 
     activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
-    menuBg: 'bg-white/80 backdrop-blur-3xl text-slate-900 border-l border-white/20'
+    menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20'
   },
   day: { 
     id: 'day', label: 'Гармония', bgImage: '/day.jpg', 
@@ -97,7 +96,7 @@ const THEMES = {
     containerBg: 'bg-white/50',
     button: 'border border-stone-900/10 hover:bg-white/40', 
     activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
-    menuBg: 'bg-[#fffff0]/80 backdrop-blur-3xl text-stone-950 border-l border-white/20'
+    menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20'
   },
   sunset: { 
     id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', 
@@ -107,7 +106,7 @@ const THEMES = {
     containerBg: 'bg-black/20', 
     button: 'border border-orange-100/30 hover:bg-white/10', 
     activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
-    menuBg: 'bg-[#2c1810]/80 backdrop-blur-3xl text-orange-50 border-l border-white/10' 
+    menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10' 
   },
   evening: { 
     id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', 
@@ -117,7 +116,7 @@ const THEMES = {
     containerBg: 'bg-white/10',
     button: 'border border-white/20 hover:bg-white/10', 
     activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
-    menuBg: 'bg-[#2e1065]/80 backdrop-blur-3xl text-white border-l border-white/10'
+    menuBg: 'bg-[#2e1065]/90 backdrop-blur-3xl text-white border-l border-white/10'
   },
   midnight: { 
     id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', 
@@ -127,15 +126,42 @@ const THEMES = {
     containerBg: 'bg-white/10',
     button: 'border border-white/10 hover:bg-white/5', 
     activeButton: 'bg-white text-black shadow-lg shadow-white/10',
-    menuBg: 'bg-black/80 backdrop-blur-3xl text-slate-100 border-l border-white/10'
+    menuBg: 'bg-black/90 backdrop-blur-3xl text-slate-100 border-l border-white/10'
   }
 };
 
+// --- CALENDAR READINGS (19.01 - 17.02) ---
 const CALENDAR_READINGS = {
-  "08-01": { title: "Направление", source: "Псалом 31:8", text: "Вразумлю тебя, наставлю тебя на путь, по которому тебе идти; буду руководить тебя, око Мое над тобою.", thought: "Бог не просто дает карту, Он Сам становится Проводником.", action: "Спросить Бога о шаге" },
-  "09-01": { title: "Сила в слабости", source: "2 Коринфянам 12:9", text: "Довольно для тебя благодати Моей, ибо сила Моя совершается в немощи.", thought: "Твоя слабость — это площадка для проявления Божьей силы.", action: "Признать слабость" },
-  "10-01": { title: "Свет во тьме", source: "Иоанна 1:5", text: "И свет во тьме светит, и тьма не объяла его.", thought: "Даже самая густая тьма не может погасить самую маленькую свечу веры.", action: "Быть светом" },
-  "11-01": { title: "Мир Божий", source: "Филиппийцам 4:7", text: "И мир Божий, который превыше всякого ума, соблюдет сердца ваши...", thought: "Мир — это не отсутствие проблем, а присутствие Бога в них.", action: "Вдохнуть мир" }
+  "19-01": { title: "Вопрос сердца", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу.", action: "Определить свое состояние" },
+  "20-01": { title: "Святость труда", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом.", action: "Работа как служение" },
+  "21-01": { title: "Верность", source: "2 Петра 2:5", text: "…Ноя, проповедника правды, сохранил…", thought: "Богу дорога верность, даже если нет отклика.", action: "Остаться верным добру" },
+  "22-01": { title: "Шаг в неизвестность", source: "Евреям 11:8", text: "Верою Авраам… пошёл, не зная, куда идёт.", thought: "Вера часто начинается без полной ясности.", action: "Сделать шаг доверия" },
+  "23-01": { title: "Путь через долину", source: "Бытие 50:20", text: "Вы умышляли против меня зло; но Бог обратил это в добро.", thought: "Путь призвания не всегда прямой.", action: "Надеяться на Божий план" },
+  "24-01": { title: "Ценность пустыни", source: "Деяния 7:30", text: "По исполнении сорока лет явился ему… Ангел Господень.", thought: "Время подготовки имеет огромную ценность.", action: "Принять текущий сезон" },
+  "25-01": { title: "Живое общение", source: "Исход 16:20", text: "…и завелись в ней черви, и она осмердела.", thought: "Богу важно живое, ежедневное общение.", action: "Обратиться к Нему сегодня" },
+  "26-01": { title: "Сила в малом", source: "Судей 7:7", text: "Тремястами мужей… Я спасу вас.", thought: "Божья сила не зависит от количества ресурсов.", action: "Довериться Богу, не ресурсам" },
+  "27-01": { title: "Бдительность", source: "Судей 16:20", text: "…а он не знал, что Господь отступил от него.", thought: "Даже сильные нуждаются в бдительности.", action: "Проверить свое сердце" },
+  "28-01": { title: "Скрытое помазание", source: "1 Царств 16:13", text: "…и почивал Дух Господень на Давиде.", thought: "Бог видит призвание раньше, чем оно становится видимым.", action: "Быть верным в малом" },
+  "29-01": { title: "Честная молитва", source: "Псалом 61:9", text: "Изливайте пред Ним сердце ваше.", thought: "Богу важна искренность, а не форма.", action: "Говорить с Ним открыто" },
+  "30-01": { title: "Право на усталость", source: "3 Царств 19:4", text: "…душе моей довольно уже, Господи.", thought: "Усталость не делает тебя слабым.", action: "Позволить себе отдых" },
+  "31-01": { title: "Сердце Отца", source: "Иона 4:2", text: "…знал я, что Ты Бог благий и милосердный.", thought: "Бог зовёт не только к истине, но и к милости.", action: "Проявить сострадание" },
+  "01-02": { title: "Голос в обычном", source: "Числа 22:28", text: "И отверз Господь уста ослицы…", thought: "Бог может говорить через самые неожиданные вещи.", action: "Быть внимательным к знакам" },
+  "02-02": { title: "Тихие годы", source: "Луки 3:23", text: "Иисус… был лет тридцати.", thought: "Незаметные сезоны имеют глубокий смысл.", action: "Ценить время ожидания" },
+  "03-02": { title: "Уединение", source: "Марка 1:35", text: "…удалился в пустынное место и там молился.", thought: "Тишина помогает услышать главное.", action: "Найти время для тишины" },
+  "04-02": { title: "Выбор смирения", source: "Марка 9:34", text: "…рассуждали между собою, кто больше.", thought: "Гордость знакома каждому.", action: "Выбрать смирение" },
+  "05-02": { title: "Восстановление", source: "Иоанна 21:17", text: "…паси овец Моих.", thought: "Бог даёт новое начало после падения.", action: "Принять Божий призыв" },
+  "06-02": { title: "Взгляд веры", source: "Матфея 28:6", text: "Его нет здесь — Он воскрес.", thought: "Бог доверяет тем, кого часто не замечают.", action: "Принять свою ценность" },
+  "07-02": { title: "Дух для всех", source: "Деяния 2:17", text: "…излию от Духа Моего на всякую плоть.", thought: "Божье действие не ограничено избранными.", action: "Быть частью Его работы" },
+  "08-02": { title: "Единодушие", source: "Деяния 1:14", text: "Все они единодушно пребывали в молитве.", thought: "Молитва создаёт пространство для Божьего присутствия.", action: "Начать с молитвы" },
+  "09-02": { title: "Доверие", source: "Деяния 9:17", text: "Анания пошёл и вошёл в дом.", thought: "Страх не всегда исчезает сразу.", action: "Послушаться вопреки страху" },
+  "10-02": { title: "Свобода внутри", source: "Филиппийцам 1:12", text: "…обстоятельства мои послужили к большему успеху.", thought: "Даже ограничения могут стать пространством для плода.", action: "Найти возможность" },
+  "11-02": { title: "Суть всего", source: "1 Коринфянам 13:1", text: "…я медь звенящая или кимвал звучащий.", thought: "Любовь придаёт глубину любому действию.", action: "Проверить мотивы сердца" },
+  "12-02": { title: "Взгляд вперед", source: "Евреям 11:1", text: "Вера же есть осуществление ожидаемого.", thought: "Будущее начинается с доверия.", action: "Позволить надежде вести" },
+  "13-02": { title: "Идентичность", source: "Бытие 17:5", text: "…и не будешь ты больше называться Аврамом.", thought: "Богу важнее то, кем ты являешься, чем твоя роль.", action: "Вспомнить кто ты во Христе" },
+  "14-02": { title: "Верность истине", source: "Иоанна 6:60", text: "Какие странные слова! кто может это слушать?", thought: "Истина может быть непростой.", action: "Остаться с истиной" },
+  "15-02": { title: "Надежда", source: "Откровение 21:4", text: "И отрёт Бог всякую слезу.", thought: "История ещё продолжается.", action: "Ждать восстановления" },
+  "16-02": { title: "Он видит боль", source: "Псалом 55:9", text: "Положи слёзы мои в сосуд у Тебя.", thought: "Боль не остаётся незамеченной.", action: "Принести боль Богу" },
+  "17-02": { title: "Новое", source: "Исаия 43:19", text: "Вот, Я делаю новое.", thought: "Перед Богом открыто будущее.", action: "Принять новое" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
@@ -152,6 +178,7 @@ const FilmGrain = () => (
     />
 );
 
+// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
   <div 
     onClick={onClick} 
@@ -283,7 +310,9 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}
             >
               <div className="mt-8 flex flex-col items-start gap-8">
+                {/* AMEN LOGO IN MENU */}
                 <div className={`${fonts.ui} text-4xl font-light tracking-wide mb-10 opacity-30 uppercase`}>Amen</div>
+
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>
                     {item.label}
@@ -496,7 +525,7 @@ const App = () => {
                 {view === 'diary' && (
                     <div className="space-y-6">
                         <div className={`text-center ${fonts.ui} flex flex-col items-center pb-4`}>
-                            <h1 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h1>
+                            <div className="w-2 h-2 rounded-full bg-current opacity-20"></div>
                         </div>
 
                         <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
@@ -646,7 +675,7 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS --- */}
+        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
         {/* Support, Create, Feedback, etc. modals remain here unchanged */}
         <AnimatePresence>
             {showSupportModal && (
