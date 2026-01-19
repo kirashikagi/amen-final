@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v5'; // Версия 5
+const CACHE_NAME = 'amen-app-v6'; // Версия 6
 
 const STATIC_ASSETS = [
   '/',
