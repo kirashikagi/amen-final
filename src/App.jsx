@@ -189,6 +189,7 @@ const FilmGrain = () => (
     />
 );
 
+// Card is now static to prevent double-animation with the page transition
 const Card = ({ children, theme, className = "", onClick }) => (
   <div 
     onClick={onClick} 
@@ -716,37 +717,14 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- MODALS (SUPPORT, FEEDBACK, ETC) --- */}
-        {/* Support, Create, Feedback, etc. modals remain here unchanged */}
-        <AnimatePresence>
-            {showSupportModal && (
-                <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-                    <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Поддержка</h3>
-                            <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                        </div>
-                        <p className={`text-[17px] leading-relaxed opacity-90 mb-8 ${fonts.content}`}>
-                            Ваша поддержка очень ценна для разработки, поддержания и развития проекта. Вот счёт по которому вы сможете направить вашу поддержку. Спасибо, что вы с нами.
-                        </p>
-                        <button onClick={copyToClipboard} className={`w-full p-4 rounded-xl mb-4 flex items-center justify-between ${theme.containerBg} active:scale-95 transition`}>
-                            <span className={`text-base tracking-wider font-medium ${fonts.ui}`}>42301810200082919550</span>
-                            {copied ? <Check size={18} className="text-emerald-500"/> : <Copy size={18} className="opacity-60"/>}
-                        </button>
-                        {copied && <p className={`text-xs text-center text-emerald-500 ${fonts.ui}`}>Реквизиты скопированы</p>}
-                    </motion.div>
-                </div>
-                </>
-            )}
-        </AnimatePresence>
-
+        {/* --- MODALS --- */}
+        {/* CREATE MODAL (Fixed Bottom/Center + h-[100dvh]) */}
         <AnimatePresence>
         {showCreateModal && (
             <>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={() => setShowCreateModal(false)}/>
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:p-4 pointer-events-none">
+            {/* WRAPPER: items-center + h-dvh creates stable centering that moves with keyboard resize */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none h-[100dvh]">
                 <motion.div 
                     initial={{y: 50, opacity: 0}} 
                     animate={{y: 0, opacity: 1}} 
@@ -788,12 +766,12 @@ const App = () => {
         )}
         </AnimatePresence>
 
-        {/* --- ANSWER MODAL --- */}
+        {/* ANSWER MODAL (Fixed Bottom/Center + h-[100dvh]) */}
         <AnimatePresence>
             {showAnswerModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}/>
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:p-4 pointer-events-none">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none h-[100dvh]">
                     <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-[2.5rem] p-8 shadow-2xl ${theme.cardBg} border border-yellow-500/20`}>
                         <div className="text-center mb-6">
                             <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle2 size={24} /></div>
@@ -807,12 +785,12 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- FEEDBACK MODAL --- */}
+        {/* FEEDBACK MODAL (Fixed Bottom/Center + h-[100dvh]) */}
         <AnimatePresence>
             {showFeedbackModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}/>
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-6 sm:p-4 pointer-events-none">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none h-[100dvh]">
                     <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.9, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Разработчику</h3>
@@ -827,27 +805,24 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* --- THEME MODAL (Fixed Center, no keyboard input) --- */}
         <AnimatePresence>
             {showThemeModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}/>
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
-                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
-                            <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            {Object.values(THEMES).map(t => (
-                                <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
-                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                                <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </motion.div>
-                </div>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
+                        <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        {Object.values(THEMES).map(t => (
+                            <button key={t.id} onClick={() => { setCurrentThemeId(t.id); setShowThemeModal(false); }} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
+                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                            <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </motion.div>
                 </>
             )}
         </AnimatePresence>
@@ -856,15 +831,13 @@ const App = () => {
             {showLegalModal && (
                 <>
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}/>
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
-                    <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`w-full max-w-md pointer-events-auto rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto relative`}>
-                        <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
-                        <div>
-                            <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
-                            <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
-                        </div>
-                    </motion.div>
-                </div>
+                <motion.div initial={{scale:0.95, opacity:0}} animate={{scale:1, opacity:1}} exit={{scale:0.95, opacity:0}} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                    <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
+                    <div>
+                        <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
+                        <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
+                    </div>
+                </motion.div>
                 </>
             )}
         </AnimatePresence>
