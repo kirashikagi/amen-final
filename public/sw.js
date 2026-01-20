@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v20'; // Версия 20 (Left Button & Spacing)
+const CACHE_NAME = 'amen-app-v2'; // Версия 2 (Left Button & Spacing)
 
 const STATIC_ASSETS = [
   '/',
