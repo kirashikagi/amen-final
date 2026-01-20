@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v10'; // Версия 10 (Stabilization Update)
+const CACHE_NAME = 'amen-app-v11'; // Версия 11 (Instant UI)
 
 const STATIC_ASSETS = [
   '/',
@@ -20,7 +20,6 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Amen SW: Cleaning old cache', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -32,15 +31,11 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-
-  // Игнорируем базу данных и mp3, чтобы не забивать память
   if (url.origin.includes('firestore.googleapis.com') || url.pathname.endsWith('.mp3')) {
     return;
   }
-
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Стратегия: Сначала кэш, если нет — сеть
       return cachedResponse || fetch(event.request);
     })
   );
