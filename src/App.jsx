@@ -54,15 +54,6 @@ try {
 } catch (e) {}
 
 // --- ANIMATIONS ---
-
-// 1. ZEN MODE (Написание молитвы)
-// Только прозрачность. Никакого движения. Максимальная стабильность.
-const zenAnim = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { duration: 0.3 } },
-    exit: { opacity: 0, transition: { duration: 0.2 } }
-};
-
 const pageVariants = {
   initial: { opacity: 1 },
   animate: { opacity: 1 },
@@ -75,11 +66,10 @@ const simpleContainer = {
 };
 
 const itemAnim = {
-  hidden: { opacity: 1 },
-  show: { opacity: 1 }
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.4 } }
 };
 
-// Модалки
 const modalAnim = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.15 } },
@@ -637,30 +627,32 @@ const App = () => {
             )}
 
             {view === 'diary' && (
-                <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-6">
-                    <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
-                        <h2 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h2>
-                        
-                        <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`p-3 rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
-                            <PenLine size={20} />
-                        </button>
-                    </div>
+                <div className="space-y-6">
+                    <AnimatePresence mode="wait">
+                    {/* LIST MODE */}
+                    {!showInlineCreate ? (
+                        <motion.div 
+                            key="list"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="space-y-6"
+                        >
+                            <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
+                                <h2 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h2>
+                                <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`p-3 rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
+                                    <PenLine size={20} />
+                                </button>
+                            </div>
 
-                    <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
-                        <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
-                        <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Молитвы</button>
-                        <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
-                    </div>
+                            <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
+                                <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
+                                <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Молитвы</button>
+                                <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
+                            </div>
 
-                    <div className="space-y-4">
-                        <AnimatePresence mode="wait">
-                            <motion.div 
-                                key={diaryTab} 
-                                variants={simpleContainer}
-                                initial="hidden"
-                                animate="show"
-                                exit="hidden"
-                            >
+                            <div className="space-y-4">
                                 {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
                                     <div className={`text-center opacity-40 py-10 text-lg ${fonts.content}`}>
                                         {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
@@ -716,10 +708,56 @@ const App = () => {
                                         </div>
                                     </Card>
                                 ))}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-                </motion.div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        // WRITER MODE (REPLACES LIST)
+                        <motion.div 
+                            key="writer"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                             <div className="fixed top-12 right-6 z-[60]">
+                                <button
+                                    onClick={() => setShowInlineCreate(false)}
+                                    className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}
+                                >
+                                    Закрыть
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-6 mt-20">
+                                <input
+                                    name="title"
+                                    placeholder="Тема..."
+                                    className={`w-full p-6 rounded-3xl ${theme.containerBg} backdrop-blur-md text-xl font-medium text-center outline-none ${theme.text} ${theme.placeholderColor} transition focus:scale-[1.02]`}
+                                    autoFocus
+                                />
+                                <textarea
+                                    name="text"
+                                    placeholder={placeholderText}
+                                    className={`w-full p-6 rounded-3xl h-64 ${theme.containerBg} backdrop-blur-md text-lg leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} transition focus:scale-[1.02] ${fonts.content}`}
+                                />
+                                
+                                <div className="flex flex-col items-center gap-6">
+                                     <button className={`w-full py-4 text-sm font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>
+                                        Amen
+                                    </button>
+
+                                    <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
+                                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
+                                            <motion.div animate={{x: focusPrayerPublic ? 16 : 0}} className="w-4 h-4 bg-white rounded-full shadow-sm"/>
+                                        </div>
+                                        <span className={`text-xs font-bold uppercase tracking-widest ${fonts.ui}`}>{focusPrayerPublic ? "Видят все" : "Личное"}</span>
+                                    </div>
+                                </div>
+                            </form>
+                        </motion.div>
+                    )}
+                    </AnimatePresence>
+                </div>
             )}
 
             {view === 'admin_feedback' && isAdmin && (
@@ -790,34 +828,6 @@ const App = () => {
         </main>
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
-
-        {/* --- ZEN MODE: WRITE PRAYER --- */}
-        <AnimatePresence>
-            {showInlineCreate && (
-                <motion.div 
-                    variants={zenAnim}
-                    initial="hidden" animate="visible" exit="exit"
-                    className="fixed inset-0 z-50 flex flex-col justify-center items-center p-8 backdrop-blur-3xl bg-black/10"
-                >
-                    <button onClick={() => setShowInlineCreate(false)} className="absolute top-8 right-8 opacity-60 hover:opacity-100 p-2"><X size={28} className={theme.text}/></button>
-                    
-                    {isAmenAnimating ? (
-                        <div className="flex flex-col items-center gap-6">
-                            <div className="w-16 h-16 rounded-full border-2 border-current border-t-transparent animate-spin opacity-50"/>
-                            <p className={`text-lg font-light ${fonts.ui} ${theme.text}`}>Ваши слова в пути...</p>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleInlineAmen} className="w-full max-w-sm space-y-8 text-center">
-                            <input name="title" placeholder="О чем ты думаешь?" className={`w-full bg-transparent border-b border-current border-opacity-20 py-4 text-2xl font-light text-center outline-none ${theme.text} ${theme.placeholderColor} ${fonts.ui}`} autoFocus />
-                            <textarea name="text" placeholder={placeholderText} className={`w-full bg-transparent outline-none text-lg leading-relaxed text-center resize-none h-40 ${theme.text} ${theme.placeholderColor} ${fonts.content}`} />
-                            <button className={`px-12 py-4 text-sm font-bold uppercase tracking-widest rounded-full transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
-                                Amen
-                            </button>
-                        </form>
-                    )}
-                </motion.div>
-            )}
-        </AnimatePresence>
 
         {/* --- OTHER MODALS --- */}
         <AnimatePresence>
