@@ -53,54 +53,38 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (INSTANT MATTE / NO GHOSTING) ---
+// --- STABLE ANIMATIONS (NO FLICKER) ---
 
-// 1. Страницы (Плавное проявление)
-const pageVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
-  exit: { opacity: 0, transition: { duration: 0.3 } }
-};
-
-// 2. Список
+// Контейнер списка (карточки появляются по очереди)
 const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
     opacity: 1,
-    transition: { staggerChildren: 0.05 }
+    transition: {
+      staggerChildren: 0.05, // Очень быстрая задержка между карточками
+      delayChildren: 0.01
+    }
   }
 };
 
+// Сама карточка (просто всплывает)
 const itemAnim = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: 0.4 } }
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
 };
 
-// 3. Шторка "С Небес" (Написание молитвы)
+// Шторка написания (Выезжает сверху)
 const heavenCurtainAnim = {
-    hidden: { y: "-110%" }, 
-    visible: { y: "0%", transition: { type: "spring", damping: 28, stiffness: 220, mass: 1 } },
-    exit: { y: "-110%", transition: { duration: 0.4, ease: "easeInOut" } }
+    hidden: { y: "-105%" }, 
+    visible: { y: "0%", transition: { type: "spring", damping: 30, stiffness: 250, mass: 1 } },
+    exit: { y: "-105%", transition: { duration: 0.4, ease: "easeInOut" } }
 };
 
-// 4. Модальные окна (SOLID POP)
-// Секрет здесь: opacity меняется мгновенно (почти), а scale плавно.
-// Это убирает эффект "призрака" и делает окно сразу матовым.
+// Модалки (Центр)
 const modalAnim = {
-    hidden: { opacity: 0, scale: 0.92 },
-    visible: { 
-        opacity: 1, 
-        scale: 1, 
-        transition: { 
-            scale: { type: "spring", damping: 25, stiffness: 300 }, // Пружинистый зум
-            opacity: { duration: 0.1 } // Почти мгновенное появление
-        } 
-    },
-    exit: { 
-        opacity: 0, 
-        scale: 0.95, 
-        transition: { duration: 0.15 } 
-    }
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.25, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
 };
 
 // --- HAPTICS ---
@@ -500,6 +484,16 @@ const App = () => {
     fetchDailyWord();
   }, []);
 
+  useEffect(() => {
+      // Preload images to avoid black flash
+      const img1 = new Image(); img1.src = '/dawn.jpg';
+      const img2 = new Image(); img2.src = '/morning.jpg';
+      const img3 = new Image(); img3.src = '/day.jpg';
+      const img4 = new Image(); img4.src = '/sunset.jpg';
+      const img5 = new Image(); img5.src = '/evening.jpg';
+      const img6 = new Image(); img6.src = '/midnight.jpg';
+  }, []);
+
   useEffect(() => onAuthStateChanged(auth, (u) => { 
       setUser(u); 
       setLoading(false);
@@ -560,219 +554,209 @@ const App = () => {
               </div>
           )}
 
-          <AnimatePresence mode="wait">
-            
-            <motion.div 
-                key={view}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                className="space-y-8"
-            >
-                {view === 'flow' && (
-                  <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8">
-                    <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
-                       <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
-                       <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
-                       <div className="mb-8 px-2 relative">
-                           <span className={`text-4xl absolute -top-4 -left-2 opacity-10 ${fonts.content}`}>“</span>
-                           <p className={`text-lg leading-[1.75] opacity-90 relative z-10 ${fonts.content}`}>{dailyVerse.text}</p>
-                           <span className={`text-4xl absolute -bottom-8 -right-2 opacity-10 ${fonts.content}`}>”</span>
+          {/* MAIN CONTENT SWITCH - REMOVED AnimatePresence mode="wait" for stability */}
+          <div className="space-y-8">
+            {view === 'flow' && (
+              <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8">
+                <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
+                   <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
+                   <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
+                   <div className="mb-8 px-2 relative">
+                       <span className={`text-4xl absolute -top-4 -left-2 opacity-10 ${fonts.content}`}>“</span>
+                       <p className={`text-lg leading-[1.75] opacity-90 relative z-10 ${fonts.content}`}>{dailyVerse.text}</p>
+                       <span className={`text-4xl absolute -bottom-8 -right-2 opacity-10 ${fonts.content}`}>”</span>
+                   </div>
+                   <div className={`text-sm opacity-50 mb-8 ${fonts.ui}`}>{dailyVerse.source}</div>
+                   <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
+                       <div className="flex gap-3">
+                           <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
+                           <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>{dailyVerse.thought}</p>
                        </div>
-                       <div className={`text-sm opacity-50 mb-8 ${fonts.ui}`}>{dailyVerse.source}</div>
-                       <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 mx-2 text-left shadow-sm backdrop-blur-md`}>
-                           <div className="flex gap-3">
-                               <div className="w-0.5 bg-current opacity-20 rounded-full"></div>
-                               <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>{dailyVerse.thought}</p>
-                           </div>
-                       </div>
-                       <button onClick={() => { triggerHaptic(); openEditor(); }} className={`w-full py-4 text-sm font-medium rounded-xl transition ${theme.button} ${fonts.ui}`}>
-                           {dailyVerse.action}
-                       </button>
-                    </Card>
+                   </div>
+                   <button onClick={() => { triggerHaptic(); openEditor(); }} className={`w-full py-4 text-sm font-medium rounded-xl transition ${theme.button} ${fonts.ui}`}>
+                       {dailyVerse.action}
+                   </button>
+                </Card>
 
-                    <div className="flex items-center justify-center my-8 opacity-40">
-                        <div className="h-px bg-current w-16"></div>
-                        <span className={`mx-4 text-xs font-medium uppercase tracking-widest ${fonts.ui}`}>Единство</span>
-                        <div className="h-px bg-current w-16"></div>
+                <div className="flex items-center justify-center my-8 opacity-40">
+                    <div className="h-px bg-current w-16"></div>
+                    <span className={`mx-4 text-xs font-medium uppercase tracking-widest ${fonts.ui}`}>Единство</span>
+                    <div className="h-px bg-current w-16"></div>
+                </div>
+
+                <div className="space-y-4">
+                    {publicPosts.map(post => (
+                         <Card key={post.id} theme={theme} className="!p-6 relative group">
+                             <div className={`flex justify-between mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
+                                 <span>{post.authorName}</span>
+                                 <div className="flex gap-2 mr-0">
+                                    {post.status === 'answered' && <span className={`${theme.iconColor} font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Чудо</span>}
+                                    <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
+                                 </div>
+                             </div>
+                             <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-90 ${fonts.content}`}>{post.text}</p>
+                             <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}>
+                                 {post.likes?.includes(user.uid) ? "Amen" : "Amen"}
+                                 {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
+                             </button>
+                             {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-20 hover:opacity-100"><Trash2 size={16} /></button>}
+                         </Card>
+                     ))}
+                </div>
+              </motion.div>
+            )}
+
+            {view === 'diary' && (
+                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-6">
+                    <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
+                        <h2 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h2>
+                        
+                        <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`p-3 rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
+                            <PenLine size={20} />
+                        </button>
+                    </div>
+
+                    <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
+                        <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
+                        <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Молитвы</button>
+                        <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
                     </div>
 
                     <div className="space-y-4">
-                        {publicPosts.map(post => (
-                             <Card key={post.id} theme={theme} className="!p-6 relative group">
-                                 <div className={`flex justify-between mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
-                                     <span>{post.authorName}</span>
-                                     <div className="flex gap-2 mr-0">
-                                        {post.status === 'answered' && <span className={`${theme.iconColor} font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Чудо</span>}
-                                        <span>{post.createdAt?.toDate().toLocaleDateString()}</span>
-                                     </div>
-                                 </div>
-                                 <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-90 ${fonts.content}`}>{post.text}</p>
-                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}>
-                                     {post.likes?.includes(user.uid) ? "Amen" : "Amen"}
-                                     {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
-                                 </button>
-                                 {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-20 hover:opacity-100"><Trash2 size={16} /></button>}
-                             </Card>
-                         ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {view === 'diary' && (
-                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-6">
-                        <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
-                            <h2 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h2>
-                            
-                            {/* --- HEADER BUTTON FOR NEW ENTRY --- */}
-                            <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`p-3 rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
-                                <PenLine size={20} />
-                            </button>
-                        </div>
-
-                        <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
-                            <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
-                            <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Молитвы</button>
-                            <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <AnimatePresence mode="wait">
-                                <motion.div 
-                                    key={diaryTab} 
-                                    variants={staggerContainer}
-                                    initial="hidden"
-                                    animate="show"
-                                    exit="hidden"
-                                >
-                                    {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
-                                        <div className={`text-center opacity-40 py-10 text-lg ${fonts.content}`}>
-                                            {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
-                                        </div>
-                                    )}
-                                    {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
-                                        <Card key={p.id} theme={theme}>
-                                            <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
-                                                <span className="text-xs font-normal opacity-50">{p.createdAt?.toDate().toLocaleDateString()}</span>
-                                                {p.status === 'answered' ? (
-                                                    <span className={`${theme.iconColor} text-xs font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Ответ</span>
-                                                ) : (
-                                                    <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
-                                                )}
-                                            </div>
-
-                                            {editingId === p.id ? (
-                                                <div className={`mb-4 space-y-2 ${fonts.ui}`}>
-                                                    <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-lg font-medium`} />
-                                                    <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
-                                                    <div className="flex justify-end gap-3 pt-2">
-                                                        <button onClick={() => setEditingId(null)} className="text-xs opacity-50">Отмена</button>
-                                                        <button onClick={saveEdit} className="text-xs font-medium">Сохранить</button>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <h3 className={`text-xl font-medium mb-3 leading-snug ${fonts.ui}`}>{p.title}</h3>
-                                                    <p className={`text-[17px] leading-[1.75] opacity-90 whitespace-pre-wrap mb-6 ${fonts.content}`}>{p.text}</p>
-                                                </>
-                                            )}
-
-                                            {p.status === 'answered' && p.answerNote && (
-                                                <div className={`${theme.containerBg} p-5 rounded-2xl mb-4 border border-current border-opacity-10`}>
-                                                    <p className={`text-xs font-medium opacity-60 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
-                                                    <p className={`text-[17px] leading-relaxed ${fonts.content}`}>{p.answerNote}</p>
-                                                </div>
-                                            )}
-                                            
-                                            <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
-                                                <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-40 hover:opacity-100 transition">Удалить</button>
-                                                
-                                                {p.status !== 'answered' ? (
-                                                    <div className="flex items-center gap-4">
-                                                        <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-60 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
-                                                            <Hand size={14}/> {p.prayerCount || 1}
-                                                        </button>
-                                                        <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-60 hover:opacity-100 transition">
-                                                            <CheckCircle2 size={14}/> Есть ответ
-                                                        </button>
-                                                    </div>
-                                                ) : null}
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-                    </motion.div>
-                )}
-
-                {view === 'admin_feedback' && isAdmin && (
-                    <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
-                         <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
-                         {feedbacks.map(msg => (
-                             <Card key={msg.id} theme={theme} className="relative">
-                                 <div className={`flex justify-between mb-3 opacity-50 text-xs font-normal ${fonts.ui}`}>
-                                     <span>{msg.userName}</span>
-                                     <span>{msg.createdAt?.toDate().toLocaleDateString()}</span>
-                                 </div>
-                                 <p className={`mb-4 text-sm leading-relaxed opacity-90 ${fonts.content}`}>{msg.text}</p>
-                                 <div className="flex justify-end">
-                                     <button onClick={() => deleteFeedback(msg.id)} className="p-2 text-red-400 bg-red-500/10 rounded-full hover:bg-red-500/20"><Trash2 size={16} /></button>
-                                 </div>
-                             </Card>
-                         ))}
-                    </motion.div>
-                )}
-
-                {view === 'profile' && (
-                    <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="text-center pt-28">
-                        <div className="pb-10">
-                            <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
-                                {user.displayName?.[0] || "A"}
-                            </div>
-                            <div className="relative mb-8 px-8 group">
-                                <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
-                            </div>
-                            
-                            <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
-                                <div className="flex gap-4 items-start">
-                                    <div className="mt-1"><Compass size={16}/></div>
-                                    <div className="space-y-3">
-                                        <h4 className={`text-xs font-bold uppercase tracking-widest mb-1 ${fonts.ui}`}>Путеводитель</h4>
-                                        <p className={`text-sm leading-relaxed ${fonts.content}`}>
-                                            <span className="font-medium">Утро:</span> Открой "Поток", чтобы принять Слово и настроить сердце.
-                                        </p>
-                                        <p className={`text-sm leading-relaxed ${fonts.content}`}>
-                                            <span className="font-medium">День:</span> Используй "Дневник" для честного разговора с Богом.
-                                        </p>
-                                        <p className={`text-sm leading-relaxed ${fonts.content}`}>
-                                            <span className="font-medium">Вечер:</span> Включи музыку в "Атмосфере", чтобы успокоить мысли.
-                                        </p>
+                        <AnimatePresence mode="wait">
+                            <motion.div 
+                                key={diaryTab} 
+                                variants={staggerContainer}
+                                initial="hidden"
+                                animate="show"
+                                exit="hidden"
+                            >
+                                {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
+                                    <div className={`text-center opacity-40 py-10 text-lg ${fonts.content}`}>
+                                        {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
                                     </div>
+                                )}
+                                {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
+                                    <Card key={p.id} theme={theme}>
+                                        <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
+                                            <span className="text-xs font-normal opacity-50">{p.createdAt?.toDate().toLocaleDateString()}</span>
+                                            {p.status === 'answered' ? (
+                                                <span className={`${theme.iconColor} text-xs font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Ответ</span>
+                                            ) : (
+                                                <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
+                                            )}
+                                        </div>
+
+                                        {editingId === p.id ? (
+                                            <div className={`mb-4 space-y-2 ${fonts.ui}`}>
+                                                <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-lg font-medium`} />
+                                                <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
+                                                <div className="flex justify-end gap-3 pt-2">
+                                                    <button onClick={() => setEditingId(null)} className="text-xs opacity-50">Отмена</button>
+                                                    <button onClick={saveEdit} className="text-xs font-medium">Сохранить</button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <h3 className={`text-xl font-medium mb-3 leading-snug ${fonts.ui}`}>{p.title}</h3>
+                                                <p className={`text-[17px] leading-[1.75] opacity-90 whitespace-pre-wrap mb-6 ${fonts.content}`}>{p.text}</p>
+                                            </>
+                                        )}
+
+                                        {p.status === 'answered' && p.answerNote && (
+                                            <div className={`${theme.containerBg} p-5 rounded-2xl mb-4 border border-current border-opacity-10`}>
+                                                <p className={`text-xs font-medium opacity-60 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
+                                                <p className={`text-[17px] leading-relaxed ${fonts.content}`}>{p.answerNote}</p>
+                                            </div>
+                                        )}
+                                        
+                                        <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
+                                            <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-40 hover:opacity-100 transition">Удалить</button>
+                                            
+                                            {p.status !== 'answered' ? (
+                                                <div className="flex items-center gap-4">
+                                                    <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-60 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
+                                                        <Hand size={14}/> {p.prayerCount || 1}
+                                                    </button>
+                                                    <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-60 hover:opacity-100 transition">
+                                                        <CheckCircle2 size={14}/> Есть ответ
+                                                    </button>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    </Card>
+                                ))}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+            )}
+
+            {view === 'admin_feedback' && isAdmin && (
+                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
+                     <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
+                     {feedbacks.map(msg => (
+                         <Card key={msg.id} theme={theme} className="relative">
+                             <div className={`flex justify-between mb-3 opacity-50 text-xs font-normal ${fonts.ui}`}>
+                                 <span>{msg.userName}</span>
+                                 <span>{msg.createdAt?.toDate().toLocaleDateString()}</span>
+                             </div>
+                             <p className={`mb-4 text-sm leading-relaxed opacity-90 ${fonts.content}`}>{msg.text}</p>
+                             <div className="flex justify-end">
+                                 <button onClick={() => deleteFeedback(msg.id)} className="p-2 text-red-400 bg-red-500/10 rounded-full hover:bg-red-500/20"><Trash2 size={16} /></button>
+                             </div>
+                         </Card>
+                     ))}
+                </motion.div>
+            )}
+
+            {view === 'profile' && (
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{duration:0.5}} className="text-center pt-28">
+                    <div className="pb-10">
+                        <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
+                            {user.displayName?.[0] || "A"}
+                        </div>
+                        <div className="relative mb-8 px-8 group">
+                            <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
+                            <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
+                        </div>
+                        
+                        <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
+                            <div className="flex gap-4 items-start">
+                                <div className="mt-1"><Compass size={16}/></div>
+                                <div className="space-y-3">
+                                    <h4 className={`text-xs font-bold uppercase tracking-widest mb-1 ${fonts.ui}`}>Путеводитель</h4>
+                                    <p className={`text-sm leading-relaxed ${fonts.content}`}>
+                                        <span className="font-medium">Утро:</span> Открой "Поток", чтобы принять Слово и настроить сердце.
+                                    </p>
+                                    <p className={`text-sm leading-relaxed ${fonts.content}`}>
+                                        <span className="font-medium">День:</span> Используй "Дневник" для честного разговора с Богом.
+                                    </p>
+                                    <p className={`text-sm leading-relaxed ${fonts.content}`}>
+                                        <span className="font-medium">Вечер:</span> Включи музыку в "Атмосфере", чтобы успокоить мысли.
+                                    </p>
                                 </div>
                             </div>
-
-                            <div className="mb-4">
-                                <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button} ${fonts.ui}`}>
-                                    <MessageCircle size={14} /> Написать разработчику
-                                </button>
-                            </div>
-                            <div className="mb-12">
-                                <button onClick={() => setShowSupportModal(true)} className={`text-xs opacity-50 hover:opacity-100 transition flex items-center gap-2 mx-auto ${fonts.ui}`}>
-                                    <Heart size={12} /> Поддержать проект
-                                </button>
-                            </div>
-                            <div className={`text-center opacity-40 mt-auto px-10 ${fonts.ui}`}>
-                                 <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
-                            </div>
                         </div>
-                    </motion.div>
-                )}
 
-            </motion.div>
-          </AnimatePresence>
+                        <div className="mb-4">
+                            <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button} ${fonts.ui}`}>
+                                <MessageCircle size={14} /> Написать разработчику
+                            </button>
+                        </div>
+                        <div className="mb-12">
+                            <button onClick={() => setShowSupportModal(true)} className={`text-xs opacity-50 hover:opacity-100 transition flex items-center gap-2 mx-auto ${fonts.ui}`}>
+                                <Heart size={12} /> Поддержать проект
+                            </button>
+                        </div>
+                        <div className={`text-center opacity-40 mt-auto px-10 ${fonts.ui}`}>
+                             <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+          </div>
+
         </main>
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
