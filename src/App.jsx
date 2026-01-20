@@ -53,16 +53,14 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (INSTANT / SNAPPY) ---
+// --- ANIMATIONS (LIGHT & SMOOTH) ---
 
-// 1. Страницы (Мгновенно)
 const pageVariants = {
-  initial: { opacity: 1 }, // Сразу 1, без переходов
+  initial: { opacity: 1 },
   animate: { opacity: 1 },
   exit: { opacity: 1 }
 };
 
-// 2. Список (Без каскада, просто появляется)
 const simpleContainer = {
   hidden: { opacity: 1 },
   show: { opacity: 1 }
@@ -73,15 +71,27 @@ const itemAnim = {
   show: { opacity: 1 }
 };
 
-// 3. Шторка "С Небес" (Быстрая, жесткая анимация)
+// --- ОБНОВЛЕННАЯ ШТОРКА ---
+// Используем cubic-bezier для эффекта "замедления в конце" (как лифт)
+// Никаких пружин, только чистая математика плавности.
 const heavenCurtainAnim = {
     hidden: { y: "-100%" }, 
-    visible: { y: "0%", transition: { duration: 0.3, ease: "circOut" } }, // Быстрый выезд
-    exit: { y: "-100%", transition: { duration: 0.3, ease: "circIn" } } // Быстрый улет
+    visible: { 
+        y: "0%", 
+        transition: { 
+            duration: 0.6, // Чуть медленнее, чтобы было плавнее
+            ease: [0.16, 1, 0.3, 1] // Кривая "Ease Out Expo" - очень мягкая посадка
+        } 
+    },
+    exit: { 
+        y: "-100%", 
+        transition: { 
+            duration: 0.5, 
+            ease: [0.16, 1, 0.3, 1] 
+        } 
+    }
 };
 
-// 4. Модальные окна (Почти мгновенно, без Fade In)
-// Используем Scale 0.95 -> 1.0 за 0.1с. Это выглядит как "удар", очень стабильно.
 const modalAnim = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.1 } },
@@ -440,6 +450,11 @@ const App = () => {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
+  // --- TYPEWRITER EFFECT STATE ---
+  const [placeholderText, setPlaceholderText] = useState("");
+  const fullPlaceholder = "Мысли, молитвы, благодарность...";
+  const intervalRef = useRef(null);
+
   useEffect(() => {
       const handleStatusChange = () => setIsOnline(navigator.onLine);
       window.addEventListener('online', handleStatusChange);
@@ -484,11 +499,38 @@ const App = () => {
     fetchDailyWord();
   }, []);
 
+  useEffect(() => {
+      const img1 = new Image(); img1.src = '/dawn.jpg';
+      const img2 = new Image(); img2.src = '/morning.jpg';
+      const img3 = new Image(); img3.src = '/day.jpg';
+      const img4 = new Image(); img4.src = '/sunset.jpg';
+      const img5 = new Image(); img5.src = '/evening.jpg';
+      const img6 = new Image(); img6.src = '/midnight.jpg';
+  }, []);
+
   useEffect(() => onAuthStateChanged(auth, (u) => { 
       setUser(u); 
       setLoading(false);
       if(u) setNewName(u.displayName || "");
   }), []);
+
+  // --- TYPEWRITER EFFECT LOGIC ---
+  useEffect(() => {
+    if (!showInlineCreate) {
+      clearInterval(intervalRef.current);
+      setPlaceholderText("");
+      return;
+    }
+
+    let i = 0;
+    intervalRef.current = setInterval(() => {
+      setPlaceholderText((prev) => prev + fullPlaceholder[i]);
+      i++;
+      if (i >= fullPlaceholder.length) clearInterval(intervalRef.current);
+    }, 45); // Скорость печати
+
+    return () => clearInterval(intervalRef.current);
+  }, [showInlineCreate]);
 
   useEffect(() => { if (!user) return; return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), orderBy('createdAt', 'desc')), snap => setMyPrayers(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, [user]);
   useEffect(() => { return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), orderBy('createdAt', 'desc'), limit(50)), snap => setPublicPosts(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, []);
@@ -776,7 +818,7 @@ const App = () => {
                         ) : (
                             <form onSubmit={handleInlineAmen}>
                                 <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
-                                <textarea name="text" className={`w-full ${theme.containerBg} rounded-xl p-4 h-32 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} placeholder="Мысли, молитвы, благодарность..." />
+                                <textarea name="text" placeholder={placeholderText} className={`w-full ${theme.containerBg} rounded-xl p-4 h-32 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} />
                                 <div className="flex justify-between items-center">
                                     <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
                                         <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
