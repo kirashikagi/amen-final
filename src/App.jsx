@@ -53,7 +53,15 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (STABLE & SNAPPY) ---
+// --- ANIMATIONS ---
+
+// 1. ZEN MODE (Написание молитвы)
+// Только прозрачность. Никакого движения. Максимальная стабильность.
+const zenAnim = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.3 } },
+    exit: { opacity: 0, transition: { duration: 0.2 } }
+};
 
 const pageVariants = {
   initial: { opacity: 1 },
@@ -71,15 +79,7 @@ const itemAnim = {
   show: { opacity: 1 }
 };
 
-// Шторка с небес (СТАБИЛЬНАЯ ВЕРСИЯ)
-// duration: 0.25 - очень быстро
-// ease: "easeOut" - самое простое замедление в конце, минимум нагрузки на GPU
-const heavenCurtainAnim = {
-    hidden: { y: "-105%" }, 
-    visible: { y: "0%", transition: { duration: 0.25, ease: "easeOut" } }, 
-    exit: { y: "-105%", transition: { duration: 0.3, ease: "easeIn" } }
-};
-
+// Модалки
 const modalAnim = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.15 } },
@@ -115,7 +115,8 @@ const THEMES = {
     button: 'border border-stone-800/10 hover:bg-white/40', 
     activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
     menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20',
-    iconColor: 'text-stone-800'
+    iconColor: 'text-stone-800',
+    placeholderColor: 'placeholder:text-stone-500/50'
   },
   morning: { 
     id: 'morning', label: 'Величие', bgImage: '/morning.jpg', 
@@ -126,7 +127,8 @@ const THEMES = {
     button: 'border border-slate-800/10 hover:bg-white/40', 
     activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
     menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20',
-    iconColor: 'text-sky-900'
+    iconColor: 'text-sky-900',
+    placeholderColor: 'placeholder:text-slate-500/50'
   },
   day: { 
     id: 'day', label: 'Гармония', bgImage: '/day.jpg', 
@@ -137,7 +139,8 @@ const THEMES = {
     button: 'border border-stone-900/10 hover:bg-white/40', 
     activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
     menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20',
-    iconColor: 'text-amber-900'
+    iconColor: 'text-amber-900',
+    placeholderColor: 'placeholder:text-stone-500/50'
   },
   sunset: { 
     id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', 
@@ -148,7 +151,8 @@ const THEMES = {
     button: 'border border-orange-100/30 hover:bg-white/10', 
     activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
     menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10',
-    iconColor: 'text-orange-100'
+    iconColor: 'text-orange-100',
+    placeholderColor: 'placeholder:text-orange-200/50'
   },
   evening: { 
     id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', 
@@ -159,7 +163,8 @@ const THEMES = {
     button: 'border border-white/20 hover:bg-white/10', 
     activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
     menuBg: 'bg-[#2e1065]/95 backdrop-blur-3xl text-white border-l border-white/10',
-    iconColor: 'text-white'
+    iconColor: 'text-white',
+    placeholderColor: 'placeholder:text-white/30'
   },
   midnight: { 
     id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', 
@@ -170,7 +175,8 @@ const THEMES = {
     button: 'border border-white/10 hover:bg-white/5', 
     activeButton: 'bg-white text-black shadow-lg shadow-white/10',
     menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-100 border-l border-white/10',
-    iconColor: 'text-white'
+    iconColor: 'text-white',
+    placeholderColor: 'placeholder:text-white/30'
   }
 };
 
@@ -785,47 +791,31 @@ const App = () => {
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
 
-        {/* --- HEAVEN CURTAIN FOR WRITING PRAYER --- */}
+        {/* --- ZEN MODE: WRITE PRAYER --- */}
         <AnimatePresence>
             {showInlineCreate && (
-                <>
-                    <motion.div 
-                        initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} 
-                        className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" 
-                        onClick={() => setShowInlineCreate(false)}
-                    />
-                    <motion.div 
-                        variants={heavenCurtainAnim}
-                        initial="hidden" animate="visible" exit="exit"
-                        className={`fixed top-0 left-0 right-0 z-50 rounded-b-[2.5rem] p-8 pt-16 shadow-[0_10px_40px_rgba(0,0,0,0.1)] ${theme.cardBg} backdrop-blur-3xl`}
-                    >
-                        <button onClick={() => setShowInlineCreate(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={20} /></button>
-                        <h3 className={`text-lg font-medium mb-6 ${fonts.ui}`}>Новая молитва</h3>
-                        
-                        {isAmenAnimating ? (
-                            <div className="h-40 flex flex-col items-center justify-center space-y-4">
-                                <div className="w-12 h-12 rounded-full border-2 border-current border-t-transparent animate-spin"/>
-                                <p className={`text-sm font-medium ${fonts.ui}`}>Отправка в небеса...</p>
-                            </div>
-                        ) : (
-                            <form onSubmit={handleInlineAmen}>
-                                <input name="title" placeholder="Тема..." className={`w-full bg-transparent border-b border-current border-opacity-10 py-3 text-lg font-medium outline-none mb-4 placeholder:opacity-40 ${fonts.ui}`} autoFocus />
-                                <textarea name="text" placeholder={placeholderText} className={`w-full ${theme.containerBg} rounded-xl p-4 h-32 outline-none mb-6 text-[17px] leading-relaxed placeholder:opacity-40 resize-none ${fonts.content}`} />
-                                <div className="flex justify-between items-center">
-                                    <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className="flex items-center gap-3 cursor-pointer opacity-60 hover:opacity-100 transition">
-                                        <div className={`w-10 h-6 rounded-full p-1 transition-colors ${focusPrayerPublic ? theme.activeButton : 'bg-stone-300'}`}>
-                                            <motion.div animate={{x: focusPrayerPublic ? 16 : 0}} className="w-4 h-4 bg-white rounded-full shadow-sm"/>
-                                        </div>
-                                        <span className={`text-xs font-bold uppercase tracking-widest ${fonts.ui}`}>{focusPrayerPublic ? "Видят все" : "Личное"}</span>
-                                    </div>
-                                    <button className={`px-8 py-3 text-sm font-bold uppercase tracking-widest rounded-xl transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
-                                        Amen
-                                    </button>
-                                </div>
-                            </form>
-                        )}
-                    </motion.div>
-                </>
+                <motion.div 
+                    variants={zenAnim}
+                    initial="hidden" animate="visible" exit="exit"
+                    className="fixed inset-0 z-50 flex flex-col justify-center items-center p-8 backdrop-blur-3xl bg-black/10"
+                >
+                    <button onClick={() => setShowInlineCreate(false)} className="absolute top-8 right-8 opacity-60 hover:opacity-100 p-2"><X size={28} className={theme.text}/></button>
+                    
+                    {isAmenAnimating ? (
+                        <div className="flex flex-col items-center gap-6">
+                            <div className="w-16 h-16 rounded-full border-2 border-current border-t-transparent animate-spin opacity-50"/>
+                            <p className={`text-lg font-light ${fonts.ui} ${theme.text}`}>Ваши слова в пути...</p>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleInlineAmen} className="w-full max-w-sm space-y-8 text-center">
+                            <input name="title" placeholder="О чем ты думаешь?" className={`w-full bg-transparent border-b border-current border-opacity-20 py-4 text-2xl font-light text-center outline-none ${theme.text} ${theme.placeholderColor} ${fonts.ui}`} autoFocus />
+                            <textarea name="text" placeholder={placeholderText} className={`w-full bg-transparent outline-none text-lg leading-relaxed text-center resize-none h-40 ${theme.text} ${theme.placeholderColor} ${fonts.content}`} />
+                            <button className={`px-12 py-4 text-sm font-bold uppercase tracking-widest rounded-full transition transform active:scale-95 ${theme.activeButton} ${fonts.ui}`}>
+                                Amen
+                            </button>
+                        </form>
+                    )}
+                </motion.div>
             )}
         </AnimatePresence>
 
