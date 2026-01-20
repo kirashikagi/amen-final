@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v11'; // Версия 11 (Instant UI)
+const CACHE_NAME = 'amen-app-v12'; // Версия 12 (Smooth Curtain)
 
 const STATIC_ASSETS = [
   '/',
