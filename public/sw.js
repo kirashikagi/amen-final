@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v17'; // Версия 17 (Compact Writer)
+const CACHE_NAME = 'amen-app-v19'; // Версия 19 (Fixed Writer)
 
 const STATIC_ASSETS = [
   '/',
