@@ -711,45 +711,59 @@ const App = () => {
                             </div>
                         </motion.div>
                     ) : (
-                        // WRITER MODE (REPLACES LIST)
+                        // WRITER MODE
                         <motion.div 
                             key="writer"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="flex flex-col pt-32 px-4"
+                            className="fixed inset-0 z-50 flex flex-col pt-20 px-6" // pt-20 to move up, fixed to not scroll
+                            style={{ touchAction: "none" }} // prevent scroll
                         >
-                             <div className="fixed top-12 right-6 z-[60]">
-                                <button onClick={() => setShowInlineCreate(false)} className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}>
+                             <div className="absolute top-12 right-6 z-[60]">
+                                <button
+                                    onClick={() => setShowInlineCreate(false)}
+                                    className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}
+                                >
                                     Закрыть
                                 </button>
                             </div>
 
-                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-3">
-                                <input 
-                                    name="title" 
-                                    placeholder="Тема..." 
-                                    className={`w-full p-5 rounded-2xl ${theme.containerBg} backdrop-blur-md text-lg font-medium outline-none ${theme.text} ${theme.placeholderColor} transition focus:scale-[1.01]`}
-                                    autoFocus 
-                                />
-                                <textarea 
-                                    name="text" 
-                                    placeholder={placeholderText} 
-                                    className={`w-full p-5 rounded-2xl h-40 ${theme.containerBg} backdrop-blur-md text-base leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} transition focus:scale-[1.01] ${fonts.content}`} 
-                                />
+                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4">
+                                {/* Title Input */}
+                                <div className={`rounded-2xl p-4 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
+                                    <input 
+                                        name="title" 
+                                        placeholder="Тема..." 
+                                        className={`w-full bg-transparent text-lg font-medium outline-none ${theme.text} ${theme.placeholderColor} text-center`}
+                                        autoFocus 
+                                    />
+                                </div>
+
+                                {/* Text Input */}
+                                <div className={`rounded-2xl p-4 flex-1 h-48 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
+                                    <textarea 
+                                        name="text" 
+                                        placeholder={placeholderText} 
+                                        className={`w-full h-full bg-transparent text-base leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} ${fonts.content}`} 
+                                    />
+                                </div>
                                 
-                                <div className="flex gap-3 mt-2">
+                                {/* Bottom Controls */}
+                                <div className="flex gap-4 mt-2">
+                                    {/* Privacy Toggle */}
                                     <div 
                                         onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} 
                                         className={`flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}
                                     >
-                                        <div className={`w-3 h-3 rounded-full ${focusPrayerPublic ? 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]' : 'bg-stone-400/30'}`} />
-                                        <span className={`text-xs font-bold uppercase tracking-widest ${theme.text} opacity-60`}>
-                                            {focusPrayerPublic ? "Видят все" : "Личное"}
+                                        <div className={`w-2 h-2 rounded-full ${focusPrayerPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-30'}`} />
+                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-60`}>
+                                            {focusPrayerPublic ? "Все" : "Личное"}
                                         </span>
                                     </div>
 
+                                    {/* Amen Button */}
                                     <button className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>
                                         Amen
                                     </button>
