@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v12'; // Версия 12 (Smooth Curtain)
+const CACHE_NAME = 'amen-app-v13'; // Версия 13 (Typewriter Fix)
 
 const STATIC_ASSETS = [
   '/',
