@@ -718,10 +718,10 @@ const App = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-50 flex flex-col pt-20 px-6" // pt-20 to move up, fixed to not scroll
-                            style={{ touchAction: "none" }} // prevent scroll
+                            className="fixed inset-0 z-50 flex flex-col pt-24 px-6" // pt-24 (6rem ~ 96px) down from top
+                            style={{ touchAction: "none" }} 
                         >
-                             <div className="absolute top-12 right-6 z-[60]">
+                             <div className="absolute top-12 left-6 z-[60]">
                                 <button
                                     onClick={() => setShowInlineCreate(false)}
                                     className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}
