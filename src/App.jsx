@@ -53,7 +53,8 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS ---
+// --- ANIMATIONS (STABLE & SNAPPY) ---
+
 const pageVariants = {
   initial: { opacity: 1 },
   animate: { opacity: 1 },
@@ -70,10 +71,13 @@ const itemAnim = {
   show: { opacity: 1 }
 };
 
+// Шторка с небес (СТАБИЛЬНАЯ ВЕРСИЯ)
+// duration: 0.25 - очень быстро
+// ease: "easeOut" - самое простое замедление в конце, минимум нагрузки на GPU
 const heavenCurtainAnim = {
-    hidden: { y: "-100%" }, 
-    visible: { y: "0%", transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
-    exit: { y: "-100%", transition: { duration: 0.3, ease: "easeIn" } }
+    hidden: { y: "-105%" }, 
+    visible: { y: "0%", transition: { duration: 0.25, ease: "easeOut" } }, 
+    exit: { y: "-105%", transition: { duration: 0.3, ease: "easeIn" } }
 };
 
 const modalAnim = {
@@ -574,6 +578,7 @@ const App = () => {
               </div>
           )}
 
+          {/* MAIN CONTENT SWITCH - REMOVED AnimatePresence mode="wait" for stability */}
           <div className="space-y-8">
             {view === 'flow' && (
               <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
