@@ -53,8 +53,7 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- ANIMATIONS (LIGHT & SMOOTH) ---
-
+// --- ANIMATIONS ---
 const pageVariants = {
   initial: { opacity: 1 },
   animate: { opacity: 1 },
@@ -71,30 +70,15 @@ const itemAnim = {
   show: { opacity: 1 }
 };
 
-// --- ОБНОВЛЕННАЯ ШТОРКА ---
-// Используем cubic-bezier для эффекта "замедления в конце" (как лифт)
-// Никаких пружин, только чистая математика плавности.
 const heavenCurtainAnim = {
     hidden: { y: "-100%" }, 
-    visible: { 
-        y: "0%", 
-        transition: { 
-            duration: 0.6, // Чуть медленнее, чтобы было плавнее
-            ease: [0.16, 1, 0.3, 1] // Кривая "Ease Out Expo" - очень мягкая посадка
-        } 
-    },
-    exit: { 
-        y: "-100%", 
-        transition: { 
-            duration: 0.5, 
-            ease: [0.16, 1, 0.3, 1] 
-        } 
-    }
+    visible: { y: "0%", transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+    exit: { y: "-100%", transition: { duration: 0.3, ease: "easeIn" } }
 };
 
 const modalAnim = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.1 } },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.15 } },
     exit: { opacity: 0, scale: 0.95, transition: { duration: 0.1 } }
 };
 
@@ -452,7 +436,6 @@ const App = () => {
 
   // --- TYPEWRITER EFFECT STATE ---
   const [placeholderText, setPlaceholderText] = useState("");
-  const fullPlaceholder = "Мысли, молитвы, благодарность...";
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -514,7 +497,7 @@ const App = () => {
       if(u) setNewName(u.displayName || "");
   }), []);
 
-  // --- TYPEWRITER EFFECT LOGIC ---
+  // --- SAFE TYPEWRITER EFFECT ---
   useEffect(() => {
     if (!showInlineCreate) {
       clearInterval(intervalRef.current);
@@ -522,12 +505,17 @@ const App = () => {
       return;
     }
 
-    let i = 0;
+    const text = "Мысли, молитвы, благодарность...";
+    let currentIndex = 0;
+    
     intervalRef.current = setInterval(() => {
-      setPlaceholderText((prev) => prev + fullPlaceholder[i]);
-      i++;
-      if (i >= fullPlaceholder.length) clearInterval(intervalRef.current);
-    }, 45); // Скорость печати
+      if (currentIndex <= text.length) {
+          setPlaceholderText(text.slice(0, currentIndex));
+          currentIndex++;
+      } else {
+          clearInterval(intervalRef.current);
+      }
+    }, 45); 
 
     return () => clearInterval(intervalRef.current);
   }, [showInlineCreate]);
@@ -586,7 +574,6 @@ const App = () => {
               </div>
           )}
 
-          {/* MAIN CONTENT SWITCH - REMOVED AnimatePresence mode="wait" for stability */}
           <div className="space-y-8">
             {view === 'flow' && (
               <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
