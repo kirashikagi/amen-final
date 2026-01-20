@@ -53,38 +53,39 @@ try {
   enableIndexedDbPersistence(db).catch(() => {});
 } catch (e) {}
 
-// --- STABLE ANIMATIONS (NO FLICKER) ---
+// --- ANIMATIONS (INSTANT / SNAPPY) ---
 
-// Контейнер списка (карточки появляются по очереди)
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05, // Очень быстрая задержка между карточками
-      delayChildren: 0.01
-    }
-  }
+// 1. Страницы (Мгновенно)
+const pageVariants = {
+  initial: { opacity: 1 }, // Сразу 1, без переходов
+  animate: { opacity: 1 },
+  exit: { opacity: 1 }
 };
 
-// Сама карточка (просто всплывает)
+// 2. Список (Без каскада, просто появляется)
+const simpleContainer = {
+  hidden: { opacity: 1 },
+  show: { opacity: 1 }
+};
+
 const itemAnim = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  hidden: { opacity: 1 },
+  show: { opacity: 1 }
 };
 
-// Шторка написания (Выезжает сверху)
+// 3. Шторка "С Небес" (Быстрая, жесткая анимация)
 const heavenCurtainAnim = {
-    hidden: { y: "-105%" }, 
-    visible: { y: "0%", transition: { type: "spring", damping: 30, stiffness: 250, mass: 1 } },
-    exit: { y: "-105%", transition: { duration: 0.4, ease: "easeInOut" } }
+    hidden: { y: "-100%" }, 
+    visible: { y: "0%", transition: { duration: 0.3, ease: "circOut" } }, // Быстрый выезд
+    exit: { y: "-100%", transition: { duration: 0.3, ease: "circIn" } } // Быстрый улет
 };
 
-// Модалки (Центр)
+// 4. Модальные окна (Почти мгновенно, без Fade In)
+// Используем Scale 0.95 -> 1.0 за 0.1с. Это выглядит как "удар", очень стабильно.
 const modalAnim = {
     hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.25, ease: "easeOut" } },
-    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.1 } },
+    exit: { opacity: 0, scale: 0.95, transition: { duration: 0.1 } }
 };
 
 // --- HAPTICS ---
@@ -223,13 +224,12 @@ const FilmGrain = () => (
 );
 
 const Card = ({ children, theme, className = "", onClick }) => (
-  <motion.div 
-    variants={itemAnim}
+  <div 
     onClick={onClick} 
     className={`rounded-[2.5rem] p-8 mb-6 transition-all duration-500 ${theme.cardBg} ${theme.text} ${className}`}
   >
     {children}
-  </motion.div>
+  </div>
 );
 
 const ActivityCalendar = ({ prayers, theme }) => {
@@ -484,16 +484,6 @@ const App = () => {
     fetchDailyWord();
   }, []);
 
-  useEffect(() => {
-      // Preload images to avoid black flash
-      const img1 = new Image(); img1.src = '/dawn.jpg';
-      const img2 = new Image(); img2.src = '/morning.jpg';
-      const img3 = new Image(); img3.src = '/day.jpg';
-      const img4 = new Image(); img4.src = '/sunset.jpg';
-      const img5 = new Image(); img5.src = '/evening.jpg';
-      const img6 = new Image(); img6.src = '/midnight.jpg';
-  }, []);
-
   useEffect(() => onAuthStateChanged(auth, (u) => { 
       setUser(u); 
       setLoading(false);
@@ -557,7 +547,7 @@ const App = () => {
           {/* MAIN CONTENT SWITCH - REMOVED AnimatePresence mode="wait" for stability */}
           <div className="space-y-8">
             {view === 'flow' && (
-              <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-8">
+              <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
                 <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
                    <div className={`text-xs font-medium uppercase opacity-50 mb-6 ${fonts.ui}`}>Фокус дня</div>
                    <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
@@ -607,7 +597,7 @@ const App = () => {
             )}
 
             {view === 'diary' && (
-                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-6">
+                <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-6">
                     <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
                         <h2 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h2>
                         
@@ -626,7 +616,7 @@ const App = () => {
                         <AnimatePresence mode="wait">
                             <motion.div 
                                 key={diaryTab} 
-                                variants={staggerContainer}
+                                variants={simpleContainer}
                                 initial="hidden"
                                 animate="show"
                                 exit="hidden"
@@ -693,7 +683,7 @@ const App = () => {
             )}
 
             {view === 'admin_feedback' && isAdmin && (
-                <motion.div variants={staggerContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
+                <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
                      <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
                      {feedbacks.map(msg => (
                          <Card key={msg.id} theme={theme} className="relative">
@@ -711,7 +701,7 @@ const App = () => {
             )}
 
             {view === 'profile' && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{duration:0.5}} className="text-center pt-28">
+                <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit" className="text-center pt-28">
                     <div className="pb-10">
                         <div className={`w-28 h-28 mx-auto rounded-full flex items-center justify-center text-4xl font-light mb-8 shadow-2xl ${theme.activeButton} ${fonts.content}`}>
                             {user.displayName?.[0] || "A"}
