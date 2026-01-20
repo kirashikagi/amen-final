@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v14'; // Версия 14 (Stable Curtain)
+const CACHE_NAME = 'amen-app-v15'; // Версия 15 (Zen Mode)
 
 const STATIC_ASSETS = [
   '/',
