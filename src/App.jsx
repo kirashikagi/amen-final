@@ -438,7 +438,7 @@ const App = () => {
   const [placeholderText, setPlaceholderText] = useState("");
   const intervalRef = useRef(null);
 
-  // --- VIEWPORT & SCROLL LOCK LOGIC (STABILITY) ---
+  // --- NUCLEAR SCROLL LOCK ---
   useEffect(() => {
       const handleStatusChange = () => setIsOnline(navigator.onLine);
       window.addEventListener('online', handleStatusChange);
@@ -451,18 +451,31 @@ const App = () => {
 
   const [lockedHeight, setLockedHeight] = useState('100dvh');
 
-  // Lock body scroll and fix height when writing modal opens
+  // Listen to Visual Viewport for exact keyboard sizing
   useEffect(() => {
     if (showInlineCreate) {
-        document.body.style.overflow = 'hidden'; // Stop background scrolling
-        // Fix height to current pixels to prevent keyboard resize jump
-        setLockedHeight(`${window.innerHeight}px`);
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+        document.body.style.top = '0';
+        
+        const updateHeight = () => {
+            if (window.visualViewport) {
+                setLockedHeight(`${window.visualViewport.height}px`);
+                window.scrollTo(0,0); // Force top
+            }
+        };
+
+        window.visualViewport?.addEventListener('resize', updateHeight);
+        updateHeight();
+
+        return () => {
+            document.body.style.position = '';
+            document.body.style.width = '';
+            document.body.style.top = '';
+            window.visualViewport?.removeEventListener('resize', updateHeight);
+        }
     } else {
-        document.body.style.overflow = '';
         setLockedHeight('100dvh');
-    }
-    return () => {
-        document.body.style.overflow = '';
     }
   }, [showInlineCreate]);
 
@@ -736,7 +749,7 @@ const App = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6"
+                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6" // pt-28 adds the extra 3mm (~16px)
                             style={{ 
                                 height: lockedHeight, // Force exact pixel height
                                 touchAction: "none"
