@@ -438,6 +438,7 @@ const App = () => {
   const [placeholderText, setPlaceholderText] = useState("");
   const intervalRef = useRef(null);
 
+  // --- VIEWPORT & SCROLL LOCK LOGIC (STABILITY) ---
   useEffect(() => {
       const handleStatusChange = () => setIsOnline(navigator.onLine);
       window.addEventListener('online', handleStatusChange);
@@ -447,6 +448,23 @@ const App = () => {
           window.removeEventListener('offline', handleStatusChange);
       };
   }, []);
+
+  const [lockedHeight, setLockedHeight] = useState('100dvh');
+
+  // Lock body scroll and fix height when writing modal opens
+  useEffect(() => {
+    if (showInlineCreate) {
+        document.body.style.overflow = 'hidden'; // Stop background scrolling
+        // Fix height to current pixels to prevent keyboard resize jump
+        setLockedHeight(`${window.innerHeight}px`);
+    } else {
+        document.body.style.overflow = '';
+        setLockedHeight('100dvh');
+    }
+    return () => {
+        document.body.style.overflow = '';
+    }
+  }, [showInlineCreate]);
 
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const mainScrollRef = useRef(null);
@@ -718,8 +736,11 @@ const App = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6 h-[100dvh]" // pt-28 adds the extra 3mm (~16px)
-                            style={{ touchAction: "none" }} 
+                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6"
+                            style={{ 
+                                height: lockedHeight, // Force exact pixel height
+                                touchAction: "none"
+                            }} 
                         >
                              <div className="fixed top-12 left-6 z-[60]">
                                 <button
