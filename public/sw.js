@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v23'; // Версия 23 (Hard Fix Writer)
+const CACHE_NAME = 'amen-app-v24'; // Версия 24 (Nuclear Fix)
 
 const STATIC_ASSETS = [
   '/',
