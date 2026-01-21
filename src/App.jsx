@@ -718,7 +718,7 @@ const App = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-50 flex flex-col pt-20 px-6 h-[100dvh]" // h-[100dvh] ensures it fits mobile screen
+                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6 h-[100dvh]" // pt-28 adds the extra 3mm (~16px)
                             style={{ touchAction: "none" }} 
                         >
                              <div className="fixed top-12 left-6 z-[60]">
@@ -730,7 +730,7 @@ const App = () => {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40"> {/* pb-40 ensures space for scroll if keyboard covers */}
+                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40"> 
                                 {/* Title Input */}
                                 <div className={`rounded-2xl p-4 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
                                     <input 
