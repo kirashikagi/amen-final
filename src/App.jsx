@@ -718,10 +718,10 @@ const App = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-50 flex flex-col pt-24 px-6" // pt-24 (6rem ~ 96px) down from top
+                            className="fixed inset-0 z-50 flex flex-col pt-20 px-6 h-[100dvh]" // h-[100dvh] ensures it fits mobile screen
                             style={{ touchAction: "none" }} 
                         >
-                             <div className="absolute top-12 left-6 z-[60]">
+                             <div className="fixed top-12 left-6 z-[60]">
                                 <button
                                     onClick={() => setShowInlineCreate(false)}
                                     className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}
@@ -730,7 +730,7 @@ const App = () => {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4">
+                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40"> {/* pb-40 ensures space for scroll if keyboard covers */}
                                 {/* Title Input */}
                                 <div className={`rounded-2xl p-4 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
                                     <input 
