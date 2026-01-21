@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v2'; // Версия 2 (Spacing Tweak)
+const CACHE_NAME = 'amen-app-v23'; // Версия 23 (Hard Fix Writer)
 
 const STATIC_ASSETS = [
   '/',
