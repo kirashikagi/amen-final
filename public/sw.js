@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-app-v24'; // Версия 24 (Nuclear Fix)
+const CACHE_NAME = 'amen-app-v25'; // Версия 25 (Divine Seed & Audio Seek)
 
 const STATIC_ASSETS = [
   '/',
@@ -31,6 +31,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  // Игнорируем Firestore и MP3 для экономии и актуальности данных
   if (url.origin.includes('firestore.googleapis.com') || url.pathname.endsWith('.mp3')) {
     return;
   }
