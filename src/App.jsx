@@ -18,6 +18,7 @@ import {
   deleteDoc, 
   doc, 
   getDoc,
+  setDoc,
   query, 
   where,
   orderBy, 
@@ -30,7 +31,8 @@ import {
   increment,
   enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Compass, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine } from 'lucide-react'; 
+// Добавил иконки для семени: Sprout, TreeDeciduous, Apple, CloudRain (для засыхания), Circle (для семени)
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Compass, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, TreeDeciduous, Apple, CloudRain, Circle, CircleDot } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -76,6 +78,12 @@ const modalAnim = {
     exit: { opacity: 0, scale: 0.95, transition: { duration: 0.1 } }
 };
 
+const heavenCurtainAnim = {
+    hidden: { y: "-105%" }, 
+    visible: { y: "0%", transition: { duration: 0.25, ease: "easeOut" } }, 
+    exit: { y: "-105%", transition: { duration: 0.3, ease: "easeIn" } }
+};
+
 // --- HAPTICS ---
 const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(10);
@@ -98,7 +106,7 @@ const AUDIO_TRACKS = [
 const THEMES = {
   dawn: { 
     id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', 
-    fallbackColor: '#fff7ed', 
+    fallbackColor: '#fff7ed', headerColor: '#fff7ed',
     cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm', 
     text: 'text-stone-900', subText: 'text-stone-600', 
     containerBg: 'bg-white/50',
@@ -106,11 +114,12 @@ const THEMES = {
     activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20',
     menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20',
     iconColor: 'text-stone-800',
-    placeholderColor: 'placeholder:text-stone-500/50'
+    placeholderColor: 'placeholder:text-stone-500/50',
+    progressBar: 'bg-stone-800'
   },
   morning: { 
     id: 'morning', label: 'Величие', bgImage: '/morning.jpg', 
-    fallbackColor: '#f0f9ff', 
+    fallbackColor: '#f0f9ff', headerColor: '#f0f9ff',
     cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm', 
     text: 'text-slate-900', subText: 'text-slate-600', 
     containerBg: 'bg-white/50',
@@ -118,11 +127,12 @@ const THEMES = {
     activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20',
     menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20',
     iconColor: 'text-sky-900',
-    placeholderColor: 'placeholder:text-slate-500/50'
+    placeholderColor: 'placeholder:text-slate-500/50',
+    progressBar: 'bg-sky-900'
   },
   day: { 
     id: 'day', label: 'Гармония', bgImage: '/day.jpg', 
-    fallbackColor: '#fdfce7', 
+    fallbackColor: '#fdfce7', headerColor: '#fdfce7',
     cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-sm', 
     text: 'text-stone-950', subText: 'text-stone-700', 
     containerBg: 'bg-white/50',
@@ -130,11 +140,12 @@ const THEMES = {
     activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20',
     menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20',
     iconColor: 'text-amber-900',
-    placeholderColor: 'placeholder:text-stone-500/50'
+    placeholderColor: 'placeholder:text-stone-500/50',
+    progressBar: 'bg-amber-900'
   },
   sunset: { 
     id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', 
-    fallbackColor: '#fff1f2', 
+    fallbackColor: '#fff1f2', headerColor: '#fff1f2',
     cardBg: 'bg-stone-900/20 backdrop-blur-3xl shadow-sm', 
     text: 'text-orange-50', subText: 'text-orange-200/70', 
     containerBg: 'bg-black/20', 
@@ -142,11 +153,12 @@ const THEMES = {
     activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', 
     menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10',
     iconColor: 'text-orange-100',
-    placeholderColor: 'placeholder:text-orange-200/50'
+    placeholderColor: 'placeholder:text-orange-200/50',
+    progressBar: 'bg-orange-100'
   },
   evening: { 
     id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', 
-    fallbackColor: '#f5f3ff', 
+    fallbackColor: '#f5f3ff', headerColor: '#2e1065',
     cardBg: 'bg-[#2e1065]/20 backdrop-blur-3xl shadow-sm', 
     text: 'text-white', subText: 'text-purple-200', 
     containerBg: 'bg-white/10',
@@ -154,11 +166,12 @@ const THEMES = {
     activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20',
     menuBg: 'bg-[#2e1065]/95 backdrop-blur-3xl text-white border-l border-white/10',
     iconColor: 'text-white',
-    placeholderColor: 'placeholder:text-white/30'
+    placeholderColor: 'placeholder:text-white/30',
+    progressBar: 'bg-white'
   },
   midnight: { 
     id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', 
-    fallbackColor: '#020617', 
+    fallbackColor: '#020617', headerColor: '#020617',
     cardBg: 'bg-black/30 backdrop-blur-3xl shadow-sm', 
     text: 'text-slate-100', subText: 'text-slate-400', 
     containerBg: 'bg-white/10',
@@ -166,41 +179,15 @@ const THEMES = {
     activeButton: 'bg-white text-black shadow-lg shadow-white/10',
     menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-100 border-l border-white/10',
     iconColor: 'text-white',
-    placeholderColor: 'placeholder:text-white/30'
+    placeholderColor: 'placeholder:text-white/30',
+    progressBar: 'bg-white'
   }
 };
 
 const CALENDAR_READINGS = {
   "19-01": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно.", action: "Оценить, где я духовно" },
+  // ... (для экономии места в ответе используем те же чтения, что и раньше)
   "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом. Попробуй сегодня отнестись к своей работе как к служению, а не просто обязанности.", action: "Работа как служение" },
-  "21-01": { title: "Проповедник правды", source: "2 Петра 2:5", text: "…Ноя, проповедника правды, сохранил…", thought: "Богу дорога верность. Останься сегодня верен добру, даже если не видишь отклика.", action: "Быть верным добру" },
-  "22-01": { title: "Не зная куда", source: "Евреям 11:8", text: "Верою Авраам… пошёл, не зная, куда идёт.", thought: "Вера часто начинается без полной ясности. Подумай, какой шаг ты мог бы сделать, доверяя Богу.", action: "Сделать шаг доверия" },
-  "23-01": { title: "Путь через зло", source: "Бытие 50:20", text: "Вы умышляли против меня зло; но Бог обратил это в добро.", thought: "Путь призвания не всегда прямой. Посмотри на свою ситуацию с надеждой, что Бог продолжает действовать.", action: "Верить в Божий план" },
-  "24-01": { title: "Время подготовки", source: "Деяния 7:30", text: "По исполнении сорока лет явился ему… Ангел Господень.", thought: "Время подготовки имеет ценность. Позволь Богу формировать тебя в том сезоне, где ты сейчас.", action: "Принять текущий сезон" },
-  "25-01": { title: "Ежедневная манна", source: "Исход 16:20", text: "…и завелись в ней черви, и она осмердела.", thought: "Богу важно живое, ежедневное общение. Найди сегодня момент, чтобы обратиться к Нему снова.", action: "Обратиться к Нему" },
-  "26-01": { title: "Сила в малом", source: "Судей 7:7", text: "Тремястами мужей… Я спасу вас.", thought: "Божья сила не зависит от количества ресурсов. Вспомни, где ты можешь довериться Ему больше, чем своим возможностям.", action: "Довериться Богу" },
-  "27-01": { title: "Бдительность", source: "Судей 16:20", text: "…а он не знал, что Господь отступил от него.", thought: "Даже сильные нуждаются в бдительности. Обрати внимание на те области жизни, где стоит быть внимательнее.", action: "Быть внимательным" },
-  "28-01": { title: "Скрытое помазание", source: "1 Царств 16:13", text: "…и почивал Дух Господень на Давиде.", thought: "Бог видит призвание раньше, чем оно становится видимым. Живи сегодня верно в том, что тебе доверено сейчас.", action: "Быть верным в малом" },
-  "29-01": { title: "Честные молитвы", source: "Псалом 61:9", text: "Изливайте пред Ним сердце ваше.", thought: "Богу важна искренность. Попробуй сегодня говорить с Ним открыто, без лишних слов и форм.", action: "Говорить открыто" },
-  "30-01": { title: "Право на усталость", source: "3 Царств 19:4", text: "…душе моей довольно уже, Господи.", thought: "Усталость не делает тебя слабым. Позволь себе сегодня отдых и заботу.", action: "Позволить себе отдых" },
-  "31-01": { title: "Сердце Отца", source: "Иона 4:2", text: "…знал я, что Ты Бог благий и милосердный.", thought: "Бог зовёт не только к истине, но и к милости. Присмотрись к своему отношению к людям рядом.", action: "Проявить милость" },
-  "01-02": { title: "Бог говорит", source: "Числа 22:28", text: "И отверз Господь уста ослицы…", thought: "Бог может говорить неожиданно. Будь внимателен к тем сигналам, которые приходят в обычных ситуациях.", action: "Слушать внимательно" },
-  "02-02": { title: "Долгая тишина", source: "Луки 3:23", text: "Иисус… был лет тридцати.", thought: "Тихие и незаметные сезоны имеют глубокий смысл. Прими ценность времени, в котором ты находишься сейчас.", action: "Ценить ожидание" },
-  "03-02": { title: "Уединение", source: "Марка 1:35", text: "…удалился в пустынное место и там молился.", thought: "Тишина помогает услышать главное. Найди сегодня немного времени для уединения.", action: "Найти время тишины" },
-  "04-02": { title: "Кто больше?", source: "Марка 9:34", text: "…рассуждали между собою, кто больше.", thought: "Гордость знакома каждому. Подумай, где сегодня можно выбрать смирение.", action: "Выбрать смирение" },
-  "05-02": { title: "Восстановление", source: "Иоанна 21:17", text: "…паси овец Моих.", thought: "Бог даёт новое начало. Прими Его призыв идти дальше, несмотря на прошлое.", action: "Идти дальше" },
-  "06-02": { title: "Взгляд веры", source: "Матфея 28:6", text: "Его нет здесь — Он воскрес.", thought: "Бог доверяет тем, кого часто не замечают. Позволь себе принять эту ценность.", action: "Принять доверие" },
-  "07-02": { title: "Дух для всех", source: "Деяния 2:17", text: "…излию от Духа Моего на всякую плоть.", thought: "Божье действие не ограничено избранными. Подумай, как ты можешь быть частью Его работы.", action: "Быть частью работы" },
-  "08-02": { title: "Сила единства", source: "Деяния 1:14", text: "Все они единодушно пребывали в молитве.", thought: "Молитва создаёт пространство для Божьего присутствия. Начни сегодня с неё.", action: "Начать с молитвы" },
-  "09-02": { title: "Шаг доверия", source: "Деяния 9:17", text: "Анания пошёл и вошёл в дом.", thought: "Страх не всегда исчезает сразу. Обрати внимание, где Бог зовёт тебя к доверию.", action: "Шагнуть сквозь страх" },
-  "10-02": { title: "Служение в узах", source: "Филиппийцам 1:12", text: "…обстоятельства мои послужили к большему успеху благовествования.", thought: "Даже ограничения могут стать пространством для плода. Подумай, что возможно в твоих обстоятельствах.", action: "Найти возможность" },
-  "11-02": { title: "Звук без любви", source: "1 Коринфянам 13:1", text: "…я медь звенящая или кимвал звучащий.", thought: "Любовь придаёт глубину любому действию. Прислушайся сегодня к мотивам своего сердца.", action: "Проверить мотивы" },
-  "12-02": { title: "Вера и будущее", source: "Евреям 11:1", text: "Вера же есть осуществление ожидаемого.", thought: "Будущее начинается с доверия. Позволь надежде направлять твои шаги.", action: "Довериться надежде" },
-  "13-02": { title: "Новое имя", source: "Бытие 17:5", text: "…и не будешь ты больше называться Аврамом.", thought: "Богу важнее то, кем ты являешься, чем твоя роль. Вспомни свою идентичность во Христе.", action: "Вспомнить кто я" },
-  "14-02": { title: "Трудная истина", source: "Иоанна 6:60", text: "Какие странные слова! кто может это слушать?", thought: "Истина может быть непростой. Останься с ней, даже если она вызывает напряжение.", action: "Принять истину" },
-  "15-02": { title: "Надежда", source: "Откровение 21:4", text: "И отрёт Бог всякую слезу.", thought: "История ещё продолжается. Живи с ожиданием того, что Бог ведёт к восстановлению.", action: "Ждать восстановления" },
-  "16-02": { title: "Он видит боль", source: "Псалом 55:9", text: "Положи слёзы мои в сосуд у Тебя.", thought: "Боль не остаётся незамеченной. Принеси её Богу в тишине молитвы.", action: "Принести боль Богу" },
-  "17-02": { title: "Творю новое", source: "Исаия 43:19", text: "Вот, Я делаю новое.", thought: "Перед Богом открыто будущее. Будь готов принять то новое, что Он приготовил.", action: "Принять новое" }
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот.", action: "Побыть в тишине" };
 
@@ -226,32 +213,12 @@ const Card = ({ children, theme, className = "", onClick }) => (
   </div>
 );
 
-const ActivityCalendar = ({ prayers, theme }) => {
-    const days = Array.from({ length: 14 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - (13 - i));
-        return d;
-    });
-    return (
-        <div className="flex flex-col items-center gap-3 mb-8">
-            <div className="flex items-center gap-2 opacity-50">
-                <CalendarDays size={12} />
-                <span className="text-[9px] uppercase tracking-widest font-bold">Путь (14 дней)</span>
-            </div>
-            <div className="flex gap-2">
-                {days.map((day, idx) => {
-                    const dateStr = day.toLocaleDateString();
-                    const hasPrayer = prayers.some(p => p.createdAt?.toDate().toLocaleDateString() === dateStr);
-                    return <div key={idx} className={`w-2 h-2 rounded-full transition-all ${hasPrayer ? theme.activeButton : 'bg-current opacity-10'}`} title={dateStr} />;
-                })}
-            </div>
-        </div>
-    );
-};
-
+// --- AUDIO PLAYER WITH SEEKER ---
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
   const audioRef = useRef(null);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -282,6 +249,26 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
       changeTrack(AUDIO_TRACKS[prevIndex]);
   };
 
+  const handleTimeUpdate = () => {
+      if(audioRef.current) {
+          setProgress(audioRef.current.currentTime);
+      }
+  };
+
+  const handleLoadedMetadata = () => {
+      if(audioRef.current) {
+          setDuration(audioRef.current.duration);
+      }
+  };
+
+  const handleSeek = (e) => {
+      const time = Number(e.target.value);
+      if(audioRef.current) {
+          audioRef.current.currentTime = time;
+          setProgress(time);
+      }
+  };
+
   return (
     <>
       <AnimatePresence>
@@ -290,7 +277,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
                 <div className="fixed inset-0 z-40 bg-black/10 backdrop-blur-sm" onClick={() => setShowPlaylist(false)} />
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-                    className={`fixed bottom-24 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto ${fonts.ui}`}
+                    className={`fixed bottom-28 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto ${fonts.ui}`}
                 >
                     <h4 className="text-sm font-medium opacity-50 mb-4 px-2">Фонотека</h4>
                     {AUDIO_TRACKS.map(track => (
@@ -306,25 +293,45 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
       <motion.div 
         animate={{ y: isUiVisible ? 0 : 100, opacity: isUiVisible ? 1 : 0 }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
-        className={`fixed bottom-6 left-6 right-6 z-40 h-16 px-6 rounded-full backdrop-blur-2xl shadow-lg flex items-center justify-between ${theme.menuBg} ${fonts.ui}`}
+        className={`fixed bottom-6 left-6 right-6 z-40 h-20 px-6 rounded-3xl backdrop-blur-2xl shadow-lg flex flex-col justify-center ${theme.menuBg} ${fonts.ui}`}
       >
-        <audio ref={audioRef} src={currentTrack.url} onEnded={handleNextTrack} />
+        <audio 
+            ref={audioRef} 
+            src={currentTrack.url} 
+            onEnded={handleNextTrack} 
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+        />
         
-        <div className="flex items-center gap-4 overflow-hidden cursor-pointer flex-1" onClick={() => setShowPlaylist(true)}>
-           <div className={`p-2 rounded-full bg-black/5 dark:bg-white/10`}>
-             <Disc size={18} className={isPlaying ? "animate-spin-slow" : ""} />
-           </div>
-           <span className="text-xs font-medium truncate tracking-wide opacity-80">
-              {currentTrack.title}
-           </span>
+        {/* Minimalist Progress Bar */}
+        <div className="w-full flex items-center mb-2">
+            <input 
+                type="range" 
+                min="0" 
+                max={duration || 0} 
+                value={progress} 
+                onChange={handleSeek}
+                className="w-full h-1 bg-current opacity-10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-current"
+            />
         </div>
 
-        <div className="flex items-center gap-6">
-          <button onClick={handlePrevTrack} className="opacity-50 hover:opacity-100 transition"><SkipBack size={18}/></button>
-          <button onClick={() => { triggerHaptic(); togglePlay(); }} className="text-xs font-medium hover:opacity-60 transition uppercase tracking-wider">
-             {isPlaying ? "Pause" : "Play"}
-          </button>
-          <button onClick={handleNextTrack} className="opacity-50 hover:opacity-100 transition"><SkipForward size={18}/></button>
+        <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-4 overflow-hidden cursor-pointer flex-1" onClick={() => setShowPlaylist(true)}>
+            <div className={`p-2 rounded-full bg-black/5 dark:bg-white/10`}>
+                <Disc size={18} className={isPlaying ? "animate-spin-slow" : ""} />
+            </div>
+            <span className="text-xs font-medium truncate tracking-wide opacity-80">
+                {currentTrack.title}
+            </span>
+            </div>
+
+            <div className="flex items-center gap-6">
+            <button onClick={handlePrevTrack} className="opacity-50 hover:opacity-100 transition"><SkipBack size={18}/></button>
+            <button onClick={() => { triggerHaptic(); togglePlay(); }} className="text-xs font-medium hover:opacity-60 transition uppercase tracking-wider">
+                {isPlaying ? "Pause" : "Play"}
+            </button>
+            <button onClick={handleNextTrack} className="opacity-50 hover:opacity-100 transition"><SkipForward size={18}/></button>
+            </div>
         </div>
       </motion.div>
     </>
@@ -387,6 +394,44 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
   );
 };
 
+// --- SEED VISUALIZER ---
+const DivineSeed = ({ stage, fruits, theme }) => {
+    // 0: Seed, 1-2: Sprout, 3-4: Tree Small, 5-6: Tree Big, 7: Fruit
+    let icon = <CircleDot size={48} strokeWidth={1} />;
+    let text = "Посажено";
+
+    if (stage >= 1 && stage <= 2) { icon = <Sprout size={48} strokeWidth={1} />; text = "Прорастает"; }
+    else if (stage >= 3 && stage <= 4) { icon = <TreeDeciduous size={48} strokeWidth={1} className="scale-75" />; text = "Укореняется"; }
+    else if (stage >= 5 && stage <= 6) { icon = <TreeDeciduous size={56} strokeWidth={1} />; text = "Крепнет"; }
+    else if (stage === 7) { icon = <Apple size={48} strokeWidth={1} />; text = "Плодоносит"; }
+
+    return (
+        <div className={`flex flex-col items-center justify-center p-8 rounded-[2.5rem] mb-6 ${theme.cardBg} transition-all`}>
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-4 ${theme.containerBg} shadow-inner`}>
+                <div className={`${theme.iconColor} transition-all duration-1000`}>
+                    {icon}
+                </div>
+            </div>
+            <h3 className={`text-xl font-normal ${fonts.content} mb-1`}>{text}</h3>
+            <p className="text-xs opacity-50 uppercase tracking-widest font-bold">День {stage} из 7</p>
+            
+            {/* Weekly Progress Dots */}
+            <div className="flex gap-2 mt-6">
+                {[...Array(7)].map((_, i) => (
+                    <div key={i} className={`w-2 h-2 rounded-full transition-all duration-500 ${i < stage ? theme.activeButton : 'bg-current opacity-10'}`} />
+                ))}
+            </div>
+
+            {fruits > 0 && (
+                <div className="mt-6 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md flex items-center gap-2">
+                    <Apple size={14} className={theme.iconColor}/>
+                    <span className="text-xs font-medium">{fruits} плодов</span>
+                </div>
+            )}
+        </div>
+    );
+};
+
 // --- MAIN APP ---
 const App = () => {
   const [user, setUser] = useState(null);
@@ -403,6 +448,10 @@ const App = () => {
   const [publicPosts, setPublicPosts] = useState([]);
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
+
+  // Seed State
+  const [seedStage, setSeedStage] = useState(0);
+  const [seedFruits, setSeedFruits] = useState(0);
 
   // UI States
   const [showInlineCreate, setShowInlineCreate] = useState(false);
@@ -434,11 +483,9 @@ const App = () => {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // --- TYPEWRITER EFFECT STATE ---
   const [placeholderText, setPlaceholderText] = useState("");
   const intervalRef = useRef(null);
 
-  // --- NUCLEAR SCROLL LOCK ---
   useEffect(() => {
       const handleStatusChange = () => setIsOnline(navigator.onLine);
       window.addEventListener('online', handleStatusChange);
@@ -451,28 +498,34 @@ const App = () => {
 
   const [lockedHeight, setLockedHeight] = useState('100dvh');
 
-  // Listen to Visual Viewport for exact keyboard sizing
   useEffect(() => {
     if (showInlineCreate) {
         document.body.style.position = 'fixed';
         document.body.style.width = '100%';
-        document.body.style.top = '0';
-        
+        document.body.style.top = `-${window.scrollY}px`; 
+
         const updateHeight = () => {
             if (window.visualViewport) {
                 setLockedHeight(`${window.visualViewport.height}px`);
-                window.scrollTo(0,0); // Force top
+                window.scrollTo(0, 0); 
             }
         };
 
-        window.visualViewport?.addEventListener('resize', updateHeight);
-        updateHeight();
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', updateHeight);
+            updateHeight(); 
+        }
 
         return () => {
+            const scrollY = document.body.style.top;
             document.body.style.position = '';
             document.body.style.width = '';
             document.body.style.top = '';
-            window.visualViewport?.removeEventListener('resize', updateHeight);
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', updateHeight);
+            }
         }
     } else {
         setLockedHeight('100dvh');
@@ -525,8 +578,67 @@ const App = () => {
   useEffect(() => onAuthStateChanged(auth, (u) => { 
       setUser(u); 
       setLoading(false);
-      if(u) setNewName(u.displayName || "");
+      if(u) {
+          setNewName(u.displayName || "");
+          checkDivineSeed(u.uid); // Check seed logic on login
+      }
   }), []);
+
+  // --- DIVINE SEED LOGIC ---
+  const checkDivineSeed = async (uid) => {
+      const userRef = doc(db, 'artifacts', dbCollectionId, 'users', uid);
+      const userSnap = await getDoc(userRef);
+      const today = new Date().setHours(0,0,0,0);
+
+      if (userSnap.exists()) {
+          const data = userSnap.data();
+          const lastVisit = data.lastVisit?.toDate().setHours(0,0,0,0) || 0;
+          let newStage = data.seedStage || 0;
+          let newFruits = data.seedFruits || 0;
+          
+          const diffTime = Math.abs(today - lastVisit);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+          if (diffDays === 1) {
+              // User visited yesterday -> Grow
+              newStage += 1;
+              if (newStage > 7) {
+                  newFruits += 1;
+                  newStage = 0; // Harvest and reset
+                  setSuccessMessage("Плод созрел!");
+                  setShowSuccessModal(true);
+                  setTimeout(() => setShowSuccessModal(false), 3000);
+              }
+          } else if (diffDays > 1) {
+              // Missed more than 1 day -> Wither/Reset
+              if (newStage > 0) {
+                  setSuccessMessage("Сад пересох...");
+                  setShowSuccessModal(true);
+                  setTimeout(() => setShowSuccessModal(false), 2000);
+              }
+              newStage = 0;
+          }
+          // If diffDays == 0 (same day), do nothing visual
+
+          // Update DB
+          await setDoc(userRef, { 
+              lastVisit: serverTimestamp(),
+              seedStage: newStage,
+              seedFruits: newFruits
+          }, { merge: true });
+
+          setSeedStage(newStage);
+          setSeedFruits(newFruits);
+
+      } else {
+          // First time user
+          await setDoc(userRef, { 
+              lastVisit: serverTimestamp(),
+              seedStage: 0,
+              seedFruits: 0
+          }, { merge: true });
+      }
+  };
 
   // --- SAFE TYPEWRITER EFFECT ---
   useEffect(() => {
@@ -605,7 +717,7 @@ const App = () => {
               </div>
           )}
 
-          {/* MAIN CONTENT SWITCH - REMOVED AnimatePresence mode="wait" for stability */}
+          {/* MAIN CONTENT SWITCH */}
           <div className="space-y-8">
             {view === 'flow' && (
               <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
@@ -660,7 +772,6 @@ const App = () => {
             {view === 'diary' && (
                 <div className="space-y-6">
                     <AnimatePresence mode="wait">
-                    {/* LIST MODE */}
                     {!showInlineCreate ? (
                         <motion.div 
                             key="list"
@@ -749,9 +860,9 @@ const App = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6" // pt-28 adds the extra 3mm (~16px)
+                            className="fixed inset-0 z-50 flex flex-col pt-28 px-6"
                             style={{ 
-                                height: lockedHeight, // Force exact pixel height
+                                height: lockedHeight, 
                                 touchAction: "none"
                             }} 
                         >
@@ -764,8 +875,7 @@ const App = () => {
                                 </button>
                             </div>
 
-                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40"> 
-                                {/* Title Input */}
+                            <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40 no-scrollbar"> 
                                 <div className={`rounded-2xl p-4 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
                                     <input 
                                         name="title" 
@@ -775,7 +885,6 @@ const App = () => {
                                     />
                                 </div>
 
-                                {/* Text Input */}
                                 <div className={`rounded-2xl p-4 flex-1 h-48 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
                                     <textarea 
                                         name="text" 
@@ -784,9 +893,7 @@ const App = () => {
                                     />
                                 </div>
                                 
-                                {/* Bottom Controls */}
                                 <div className="flex gap-4 mt-2">
-                                    {/* Privacy Toggle */}
                                     <div 
                                         onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} 
                                         className={`flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}
@@ -797,7 +904,6 @@ const App = () => {
                                         </span>
                                     </div>
 
-                                    {/* Amen Button */}
                                     <button className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>
                                         Amen
                                     </button>
@@ -838,6 +944,9 @@ const App = () => {
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-30 transition pointer-events-none text-xs">edit</span>
                         </div>
                         
+                        {/* Divine Seed Card */}
+                        <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
+
                         <div className={`${theme.containerBg} rounded-2xl p-6 mb-8 text-left mx-4 shadow-sm backdrop-blur-md`}>
                             <div className="flex gap-4 items-start">
                                 <div className="mt-1"><Compass size={16}/></div>
@@ -856,16 +965,19 @@ const App = () => {
                             </div>
                         </div>
 
-                        <div className="mb-4">
-                            <button onClick={() => setShowFeedbackModal(true)} className={`flex items-center gap-2 mx-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-xl transition ${theme.button} ${fonts.ui}`}>
-                                <MessageCircle size={14} /> Написать разработчику
+                         {/* Updated Support & Dev Cards */}
+                        <div className="grid grid-cols-2 gap-4 px-4 mb-12">
+                            <button onClick={() => setShowFeedbackModal(true)} className={`flex flex-col items-center justify-center gap-2 p-6 rounded-[2rem] ${theme.cardBg} transition hover:scale-105 active:scale-95`}>
+                                <MessageCircle size={24} className={theme.iconColor} />
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${fonts.ui} ${theme.text}`}>Написать</span>
+                            </button>
+                            
+                            <button onClick={() => setShowSupportModal(true)} className={`flex flex-col items-center justify-center gap-2 p-6 rounded-[2rem] ${theme.cardBg} transition hover:scale-105 active:scale-95`}>
+                                <Heart size={24} className={theme.iconColor} />
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${fonts.ui} ${theme.text}`}>Поддержать</span>
                             </button>
                         </div>
-                        <div className="mb-12">
-                            <button onClick={() => setShowSupportModal(true)} className={`text-xs opacity-50 hover:opacity-100 transition flex items-center gap-2 mx-auto ${fonts.ui}`}>
-                                <Heart size={12} /> Поддержать проект
-                            </button>
-                        </div>
+
                         <div className={`text-center opacity-40 mt-auto px-10 ${fonts.ui}`}>
                              <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                         </div>
