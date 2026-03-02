@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #000; /* Базовый черный, чтобы не было белых вспышек */
+}
+
+/* Скрываем скроллбар, но оставляем прокрутку */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* Предотвращение зума на iOS */
+input, textarea {
+  font-size: 16px !important;
+}
