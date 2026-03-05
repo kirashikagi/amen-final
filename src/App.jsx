@@ -117,7 +117,7 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                 
                 <div className="pt-16 pb-12 text-center">
                     <h1 className={`text-4xl font-semibold tracking-tight mb-4 ${fonts.ui}`}>Добро пожаловать</h1>
-                    <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
+                    <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины.</p>
                 </div>
 
                 <div className="space-y-6">
@@ -167,15 +167,19 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                 </div>
 
                 <div className="mt-12 flex flex-col gap-6">
-                    <label className="flex items-start gap-4 cursor-pointer group px-2">
-                        <div className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 group-hover:opacity-80'}`}>
+                    <div className="flex items-start gap-4 px-2">
+                        <button 
+                            type="button"
+                            onClick={() => { triggerHaptic(); setAccepted(!accepted); }}
+                            className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}
+                        >
                             {accepted && <Check size={14} className="text-white dark:text-black" />}
-                        </div>
+                        </button>
                         <span className={`text-sm opacity-80 leading-relaxed ${fonts.ui}`}>
-                            Я понимаю назначение приложения и принимаю условия{' '}
-                            <button type="button" onClick={(e) => { e.preventDefault(); openLegal(); }} className="underline underline-offset-4 opacity-100 font-semibold">Пользовательского соглашения</button>.
+                            <span onClick={() => { triggerHaptic(); setAccepted(!accepted); }} className="cursor-pointer">Я понимаю назначение приложения и принимаю условия </span>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); openLegal(); }} className="underline underline-offset-4 opacity-100 font-semibold hover:opacity-70 transition-opacity">Пользовательского соглашения</button>.
                         </span>
-                    </label>
+                    </div>
 
                     <button 
                         onClick={onComplete} 
