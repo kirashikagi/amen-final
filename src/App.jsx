@@ -2,35 +2,14 @@ import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { initializeApp } from "firebase/app";
 import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
-  updateProfile, 
-  onAuthStateChanged, 
-  signInAnonymously, 
-  signOut 
+  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, 
+  onAuthStateChanged, signInAnonymously, signOut 
 } from "firebase/auth";
 import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  getDoc,
-  setDoc,
-  query, 
-  where,
-  orderBy, 
-  limit, 
-  getDocs,
-  onSnapshot, 
-  serverTimestamp, 
-  arrayUnion, 
-  arrayRemove,
-  enableIndexedDbPersistence
+  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc,
+  query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove, enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -82,8 +61,8 @@ const triggerHaptic = () => {
     }
 };
 
-// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши свой ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД \nИНН: 775101376595`;
+// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ ---
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД (Самозанятый)\nИНН: 775101376595`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН 775101376595)`;
 
 const AUDIO_TRACKS = [
@@ -98,13 +77,14 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
+// Усиленные цвета текстов для 100% читаемости
 const THEMES = {
-  dawn: { id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm', text: 'text-stone-900', subText: 'text-stone-600', containerBg: 'bg-white/50', button: 'border border-stone-800/10 hover:bg-white/40', activeButton: 'bg-stone-800 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-900 border-l border-white/20', iconColor: 'text-stone-800', placeholderColor: 'placeholder:text-stone-500/50', progressBar: 'bg-stone-800' },
-  morning: { id: 'morning', label: 'Величие', bgImage: '/morning.jpg', fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/40 backdrop-blur-3xl shadow-sm', text: 'text-slate-900', subText: 'text-slate-600', containerBg: 'bg-white/50', button: 'border border-slate-800/10 hover:bg-white/40', activeButton: 'bg-sky-900 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-900 border-l border-white/20', iconColor: 'text-sky-900', placeholderColor: 'placeholder:text-slate-500/50', progressBar: 'bg-sky-900' },
-  day: { id: 'day', label: 'Гармония', bgImage: '/day.jpg', fallbackColor: '#fdfce7', headerColor: '#fdfce7', cardBg: 'bg-[#fffff0]/40 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/50', button: 'border border-stone-900/10 hover:bg-white/40', activeButton: 'bg-amber-900 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-amber-900', placeholderColor: 'placeholder:text-stone-500/50', progressBar: 'bg-amber-900' },
-  sunset: { id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', fallbackColor: '#fff1f2', headerColor: '#fff1f2', cardBg: 'bg-stone-900/20 backdrop-blur-3xl shadow-sm', text: 'text-orange-50', subText: 'text-orange-200/70', containerBg: 'bg-black/20', button: 'border border-orange-100/30 hover:bg-white/10', activeButton: 'bg-orange-100 text-stone-900 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#2c1810]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-100', placeholderColor: 'placeholder:text-orange-200/50', progressBar: 'bg-orange-100' },
-  evening: { id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#2e1065]/20 backdrop-blur-3xl shadow-sm', text: 'text-white', subText: 'text-purple-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#2e1065]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/30', progressBar: 'bg-white' },
-  midnight: { id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/30 backdrop-blur-3xl shadow-sm', text: 'text-slate-100', subText: 'text-slate-400', containerBg: 'bg-white/10', button: 'border border-white/10 hover:bg-white/5', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-100 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/30', progressBar: 'bg-white' }
+  dawn: { id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
+  morning: { id: 'morning', label: 'Величие', bgImage: '/morning.jpg', fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
+  day: { id: 'day', label: 'Гармония', bgImage: '/day.jpg', fallbackColor: '#fdfce7', headerColor: '#fdfce7', cardBg: 'bg-[#fffff0]/70 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-800', containerBg: 'bg-white/80', button: 'border border-stone-900/10 hover:bg-white/60 text-stone-950', activeButton: 'bg-amber-950 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-amber-950', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-amber-950' },
+  sunset: { id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', fallbackColor: '#fff1f2', headerColor: '#fff1f2', cardBg: 'bg-stone-950/40 backdrop-blur-3xl shadow-md', text: 'text-orange-50', subText: 'text-orange-100', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-100 text-stone-950 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-200', placeholderColor: 'placeholder:text-orange-100/70', progressBar: 'bg-orange-100' },
+  evening: { id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
+  midnight: { id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' }
 };
 
 const CALENDAR_READINGS = {
@@ -126,6 +106,90 @@ const Card = ({ children, theme, className = "", onClick }) => (
     {children}
   </motion.div>
 );
+
+// --- КОМПОНЕНТ ОНБОРДИНГА ---
+const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
+    const [accepted, setAccepted] = useState(false);
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`fixed inset-0 z-[80] bg-cover bg-center overflow-y-auto no-scrollbar`} style={{ backgroundImage: `url(${theme.bgImage})`, backgroundColor: theme.fallbackColor }}>
+            <div className={`min-h-screen p-6 md:p-12 pb-32 flex flex-col max-w-2xl mx-auto ${theme.text} bg-black/20 backdrop-blur-sm`}>
+                
+                <div className="pt-16 pb-12 text-center">
+                    <h1 className={`text-4xl font-semibold tracking-tight mb-4 ${fonts.ui}`}>Добро пожаловать</h1>
+                    <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
+                </div>
+
+                <div className="space-y-6">
+                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Что такое молитва?</h2>
+                        <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>
+                            Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.
+                        </p>
+                    </div>
+
+                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Анатомия разговора</h2>
+                        <ul className={`space-y-5 text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>
+                            <li className="flex gap-4">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
+                                <div><strong className="font-semibold block mb-1">Благодарение</strong>Смещение фокуса с того, чего у нас нет, на Того, кто дает всё.</div>
+                            </li>
+                            <li className="flex gap-4">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
+                                <div><strong className="font-semibold block mb-1">Покаяние</strong>Сброс балласта. Искреннее признание ошибок исцеляет.</div>
+                            </li>
+                            <li className="flex gap-4">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
+                                <div><strong className="font-semibold block mb-1">Прошение</strong>Доверие своих нужд и страхов в руки Отца.</div>
+                            </li>
+                            <li className="flex gap-4">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
+                                <div><strong className="font-semibold block mb-1">Созерцание</strong>Момент, когда мы перестаем говорить и начинаем слушать тишину.</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl text-center`}>
+                        <span className={`text-6xl opacity-20 block mb-2 leading-none ${fonts.content}`}>“</span>
+                        <p className={`text-lg leading-[1.7] font-medium opacity-90 mb-4 ${fonts.content}`}>
+                            Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий, который превыше всякого ума, соблюдет сердца ваши...
+                        </p>
+                        <p className={`text-sm opacity-60 uppercase tracking-widest font-bold ${fonts.ui}`}>Филиппийцам 4:6-7</p>
+                    </div>
+
+                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Зачем это нужно?</h2>
+                        <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>
+                            Суета разрывает нас на части, заставляя жить в тревоге о будущем. Молитва возвращает нас в реальность. Она не всегда меняет обстоятельства мгновенно, но она неизбежно меняет того, кто молится. Это якорь в шторме.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="mt-12 flex flex-col gap-6">
+                    <label className="flex items-start gap-4 cursor-pointer group px-2">
+                        <div className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 group-hover:opacity-80'}`}>
+                            {accepted && <Check size={14} className="text-white dark:text-black" />}
+                        </div>
+                        <span className={`text-sm opacity-80 leading-relaxed ${fonts.ui}`}>
+                            Я понимаю назначение приложения и принимаю условия{' '}
+                            <button type="button" onClick={(e) => { e.preventDefault(); openLegal(); }} className="underline underline-offset-4 opacity-100 font-semibold">Пользовательского соглашения</button>.
+                        </span>
+                    </label>
+
+                    <button 
+                        onClick={onComplete} 
+                        disabled={!accepted}
+                        className={`w-full py-5 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}
+                    >
+                        Начать путь <ChevronRight size={18} />
+                    </button>
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
   const audioRef = useRef(null);
@@ -261,10 +325,10 @@ const DivineSeed = ({ stage, fruits, theme }) => {
 // --- MAIN APP ---
 const App = () => {
   const [user, setUser] = useState(null);
-  
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
-  
   const [loading, setLoading] = useState(true);
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false); // Стейт для онбординга
+
   const [view, setView] = useState('flow'); 
   const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || 'dawn');
   const theme = THEMES[currentThemeId] || THEMES.dawn;
@@ -275,12 +339,10 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
-  // Учет статуса
   const [isAngel, setIsAngel] = useState(false);
   const [seedStage, setSeedStage] = useState(0);
   const [seedFruits, setSeedFruits] = useState(0);
 
-  // UI States
   const [showInlineCreate, setShowInlineCreate] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -294,7 +356,6 @@ const App = () => {
   const [inlineFocusText, setInlineFocusText] = useState('');
   const [isFocusPublic, setIsFocusPublic] = useState(false);
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
-
   const [donateAmount, setDonateAmount] = useState('');
 
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
@@ -306,7 +367,6 @@ const App = () => {
   const [focusPrayerPublic, setFocusPrayerPublic] = useState(false);
   const [diaryTab, setDiaryTab] = useState('active'); 
   const [newName, setNewName] = useState('');
-
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', text: '' });
   const [answeringId, setAnsweringId] = useState(null);
@@ -319,25 +379,13 @@ const App = () => {
   const [lockedHeight, setLockedHeight] = useState('100dvh');
   const mainScrollRef = useRef(null);
 
-  // --- SAFE KEYBOARD & SCROLL FIX ---
   useEffect(() => {
     if (showInlineCreate) {
         document.body.style.position = 'fixed';
         document.body.style.width = '100%';
         document.body.style.top = `-${window.scrollY}px`; 
-
-        const updateHeight = () => {
-            if (window.visualViewport) {
-                setLockedHeight(`${window.visualViewport.height}px`);
-                window.scrollTo(0, 0); 
-            }
-        };
-
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', updateHeight);
-            updateHeight(); 
-        }
-
+        const updateHeight = () => { if (window.visualViewport) { setLockedHeight(`${window.visualViewport.height}px`); window.scrollTo(0, 0); } };
+        if (window.visualViewport) { window.visualViewport.addEventListener('resize', updateHeight); updateHeight(); }
         return () => {
             const scrollY = document.body.style.top;
             document.body.style.position = '';
@@ -346,9 +394,7 @@ const App = () => {
             window.scrollTo(0, parseInt(scrollY || '0') * -1);
             if (window.visualViewport) window.visualViewport.removeEventListener('resize', updateHeight);
         }
-    } else {
-        setLockedHeight('100dvh');
-    }
+    } else { setLockedHeight('100dvh'); }
   }, [showInlineCreate]);
 
   useLayoutEffect(() => { if (mainScrollRef.current) mainScrollRef.current.scrollTo(0, 0); }, [view]);
@@ -381,8 +427,21 @@ const App = () => {
   useEffect(() => onAuthStateChanged(auth, (u) => { 
       setUser(u); 
       setLoading(false);
-      if(u) { setNewName(u.displayName || ""); checkUserStatus(u.uid); }
+      if(u) { 
+          setNewName(u.displayName || ""); 
+          checkUserStatus(u.uid); 
+          // ПРОВЕРКА: ПОКАЗЫВАТЬ ЛИ ОНБОРДИНГ
+          if (!localStorage.getItem(`amen_welcome_done_${u.uid}`)) {
+              setShowWelcomeScreen(true);
+          }
+      }
   }), []);
+
+  const completeWelcome = () => {
+      triggerHaptic();
+      localStorage.setItem(`amen_welcome_done_${user.uid}`, 'true');
+      setShowWelcomeScreen(false);
+  };
 
   const checkUserStatus = async (uid) => {
       const userRef = doc(db, 'artifacts', dbCollectionId, 'users', uid);
@@ -392,16 +451,14 @@ const App = () => {
       if (userSnap.exists()) {
           const data = userSnap.data();
           
-          // УМНАЯ ПРОВЕРКА СТАТУСА АНГЕЛА (РОВНО 1 МЕСЯЦ)
           let currentIsAngel = data.isAngel || false;
           if (currentIsAngel && data.angelSince) {
               const angelDate = data.angelSince.toDate();
               const diffTime = new Date() - angelDate;
               const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-              
               if (diffDays >= 30) {
                   currentIsAngel = false;
-                  await setDoc(userRef, { isAngel: false }, { merge: true }); // Снимаем статус
+                  await setDoc(userRef, { isAngel: false }, { merge: true }); 
               }
           }
           setIsAngel(currentIsAngel);
@@ -446,18 +503,12 @@ const App = () => {
   };
 
   useEffect(() => {
-    if (!showInlineCreate && !isFocusExpanded) {
-      clearInterval(intervalRef.current);
-      setPlaceholderText("");
-      return;
-    }
+    if (!showInlineCreate && !isFocusExpanded) { clearInterval(intervalRef.current); setPlaceholderText(""); return; }
     const text = "Мысли, молитвы, благодарность...";
     let currentIndex = 0;
     intervalRef.current = setInterval(() => {
-      if (currentIndex <= text.length) {
-          setPlaceholderText(text.slice(0, currentIndex));
-          currentIndex++;
-      } else clearInterval(intervalRef.current);
+      if (currentIndex <= text.length) { setPlaceholderText(text.slice(0, currentIndex)); currentIndex++; } 
+      else clearInterval(intervalRef.current);
     }, 45); 
     return () => clearInterval(intervalRef.current);
   }, [showInlineCreate, isFocusExpanded]);
@@ -495,7 +546,6 @@ const App = () => {
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); };
   const sendFeedback = async () => { if(!feedbackText.trim()) return; await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { text: feedbackText, userId: user.uid, userName: user.displayName, createdAt: serverTimestamp() }); setFeedbackText(''); setShowFeedbackModal(false); alert("Отправлено!"); };
   
-  // ФУНКЦИЯ: СБРОС ВСЕХ АНГЕЛОВ (ТОЛЬКО ДЛЯ АДМИНА)
   const resetAllAngels = async () => {
       if (!confirm("ВНИМАНИЕ! Лишить статуса ВСЕХ Ангелов в базе?")) return;
       try {
@@ -509,48 +559,31 @@ const App = () => {
               }
           });
           alert(`Сброс завершен. Ангелов удалено: ${count}`);
-      } catch (error) {
-          console.error("Ошибка сброса:", error);
-          alert("Ошибка при сбросе.");
-      }
+      } catch (error) { console.error("Ошибка сброса:", error); alert("Ошибка при сбросе."); }
   };
 
-  // ФУНКЦИЯ ОПЛАТЫ НА VERCEL
   const becomeAngel = async () => {
       triggerHaptic();
       setIsAuthLoading(true); 
-      
       try {
           const amountToSend = donateAmount ? Number(donateAmount) : 100;
-
           const res = await fetch('/api/payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
-                  userId: user.uid,
-                  amount: amountToSend 
-              })
+              body: JSON.stringify({ userId: user.uid, amount: amountToSend })
           });
-          
           const data = await res.json();
-          
-          if (data.url) {
-              window.location.href = data.url; 
-          } else {
-              throw new Error("Нет ссылки от сервера");
-          }
+          if (data.url) window.location.href = data.url; 
+          else throw new Error("Нет ссылки от сервера");
       } catch (error) {
           console.error("Ошибка инициализации платежа:", error);
           setSuccessMessage("Ошибка связи с кассой");
-          setShowSuccessModal(true);
-          setTimeout(() => setShowSuccessModal(false), 2000);
-      } finally {
-          setIsAuthLoading(false);
-      }
+          setShowSuccessModal(true); setTimeout(() => setShowSuccessModal(false), 2000);
+      } finally { setIsAuthLoading(false); }
   };
 
   if (loading || !dailyVerse) return <div className={`h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light ${fonts.ui}`}><span className="italic animate-pulse">Загрузка тишины...</span><div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin"></div></div>;
-  if (!user) return <div className={`fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7] ${fonts.ui}`}><div className="w-full max-w-xs space-y-8 text-center"><h1 className="text-6xl font-semibold text-stone-900 tracking-tight">Amen</h1><p className="text-stone-400 text-sm">Пространство тишины</p><form onSubmit={handleLogin} className="space-y-4 pt-8"><input name="username" type="text" placeholder="Имя" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required /><input name="password" type="password" placeholder="Пароль" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition" required />{authError && <p className="text-red-500 text-xs">{authError}</p>}<button disabled={isAuthLoading} className="w-full py-4 bg-stone-900 text-white text-sm font-medium rounded-xl">{isAuthLoading ? "..." : "Войти"}</button></form><button onClick={() => signInAnonymously(auth)} className="text-stone-400 text-sm">Войти тихо</button></div></div>;
+  if (!user) return <div className={`fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7] ${fonts.ui}`}><div className="w-full max-w-xs space-y-8 text-center"><h1 className="text-6xl font-semibold text-stone-900 tracking-tight">Amen</h1><p className="text-stone-400 text-sm">Пространство тишины</p><form onSubmit={handleLogin} className="space-y-4 pt-8"><input name="username" type="text" placeholder="Имя" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition text-stone-900" required /><input name="password" type="password" placeholder="Пароль" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition text-stone-900" required />{authError && <p className="text-red-500 text-xs">{authError}</p>}<button disabled={isAuthLoading} className="w-full py-4 bg-stone-900 text-white text-sm font-medium rounded-xl">{isAuthLoading ? "..." : "Войти"}</button></form><button onClick={() => signInAnonymously(auth)} className="text-stone-400 text-sm">Войти тихо</button></div></div>;
 
   return (
     <>
@@ -560,7 +593,18 @@ const App = () => {
       <div className={`fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000`} style={{ backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none', backgroundColor: theme.fallbackColor }} />
       <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay}`} />
 
-      <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden`}>
+      {/* ОНБОРДИНГ */}
+      <AnimatePresence>
+          {showWelcomeScreen && (
+              <WelcomeScreen 
+                  theme={theme} 
+                  onComplete={completeWelcome} 
+                  openLegal={() => setShowLegalModal(true)} 
+              />
+          )}
+      </AnimatePresence>
+
+      <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden ${showWelcomeScreen ? 'pointer-events-none blur-sm' : ''}`}>
         <TopMenu view={view} setView={setView} theme={theme} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28 min-h-screen"> 
@@ -581,7 +625,7 @@ const App = () => {
                   <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
                     
                     <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
-                        <div className={`text-xs font-medium uppercase opacity-50 mb-6 tracking-widest ${fonts.ui}`}>Фокус дня</div>
+                        <div className={`text-xs font-medium uppercase opacity-60 mb-6 tracking-widest ${fonts.ui}`}>Фокус дня</div>
                         <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
                         
                         <div className="mb-6 px-2 relative">
@@ -590,7 +634,7 @@ const App = () => {
                             <span className={`text-4xl absolute -bottom-8 -right-2 opacity-10 ${fonts.content}`}>”</span>
                         </div>
                         
-                        <div className={`text-sm opacity-50 ${isFocusExpanded ? 'mb-8' : 'mb-0'} ${fonts.ui}`}>{dailyVerse.source}</div>
+                        <div className={`text-sm opacity-60 ${isFocusExpanded ? 'mb-8' : 'mb-0'} ${fonts.ui}`}>{dailyVerse.source}</div>
 
                         <AnimatePresence>
                             {!isFocusExpanded ? (
@@ -608,8 +652,8 @@ const App = () => {
                                             {inlineFocusText.length > 0 && (
                                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex gap-3 mt-1">
                                                     <div onClick={() => setIsFocusPublic(!isFocusPublic)} className={`flex-1 py-3 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}>
-                                                        <div className={`w-2 h-2 rounded-full ${isFocusPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-30'}`} />
-                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-60`}>{isFocusPublic ? "Все" : "Личное"}</span>
+                                                        <div className={`w-2 h-2 rounded-full ${isFocusPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-40'}`} />
+                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-80`}>{isFocusPublic ? "Все" : "Личное"}</span>
                                                     </div>
                                                     <button onClick={handleInlineFocusSubmit} disabled={isFocusSubmitting} className={`flex-[2] py-3 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>
                                                         {isFocusSubmitting ? "..." : "Amen"}
@@ -623,7 +667,7 @@ const App = () => {
                         </AnimatePresence>
                     </Card>
 
-                    <div className="flex items-center justify-center my-8 opacity-40">
+                    <div className="flex items-center justify-center my-8 opacity-50">
                         <div className="h-px bg-current w-16"></div>
                         <span className={`mx-4 text-xs font-medium uppercase tracking-widest ${fonts.ui}`}>Единство</span>
                         <div className="h-px bg-current w-16"></div>
@@ -632,7 +676,7 @@ const App = () => {
                     <div className="space-y-4">
                         {publicPosts.map(post => (
                              <Card key={post.id} theme={theme} className="!p-6 relative group">
-                                 <div className={`flex justify-between items-center mb-4 opacity-50 text-xs font-normal ${fonts.ui}`}>
+                                 <div className={`flex justify-between items-center mb-4 opacity-70 text-xs font-normal ${fonts.ui}`}>
                                      <span className="flex items-center gap-1.5">
                                          {post.authorName} 
                                          {post.authorIsAngel && <Feather size={12} className={theme.iconColor} />}
@@ -642,12 +686,12 @@ const App = () => {
                                         <span>{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
                                      </div>
                                  </div>
-                                 <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-90 ${fonts.content}`}>{post.text}</p>
+                                 <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-100 ${fonts.content}`}>{post.text}</p>
                                  <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}>
                                      {post.likes?.includes(user.uid) ? "Amen" : "Amen"}
-                                     {post.likes?.length > 0 && <span className="opacity-60 ml-1">{post.likes.length}</span>}
+                                     {post.likes?.length > 0 && <span className="opacity-80 ml-1">{post.likes.length}</span>}
                                  </button>
-                                 {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-20 hover:opacity-100"><Trash2 size={16} /></button>}
+                                 {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-30 hover:opacity-100"><Trash2 size={16} /></button>}
                              </Card>
                          ))}
                     </div>
@@ -657,66 +701,66 @@ const App = () => {
                 {view === 'diary' && (
                     <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-6">
                         <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
-                            <h2 className="text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm">Amen</h2>
+                            <h2 className={`text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm ${theme.text}`}>Amen</h2>
                             <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`p-3 rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
                                 <PenLine size={20} />
                             </button>
                         </div>
 
                         <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
-                            <div className={`absolute top-1 bottom-1 w-1/2 bg-white shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
-                            <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'active' ? 'opacity-100' : 'opacity-50'}`}>Молитвы</button>
-                            <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-50'}`}>Ответы</button>
+                            <div className={`absolute top-1 bottom-1 w-1/2 bg-white/80 shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
+                            <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${theme.text} ${diaryTab === 'active' ? 'opacity-100' : 'opacity-60'}`}>Молитвы</button>
+                            <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${theme.text} ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-60'}`}>Ответы</button>
                         </div>
 
                         <div className="space-y-4">
                             {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
-                                <div className={`text-center opacity-40 py-10 text-lg ${fonts.content}`}>
+                                <div className={`text-center opacity-60 py-10 text-lg ${fonts.content}`}>
                                     {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
                                 </div>
                             )}
                             {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
                                 <Card key={p.id} theme={theme}>
                                     <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
-                                        <span className="text-xs font-normal opacity-50">{p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
+                                        <span className="text-xs font-normal opacity-70">{p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
                                         {p.status === 'answered' ? (
                                             <span className={`${theme.iconColor} text-xs font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Ответ</span>
                                         ) : (
-                                            <button onClick={() => startEditing(p)} className="opacity-40 hover:opacity-100"><Edit3 size={14} /></button>
+                                            <button onClick={() => startEditing(p)} className="opacity-50 hover:opacity-100"><Edit3 size={14} /></button>
                                         )}
                                     </div>
 
                                     {editingId === p.id ? (
                                         <div className={`mb-4 space-y-2 ${fonts.ui}`}>
-                                            <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-lg font-medium`} />
-                                            <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-20 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
+                                            <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-30 py-2 outline-none text-lg font-medium`} />
+                                            <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-30 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
                                             <div className="flex justify-end gap-3 pt-2">
-                                                <button onClick={() => setEditingId(null)} className="text-xs opacity-50">Отмена</button>
+                                                <button onClick={() => setEditingId(null)} className="text-xs opacity-60">Отмена</button>
                                                 <button onClick={saveEdit} className="text-xs font-medium">Сохранить</button>
                                             </div>
                                         </div>
                                     ) : (
                                         <>
                                             <h3 className={`text-xl font-medium mb-3 leading-snug ${fonts.ui}`}>{p.title}</h3>
-                                            <p className={`text-[17px] leading-[1.75] opacity-90 whitespace-pre-wrap mb-6 ${fonts.content}`}>{p.text}</p>
+                                            <p className={`text-[17px] leading-[1.75] opacity-100 whitespace-pre-wrap mb-6 ${fonts.content}`}>{p.text}</p>
                                         </>
                                     )}
 
                                     {p.status === 'answered' && p.answerNote && (
                                         <div className={`${theme.containerBg} p-5 rounded-2xl mb-4 border border-current border-opacity-10`}>
-                                            <p className={`text-xs font-medium opacity-60 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
+                                            <p className={`text-xs font-medium opacity-70 uppercase mb-2 ${fonts.ui}`}>Свидетельство</p>
                                             <p className={`text-[17px] leading-relaxed ${fonts.content}`}>{p.answerNote}</p>
                                         </div>
                                     )}
                                     
                                     <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
-                                        <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-40 hover:opacity-100 transition">Удалить</button>
+                                        <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-50 hover:opacity-100 transition">Удалить</button>
                                         {p.status !== 'answered' ? (
                                             <div className="flex items-center gap-4">
-                                                <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-60 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
+                                                <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-80 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
                                                     <Hand size={14}/> {p.prayerCount || 1}
                                                 </button>
-                                                <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-60 hover:opacity-100 transition">
+                                                <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-80 hover:opacity-100 transition">
                                                     <CheckCircle2 size={14}/> Есть ответ
                                                 </button>
                                             </div>
@@ -730,7 +774,7 @@ const App = () => {
 
                 {view === 'admin_feedback' && isAdmin && (
                     <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
-                         <h2 className={`text-xl text-center mb-4 ${fonts.ui}`}>Входящие отзывы</h2>
+                         <h2 className={`text-xl text-center mb-4 ${theme.text} ${fonts.ui}`}>Входящие отзывы</h2>
                          
                          <div className="flex justify-center mb-8">
                              <button onClick={resetAllAngels} className="px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-500/20 transition">
@@ -740,11 +784,11 @@ const App = () => {
 
                          {feedbacks.map(msg => (
                              <Card key={msg.id} theme={theme} className="relative">
-                                 <div className={`flex justify-between mb-3 opacity-50 text-xs font-normal ${fonts.ui}`}>
+                                 <div className={`flex justify-between mb-3 opacity-60 text-xs font-normal ${fonts.ui}`}>
                                      <span>{msg.userName}</span>
                                      <span>{msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
                                  </div>
-                                 <p className={`mb-4 text-sm leading-relaxed opacity-90 ${fonts.content}`}>{msg.text}</p>
+                                 <p className={`mb-4 text-sm leading-relaxed opacity-100 ${fonts.content}`}>{msg.text}</p>
                                  <div className="flex justify-end">
                                      <button onClick={() => deleteFeedback(msg.id)} className="p-2 text-red-400 bg-red-500/10 rounded-full hover:bg-red-500/20"><Trash2 size={16} /></button>
                                  </div>
@@ -760,23 +804,23 @@ const App = () => {
                                 <div className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-light shadow-2xl ${theme.activeButton} ${fonts.content}`}>
                                     {user.displayName?.[0] || "A"}
                                 </div>
-                                {isAngel && <Feather size={24} className={`${theme.iconColor} opacity-80 pb-2`} />}
+                                {isAngel && <Feather size={24} className={`${theme.iconColor} opacity-90 pb-2`} />}
                             </div>
 
                             <div className="relative mb-8 px-8 group">
-                                <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-30 ${fonts.ui}`} placeholder="Ваше имя" />
+                                <input value={newName} onChange={(e) => setNewName(e.target.value)} onBlur={handleUpdateName} className={`w-full bg-transparent text-center text-3xl font-medium outline-none border-b border-transparent focus:border-current transition placeholder:opacity-50 ${theme.text} ${fonts.ui}`} placeholder="Ваше имя" />
                             </div>
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
                             <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md`}>
-                                <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Путеводитель</h4>
+                                <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-6 opacity-60 ${fonts.ui}`}>Путеводитель</h4>
                                 <div className="space-y-6">
                                     <div>
                                         <h5 className={`text-sm font-semibold mb-1 ${fonts.ui} ${theme.text}`}>Поток</h5>
                                         <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца и лента «Единство», где мы поддерживаем молитвы.</p>
                                     </div>
-                                    <div className="w-12 h-px bg-current opacity-10"></div>
+                                    <div className="w-12 h-px bg-current opacity-20"></div>
                                     <div>
                                         <h5 className={`text-sm font-semibold mb-1 ${fonts.ui} ${theme.text}`}>Дневник</h5>
                                         <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Твоя тайная комната. Записывай личные молитвы, отмечай ответы на них.</p>
@@ -789,13 +833,12 @@ const App = () => {
                                     <span className={`text-[10px] font-bold uppercase tracking-widest ${fonts.ui} ${theme.text}`}>Написать</span>
                                 </button>
                                 
-                                {/* НОВАЯ КНОПКА АНГЕЛА ВМЕСТО "ПОДДЕРЖАТЬ" */}
-                                <button onClick={() => setShowSupportModal(true)} className={`flex flex-col items-center justify-center p-6 rounded-[2rem] ${theme.cardBg} transition hover:scale-[1.02] active:scale-95 border border-amber-500/20`}>
+                                <button onClick={() => setShowSupportModal(true)} className={`flex flex-col items-center justify-center p-6 rounded-[2rem] ${theme.cardBg} transition hover:scale-[1.02] active:scale-95 border border-amber-500/30`}>
                                     <span className={`text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 ${fonts.ui}`}>Ангел проекта</span>
                                 </button>
                             </div>
 
-                            <div className={`text-center opacity-40 mt-auto px-10 ${fonts.ui}`}>
+                            <div className={`text-center opacity-50 mt-auto px-10 ${fonts.ui}`}>
                                  <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
                             </div>
                         </div>
@@ -829,8 +872,8 @@ const App = () => {
                         </motion.div>
                         <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.3}} className="flex gap-4 mt-2">
                             <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className={`flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}>
-                                <div className={`w-2 h-2 rounded-full ${focusPrayerPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-30'}`} />
-                                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-60`}>{focusPrayerPublic ? "Все" : "Личное"}</span>
+                                <div className={`w-2 h-2 rounded-full ${focusPrayerPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-40'}`} />
+                                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-80`}>{focusPrayerPublic ? "Все" : "Личное"}</span>
                             </div>
                             <button className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>Amen</button>
                         </motion.div>
@@ -854,38 +897,36 @@ const App = () => {
                             <Feather className={theme.iconColor} size={24} />
                             <h3 className={`text-2xl font-medium ${fonts.ui}`}>Ангел проекта</h3>
                         </div>
-                        <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                        <button onClick={() => setShowSupportModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
                     </div>
                     
-                    {/* ОБНОВЛЕННЫЙ БЛОК ПРО МИССИЮ */}
                     <div className={`p-6 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
-                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>
+                        <p className={`text-[15px] leading-relaxed opacity-100 ${fonts.content}`}>
                             Amen — это пространство без рекламы. Но для оплаты серверов и развития проекта нужны средства.<br/><br/>
                             Сделайте добровольное пожертвование, чтобы стать частью тех, кто помогает этому месту жить и служить людям. В знак благодарности вашему аккаунту ровно на месяц будет присвоен статус «Ангел проекта» (перо рядом с именем).
                         </p>
                     </div>
 
                     {isAngel ? (
-                        <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest ${theme.containerBg} opacity-50`}>Вы уже Ангел</div>
+                        <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest ${theme.containerBg} opacity-60`}>Услуга активна</div>
                     ) : (
                         <>
                             <div className="mb-6">
-                                <label className={`text-[10px] font-bold opacity-60 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Сумма пожертвования (от 100 ₽)</label>
+                                <label className={`text-[10px] font-bold opacity-70 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Сумма пожертвования (от 100 ₽)</label>
                                 <input 
                                     type="number" 
                                     min="100"
                                     value={donateAmount}
                                     onChange={(e) => setDonateAmount(e.target.value)}
                                     placeholder="Сумма"
-                                    className={`w-full bg-transparent border-b border-current border-opacity-20 py-3 text-center text-3xl font-medium outline-none transition focus:border-opacity-100 placeholder:opacity-30 ${fonts.ui}`}
+                                    className={`w-full bg-transparent border-b border-current border-opacity-30 py-3 text-center text-3xl font-medium outline-none transition focus:border-opacity-100 placeholder:opacity-40 ${fonts.ui}`}
                                 />
                             </div>
 
-                            {/* КНОПКА ЗАБЛОКИРУЕТСЯ, ЕСЛИ ВВЕСТИ МЕНЬШЕ 100 */}
                             <button 
                                 onClick={becomeAngel} 
                                 disabled={isAuthLoading || Number(donateAmount) < 100} 
-                                className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-40 disabled:active:scale-100`}
+                                className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-50 disabled:active:scale-100`}
                             >
                                 {isAuthLoading ? "Загрузка..." : `Пожертвовать`}
                             </button>
@@ -917,9 +958,9 @@ const App = () => {
                     <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Разработчику</h3>
-                            <button onClick={() => setShowFeedbackModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                            <button onClick={() => setShowFeedbackModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
                         </div>
-                        <p className={`text-sm opacity-60 mb-4 leading-relaxed ${fonts.ui}`}>Нашли ошибку? Есть идея? Или просто хотите сказать спасибо? Я читаю всё.</p>
+                        <p className={`text-sm opacity-80 mb-4 leading-relaxed ${fonts.ui}`}>Нашли ошибку? Есть идея? Или просто хотите сказать спасибо? Я читаю всё.</p>
                         <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Ваше сообщение..." className={`w-full p-4 rounded-xl outline-none h-32 text-[17px] leading-relaxed resize-none mb-6 ${theme.containerBg} ${fonts.content}`} />
                         <button onClick={sendFeedback} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition ${fonts.ui}`}>Отправить</button>
                     </motion.div>
@@ -933,7 +974,7 @@ const App = () => {
                     <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
-                            <button onClick={() => setShowThemeModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
+                            <button onClick={() => setShowThemeModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             {Object.values(THEMES).map(t => (
@@ -950,12 +991,12 @@ const App = () => {
 
         <AnimatePresence>
             {showLegalModal && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}>
-                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
-                        <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-40 hover:opacity-100"><X size={24}/></button>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}>
+                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[90] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                        <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-50 hover:opacity-100"><X size={24}/></button>
                         <div>
-                            <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-50 ${fonts.ui}`}>Соглашение</h3>
-                            <p className={`text-sm leading-relaxed opacity-80 ${fonts.content}`}>{TERMS_TEXT}</p>
+                            <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-60 ${fonts.ui}`}>Соглашение</h3>
+                            <p className={`text-sm leading-relaxed opacity-90 ${fonts.content} whitespace-pre-wrap`}>{TERMS_TEXT}</p>
                         </div>
                     </motion.div>
                 </motion.div>
