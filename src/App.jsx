@@ -61,7 +61,7 @@ const triggerHaptic = () => {
     }
 };
 
-// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ ---
+// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД (Самозанятый)\nИНН: 775101376595`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН 775101376595)`;
 
@@ -108,6 +108,7 @@ const Card = ({ children, theme, className = "", onClick }) => (
 );
 
 // --- КОМПОНЕНТ ОНБОРДИНГА ---
+// --- КОМПОНЕНТ ОНБОРДИНГА ---
 const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
     const [accepted, setAccepted] = useState(false);
 
@@ -121,13 +122,15 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                 </div>
 
                 <div className="space-y-6">
+                    {/* Блок 1: Суть молитвы */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Что такое молитва?</h2>
                         <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>
-                            Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.
+                            Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами. Суета разрывает нас на части, а молитва возвращает в реальность — она неизбежно меняет того, кто молится.
                         </p>
                     </div>
 
+                    {/* Блок 2: Анатомия */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Анатомия разговора</h2>
                         <ul className={`space-y-5 text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>
@@ -150,22 +153,43 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                         </ul>
                     </div>
 
+                    {/* Блок 3: Инструментарий приложения (НОВОЕ) */}
+                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Как устроен Amen</h2>
+                        <div className="space-y-6">
+                            <div>
+                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><MessageCircle size={16} className="opacity-60"/> Единство</h5>
+                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте чужие молитвы нажатием Amen. Вы не одни.</p>
+                            </div>
+                            <div className="w-12 h-px bg-current opacity-20"></div>
+                            <div>
+                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><BookOpen size={16} className="opacity-60"/> Дневник и Ответы</h5>
+                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — чтобы собирать свидетельства Его верности.</p>
+                            </div>
+                            <div className="w-12 h-px bg-current opacity-20"></div>
+                            <div>
+                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><Sprout size={16} className="opacity-60"/> Сад веры</h5>
+                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
+                            </div>
+                            <div className="w-12 h-px bg-current opacity-20"></div>
+                            <div>
+                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><Disc size={16} className="opacity-60"/> Погружение</h5>
+                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в меню), чтобы отсечь лишний шум.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Блок 4: Писание */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl text-center`}>
                         <span className={`text-6xl opacity-20 block mb-2 leading-none ${fonts.content}`}>“</span>
                         <p className={`text-lg leading-[1.7] font-medium opacity-90 mb-4 ${fonts.content}`}>
-                            Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий, который превыше всякого ума, соблюдет сердца ваши...
+                            Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий соблюдет сердца ваши...
                         </p>
                         <p className={`text-sm opacity-60 uppercase tracking-widest font-bold ${fonts.ui}`}>Филиппийцам 4:6-7</p>
                     </div>
-
-                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
-                        <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Зачем это нужно?</h2>
-                        <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>
-                            Суета разрывает нас на части, заставляя жить в тревоге о будущем. Молитва возвращает нас в реальность. Она не всегда меняет обстоятельства мгновенно, но она неизбежно меняет того, кто молится. Это якорь в шторме.
-                        </p>
-                    </div>
                 </div>
 
+                {/* Блок 5: Соглашение и старт */}
                 <div className="mt-12 flex flex-col gap-6">
                     <div className="flex items-start gap-4 px-2">
                         <button 
@@ -331,7 +355,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   const [loading, setLoading] = useState(true);
-  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false); // Стейт для онбординга
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(false); 
 
   const [view, setView] = useState('flow'); 
   const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || 'dawn');
@@ -354,7 +378,6 @@ const App = () => {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showPrayerInfoModal, setShowPrayerInfoModal] = useState(false);
 
   const [isFocusExpanded, setIsFocusExpanded] = useState(false);
   const [inlineFocusText, setInlineFocusText] = useState('');
@@ -434,7 +457,6 @@ const App = () => {
       if(u) { 
           setNewName(u.displayName || ""); 
           checkUserStatus(u.uid); 
-          // ПРОВЕРКА: ПОКАЗЫВАТЬ ЛИ ОНБОРДИНГ
           if (!localStorage.getItem(`amen_welcome_done_${u.uid}`)) {
               setShowWelcomeScreen(true);
           }
@@ -597,7 +619,6 @@ const App = () => {
       <div className={`fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000`} style={{ backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none', backgroundColor: theme.fallbackColor }} />
       <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay}`} />
 
-      {/* ОНБОРДИНГ */}
       <AnimatePresence>
           {showWelcomeScreen && (
               <WelcomeScreen 
@@ -889,13 +910,14 @@ const App = () => {
         </main>
 
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
+      </div>
 
-        {/* --- MODALS --- */}
-        <AnimatePresence>
+      {/* --- MODALS (ВЫНЕСЕНЫ ВНЕ BLUR-КОНТЕЙНЕРА) --- */}
+      <AnimatePresence>
             {showSupportModal && (
                 <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
-                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-[15%] left-6 right-6 z-50 rounded-[2.5rem] p-8 shadow-2xl ${theme.cardBg} max-h-[75vh] overflow-y-auto no-scrollbar`}>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setShowSupportModal(false)}/>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-[15%] left-6 right-6 z-[100] rounded-[2.5rem] p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[75vh] overflow-y-auto no-scrollbar`}>
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
                             <Feather className={theme.iconColor} size={24} />
@@ -943,8 +965,8 @@ const App = () => {
 
         <AnimatePresence>
             {showAnswerModal && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}>
-                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} border border-current border-opacity-10`}>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}>
+                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/4 left-6 right-6 z-[100] rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} ${theme.text} border border-current border-opacity-10`}>
                         <div className="text-center mb-6">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 ${theme.containerBg} ${theme.iconColor}`}><CheckCircle2 size={24} /></div>
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Чудо произошло?</h3>
@@ -958,8 +980,8 @@ const App = () => {
 
         <AnimatePresence>
             {showFeedbackModal && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}>
-                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/4 left-6 right-6 z-50 rounded-[2rem] p-8 shadow-2xl ${theme.cardBg}`}>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setShowFeedbackModal(false)}>
+                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/4 left-6 right-6 z-[100] rounded-[2rem] p-8 shadow-2xl ${theme.cardBg} ${theme.text}`}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Разработчику</h3>
                             <button onClick={() => setShowFeedbackModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
@@ -974,8 +996,8 @@ const App = () => {
 
         <AnimatePresence>
             {showThemeModal && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}>
-                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[70] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}>
+                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[100] rounded-3xl p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[70vh] overflow-y-auto`}>
                         <div className="flex justify-between items-center mb-6">
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
                             <button onClick={() => setShowThemeModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
@@ -995,8 +1017,8 @@ const App = () => {
 
         <AnimatePresence>
             {showLegalModal && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[90] bg-black/30 backdrop-blur-md" onClick={() => setShowLegalModal(false)}>
-                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[90] rounded-3xl p-8 shadow-2xl ${theme.cardBg} max-h-[70vh] overflow-y-auto`}>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[110] bg-black/50 backdrop-blur-md" onClick={() => setShowLegalModal(false)}>
+                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[110] rounded-3xl p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[70vh] overflow-y-auto`}>
                         <button onClick={() => setShowLegalModal(false)} className="absolute top-6 right-6 opacity-50 hover:opacity-100"><X size={24}/></button>
                         <div>
                             <h3 className={`text-lg font-bold uppercase tracking-widest mb-6 opacity-60 ${fonts.ui}`}>Соглашение</h3>
@@ -1009,7 +1031,7 @@ const App = () => {
 
         <AnimatePresence>
             {showSuccessModal && (
-                <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="fixed inset-0 z-[60] flex items-center justify-center p-8 pointer-events-none">
+                <motion.div initial={{opacity:0, scale:0.9}} animate={{opacity:1, scale:1}} exit={{opacity:0, scale:0.9}} className="fixed inset-0 z-[100] flex items-center justify-center p-8 pointer-events-none">
                     <div className="bg-white/90 backdrop-blur-xl shadow-2xl rounded-3xl p-8 flex flex-col items-center gap-4">
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center ${theme.activeButton}`}><Check size={32} /></div>
                         <h3 className={`text-xl font-medium text-stone-900 ${fonts.ui}`}>{successMessage}</h3>
@@ -1018,7 +1040,6 @@ const App = () => {
             )}
         </AnimatePresence>
 
-      </div>
     </>
   );
 };
