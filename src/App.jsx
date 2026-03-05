@@ -30,7 +30,7 @@ import {
   arrayRemove,
   enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -83,8 +83,8 @@ const triggerHaptic = () => {
 };
 
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши свой ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД (Самозанятый)\nИНН: 775101376595`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН 775101376595)`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД (Самозанятый)\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН ВСТАВЬ_СВОЙ_ИНН_СЮДА)`;
 
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
@@ -262,7 +262,6 @@ const DivineSeed = ({ stage, fruits, theme }) => {
 const App = () => {
   const [user, setUser] = useState(null);
   
-  // НАДЕЖНАЯ ПРОВЕРКА АДМИНА
   const isAdmin = user && ADMIN_NAMES.includes(user.displayName);
   
   const [loading, setLoading] = useState(true);
@@ -289,15 +288,14 @@ const App = () => {
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPrayerInfoModal, setShowPrayerInfoModal] = useState(false);
 
-  // Интерактивный Фокус
   const [isFocusExpanded, setIsFocusExpanded] = useState(false);
   const [inlineFocusText, setInlineFocusText] = useState('');
   const [isFocusPublic, setIsFocusPublic] = useState(false);
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
 
-  // ОПЛАТА (НОВЫЙ СТЕЙТ)
-  const [donateAmount, setDonateAmount] = useState('299');
+  const [donateAmount, setDonateAmount] = useState('');
 
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
   const [successMessage, setSuccessMessage] = useState("Услышано");
@@ -393,7 +391,20 @@ const App = () => {
 
       if (userSnap.exists()) {
           const data = userSnap.data();
-          setIsAngel(data.isAngel || false); 
+          
+          // УМНАЯ ПРОВЕРКА СТАТУСА АНГЕЛА (РОВНО 1 МЕСЯЦ)
+          let currentIsAngel = data.isAngel || false;
+          if (currentIsAngel && data.angelSince) {
+              const angelDate = data.angelSince.toDate();
+              const diffTime = new Date() - angelDate;
+              const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+              
+              if (diffDays >= 30) {
+                  currentIsAngel = false;
+                  await setDoc(userRef, { isAngel: false }, { merge: true }); // Снимаем статус
+              }
+          }
+          setIsAngel(currentIsAngel);
 
           let lastVisitTime = 0;
           if (data.lastVisit && typeof data.lastVisit.toDate === 'function') {
@@ -484,18 +495,40 @@ const App = () => {
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); };
   const sendFeedback = async () => { if(!feedbackText.trim()) return; await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { text: feedbackText, userId: user.uid, userName: user.displayName, createdAt: serverTimestamp() }); setFeedbackText(''); setShowFeedbackModal(false); alert("Отправлено!"); };
   
+  // ФУНКЦИЯ: СБРОС ВСЕХ АНГЕЛОВ (ТОЛЬКО ДЛЯ АДМИНА)
+  const resetAllAngels = async () => {
+      if (!confirm("ВНИМАНИЕ! Лишить статуса ВСЕХ Ангелов в базе?")) return;
+      try {
+          const usersRef = collection(db, 'artifacts', dbCollectionId, 'users');
+          const snap = await getDocs(usersRef);
+          let count = 0;
+          snap.forEach(async (userDoc) => {
+              if (userDoc.data().isAngel === true) {
+                  await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', userDoc.id), { isAngel: false });
+                  count++;
+              }
+          });
+          alert(`Сброс завершен. Ангелов удалено: ${count}`);
+      } catch (error) {
+          console.error("Ошибка сброса:", error);
+          alert("Ошибка при сбросе.");
+      }
+  };
+
   // ФУНКЦИЯ ОПЛАТЫ НА VERCEL
   const becomeAngel = async () => {
       triggerHaptic();
       setIsAuthLoading(true); 
       
       try {
+          const amountToSend = donateAmount ? Number(donateAmount) : 100;
+
           const res = await fetch('/api/payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ 
                   userId: user.uid,
-                  amount: donateAmount // Отправляем сумму, которую ввел пользователь
+                  amount: amountToSend 
               })
           });
           
@@ -697,7 +730,14 @@ const App = () => {
 
                 {view === 'admin_feedback' && isAdmin && (
                     <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-4 pt-28">
-                         <h2 className={`text-xl text-center mb-8 ${fonts.ui}`}>Входящие отзывы</h2>
+                         <h2 className={`text-xl text-center mb-4 ${fonts.ui}`}>Входящие отзывы</h2>
+                         
+                         <div className="flex justify-center mb-8">
+                             <button onClick={resetAllAngels} className="px-4 py-2 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-500/20 transition">
+                                 Сбросить всех Ангелов
+                             </button>
+                         </div>
+
                          {feedbacks.map(msg => (
                              <Card key={msg.id} theme={theme} className="relative">
                                  <div className={`flex justify-between mb-3 opacity-50 text-xs font-normal ${fonts.ui}`}>
@@ -748,8 +788,10 @@ const App = () => {
                                 <button onClick={() => setShowFeedbackModal(true)} className={`flex flex-col items-center justify-center p-6 rounded-[2rem] ${theme.cardBg} transition hover:scale-[1.02] active:scale-95`}>
                                     <span className={`text-[10px] font-bold uppercase tracking-widest ${fonts.ui} ${theme.text}`}>Написать</span>
                                 </button>
+                                
+                                {/* НОВАЯ КНОПКА АНГЕЛА ВМЕСТО "ПОДДЕРЖАТЬ" */}
                                 <button onClick={() => setShowSupportModal(true)} className={`flex flex-col items-center justify-center p-6 rounded-[2rem] ${theme.cardBg} transition hover:scale-[1.02] active:scale-95 border border-amber-500/20`}>
-                                    <span className={`text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 ${fonts.ui}`}>Поддержать</span>
+                                    <span className={`text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 ${fonts.ui}`}>Ангел проекта</span>
                                 </button>
                             </div>
 
@@ -810,37 +852,42 @@ const App = () => {
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
                             <Feather className={theme.iconColor} size={24} />
-                            <h3 className={`text-2xl font-medium ${fonts.ui}`}>Статус Ангела</h3>
+                            <h3 className={`text-2xl font-medium ${fonts.ui}`}>Ангел проекта</h3>
                         </div>
                         <button onClick={() => setShowSupportModal(false)} className="opacity-40 hover:opacity-100"><X size={24}/></button>
                     </div>
                     
-                    {/* БЛОК ДЛЯ МОДЕРАТОРА ЮKASSA: ЧЕТКОЕ ОПИСАНИЕ УСЛУГИ */}
-                    <div className={`p-5 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
-                        <p className={`text-[10px] font-bold opacity-60 uppercase tracking-widest mb-2 ${fonts.ui}`}>Описание цифровой услуги</p>
-                        <p className={`text-sm leading-relaxed opacity-90 ${fonts.content}`}>
-                            Единоразовое приобретение виртуального статуса «Ангел проекта». Статус предоставляется бессрочно и открывает доступ к визуальному бейджу (перо) рядом с вашим именем в ленте, а также к закрытому чату основателей.
+                    {/* ОБНОВЛЕННЫЙ БЛОК ПРО МИССИЮ */}
+                    <div className={`p-6 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
+                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>
+                            Amen — это пространство без рекламы. Но для оплаты серверов и развития проекта нужны средства.<br/><br/>
+                            Сделайте добровольное пожертвование, чтобы стать частью тех, кто помогает этому месту жить и служить людям. В знак благодарности вашему аккаунту ровно на месяц будет присвоен статус «Ангел проекта» (перо рядом с именем).
                         </p>
                     </div>
 
                     {isAngel ? (
-                        <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest ${theme.containerBg} opacity-50`}>Услуга активна</div>
+                        <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest ${theme.containerBg} opacity-50`}>Вы уже Ангел</div>
                     ) : (
                         <>
-                            {/* БЛОК ДЛЯ МОДЕРАТОРА ЮKASSA: ПОЛЕ ВВОДА СУММЫ */}
                             <div className="mb-6">
-                                <label className={`text-[10px] font-bold opacity-60 uppercase tracking-widest mb-3 block ${fonts.ui}`}>Выберите сумму поддержки (₽)</label>
+                                <label className={`text-[10px] font-bold opacity-60 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Сумма пожертвования (от 100 ₽)</label>
                                 <input 
                                     type="number" 
                                     min="100"
                                     value={donateAmount}
                                     onChange={(e) => setDonateAmount(e.target.value)}
-                                    className={`w-full bg-transparent border-b border-current border-opacity-20 py-3 text-center text-2xl font-medium outline-none transition focus:border-opacity-100 ${fonts.ui}`}
+                                    placeholder="Сумма"
+                                    className={`w-full bg-transparent border-b border-current border-opacity-20 py-3 text-center text-3xl font-medium outline-none transition focus:border-opacity-100 placeholder:opacity-30 ${fonts.ui}`}
                                 />
                             </div>
 
-                            <button onClick={becomeAngel} disabled={isAuthLoading} className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui}`}>
-                                {isAuthLoading ? "..." : `Оплатить ${donateAmount} ₽`}
+                            {/* КНОПКА ЗАБЛОКИРУЕТСЯ, ЕСЛИ ВВЕСТИ МЕНЬШЕ 100 */}
+                            <button 
+                                onClick={becomeAngel} 
+                                disabled={isAuthLoading || Number(donateAmount) < 100} 
+                                className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-40 disabled:active:scale-100`}
+                            >
+                                {isAuthLoading ? "Загрузка..." : `Пожертвовать`}
                             </button>
                         </>
                     )}
@@ -849,7 +896,6 @@ const App = () => {
             )}
         </AnimatePresence>
 
-        {/* Остальные модалки (оставил свернутыми для чистоты, они работают как надо) */}
         <AnimatePresence>
             {showAnswerModal && (
                 <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" onClick={() => setShowAnswerModal(false)}>
