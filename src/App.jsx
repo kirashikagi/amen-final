@@ -62,7 +62,7 @@ const triggerHaptic = () => {
 };
 
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД (Самозанятый)\nИНН: 775101376595`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: 775101376595`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН 775101376595)`;
 
 const AUDIO_TRACKS = [
@@ -77,7 +77,6 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
-// Усиленные цвета текстов для 100% читаемости
 const THEMES = {
   dawn: { id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
   morning: { id: 'morning', label: 'Величие', bgImage: '/morning.jpg', fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
@@ -107,8 +106,6 @@ const Card = ({ children, theme, className = "", onClick }) => (
   </motion.div>
 );
 
-// --- КОМПОНЕНТ ОНБОРДИНГА ---
-// --- КОМПОНЕНТ ОНБОРДИНГА ---
 const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
     const [accepted, setAccepted] = useState(false);
 
@@ -118,11 +115,10 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                 
                 <div className="pt-16 pb-12 text-center">
                     <h1 className={`text-4xl font-semibold tracking-tight mb-4 ${fonts.ui}`}>Добро пожаловать</h1>
-                    <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины.</p>
+                    <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
                 </div>
 
                 <div className="space-y-6">
-                    {/* Блок 1: Суть молитвы */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Что такое молитва?</h2>
                         <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>
@@ -130,7 +126,6 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                         </p>
                     </div>
 
-                    {/* Блок 2: Анатомия */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Анатомия разговора</h2>
                         <ul className={`space-y-5 text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>
@@ -153,7 +148,6 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                         </ul>
                     </div>
 
-                    {/* Блок 3: Инструментарий приложения (НОВОЕ) */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Как устроен Amen</h2>
                         <div className="space-y-6">
@@ -179,7 +173,6 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                         </div>
                     </div>
 
-                    {/* Блок 4: Писание */}
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl text-center`}>
                         <span className={`text-6xl opacity-20 block mb-2 leading-none ${fonts.content}`}>“</span>
                         <p className={`text-lg leading-[1.7] font-medium opacity-90 mb-4 ${fonts.content}`}>
@@ -189,7 +182,6 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                     </div>
                 </div>
 
-                {/* Блок 5: Соглашение и старт */}
                 <div className="mt-12 flex flex-col gap-6">
                     <div className="flex items-start gap-4 px-2">
                         <button 
@@ -217,7 +209,6 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
         </motion.div>
     );
 };
-
 
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
   const audioRef = useRef(null);
@@ -567,6 +558,15 @@ const App = () => {
   const toggleLike = async (id, likes) => { triggerHaptic(); const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) }); };
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
   const saveEdit = async () => { if(!editForm.title.trim()) return; await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', editingId), { title: editForm.title, text: editForm.text }); setEditingId(null); };
+  
+  // ФУНКЦИЯ ДЛЯ КНОПКИ "ЕСТЬ ОТВЕТ"
+  const openAnswerModal = (id) => {
+      triggerHaptic();
+      setAnsweringId(id);
+      setAnswerText('');
+      setShowAnswerModal(true);
+  };
+
   const confirmAnswer = async () => { if(!answeringId) return; await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', answeringId), { status: 'answered', answerNote: answerText, answeredAt: serverTimestamp() }); const prayer = myPrayers.find(p => p.id === answeringId); if(prayer) { const q = query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), where('authorId', '==', user.uid)); const querySnapshot = await getDocs(q); querySnapshot.forEach(async (docSnap) => { if (docSnap.data().text.startsWith(prayer.title)) await updateDoc(docSnap.ref, { status: 'answered' }); }); } setShowAnswerModal(false); setAnsweringId(null); setSuccessMessage("Твой путь важен"); setShowSuccessModal(true); setTimeout(() => setShowSuccessModal(false), 2000); };
   const deletePost = async (id) => { if(confirm("Админ: Удалить пост?")) await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id)); };
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); };
@@ -732,8 +732,8 @@ const App = () => {
                             </button>
                         </div>
 
-                        <div className={`flex p-1 rounded-full mb-6 relative ${theme.containerBg} ${fonts.ui}`}>
-                            <div className={`absolute top-1 bottom-1 w-1/2 bg-white/80 shadow-sm rounded-full transition-all duration-300 ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
+                        <div className={`flex p-1 rounded-full mb-6 relative z-0 ${theme.containerBg} ${fonts.ui}`}>
+                            <div className={`absolute top-1 bottom-1 w-1/2 bg-white/80 shadow-sm rounded-full transition-all duration-300 pointer-events-none ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
                             <button onClick={() => { triggerHaptic(); setDiaryTab('active'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${theme.text} ${diaryTab === 'active' ? 'opacity-100' : 'opacity-60'}`}>Молитвы</button>
                             <button onClick={() => { triggerHaptic(); setDiaryTab('answered'); }} className={`flex-1 py-2 text-xs font-medium relative z-10 transition-colors ${theme.text} ${diaryTab === 'answered' ? 'opacity-100' : 'opacity-60'}`}>Ответы</button>
                         </div>
@@ -838,17 +838,38 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
+                            {/* ОБНОВЛЕННЫЙ ПУТЕВОДИТЕЛЬ */}
                             <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md`}>
                                 <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-6 opacity-60 ${fonts.ui}`}>Путеводитель</h4>
                                 <div className="space-y-6">
                                     <div>
-                                        <h5 className={`text-sm font-semibold mb-1 ${fonts.ui} ${theme.text}`}>Поток</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца и лента «Единство», где мы поддерживаем молитвы.</p>
+                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Disc size={16} className="opacity-60"/> Поток и Погружение</h5>
+                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца. Свободно меняйте фоны в меню и включайте музыку, чтобы отсечь лишний шум.</p>
                                     </div>
                                     <div className="w-12 h-px bg-current opacity-20"></div>
                                     <div>
-                                        <h5 className={`text-sm font-semibold mb-1 ${fonts.ui} ${theme.text}`}>Дневник</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Твоя тайная комната. Записывай личные молитвы, отмечай ответы на них.</p>
+                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><MessageCircle size={16} className="opacity-60"/> Единство</h5>
+                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте молитвы других словом Amen. Вы не одни.</p>
+                                    </div>
+                                    <div className="w-12 h-px bg-current opacity-20"></div>
+                                    <div>
+                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><BookOpen size={16} className="opacity-60"/> Дневник и Ответы</h5>
+                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — собирая свидетельства Его верности.</p>
+                                    </div>
+                                    <div className="w-12 h-px bg-current opacity-20"></div>
+                                    <div>
+                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sprout size={16} className="opacity-60"/> Сад веры</h5>
+                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
+                                    </div>
+                                    <div className="w-12 h-px bg-current opacity-20"></div>
+                                    <div>
+                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Feather size={16} className="opacity-60"/> Ангел проекта</h5>
+                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Поддерживая проект, вы становитесь его Ангелом. Это открывает доступ к дополнительным анимированным фонам, эксклюзивной музыке и закрытому чату основателей.</p>
+                                    </div>
+                                    <div className="w-12 h-px bg-current opacity-20"></div>
+                                    <div>
+                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Mail size={16} className="opacity-60"/> Обратная связь</h5>
+                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Кнопка «Написать» создана для прямой связи со мной. Нашли ошибку? Есть идея? Пишите, я читаю всё.</p>
                                     </div>
                                 </div>
                             </div>
@@ -912,7 +933,7 @@ const App = () => {
         <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
       </div>
 
-      {/* --- MODALS (ВЫНЕСЕНЫ ВНЕ BLUR-КОНТЕЙНЕРА) --- */}
+      {/* --- MODALS --- */}
       <AnimatePresence>
             {showSupportModal && (
                 <>
