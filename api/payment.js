@@ -1,6 +1,6 @@
 import admin from 'firebase-admin';
 
-// Безопасная инициализация базы данных
+// Безопасная инициализация БД
 if (!admin.apps.length) {
     admin.initializeApp({
         credential: admin.credential.cert({
@@ -14,18 +14,23 @@ if (!admin.apps.length) {
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     
-    // Принимаем ID пользователя и сумму от фронтенда
-    const { userId, amount } = req.body; 
+    // Принимаем данные от фронтенда: кто, сколько, и что именно покупает
+    const { userId, amount, purchaseType, itemId } = req.body; 
     if (!userId) return res.status(400).json({ error: 'Missing userId' });
     
-    // Защита: если сумму не ввели или она меньше 100 руб, ставим 299 по умолчанию
-    const finalAmount = amount && !isNaN(amount) && Number(amount) >= 100 ? Number(amount) : 299;
+    // Минимальная сумма 99 руб (т.к. треки стоят 99)
+    const finalAmount = amount && !isNaN(amount) && Number(amount) >= 99 ? Number(amount) : 100;
+
+    // Формируем правильное описание для чека ЮKassa
+    let description = 'Оплата цифровой услуги в Amen';
+    if (purchaseType === 'angel') description = 'Добровольное пожертвование (Статус Ангела)';
+    if (purchaseType === 'theme') description = 'Покупка анимированного фона';
+    if (purchaseType === 'track') description = 'Покупка музыкального трека';
 
     try {
         const idempotencyKey = Math.random().toString(36).substring(2, 15);
         const authHeader = Buffer.from(`${process.env.YOOKASSA_SHOP_ID}:${process.env.YOOKASSA_SECRET_KEY}`).toString('base64');
 
-        // Обращаемся к серверам ЮKassa
         const response = await fetch('https://api.yookassa.ru/v3/payments', {
             method: 'POST',
             headers: {
@@ -40,8 +45,12 @@ export default async function handler(req, res) {
                     type: 'redirect',
                     return_url: 'https://amen-final.vercel.app/'
                 },
-                description: 'Оплата цифровой услуги: Статус Ангела в Amen',
-                metadata: { userId } // Чтобы вебхук понял, кому выдать статус
+                description: description,
+                metadata: { 
+                    userId: userId,
+                    purchaseType: purchaseType || 'angel',
+                    itemId: String(itemId || 'none') 
+                }
             })
         });
 
