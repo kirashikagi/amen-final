@@ -62,8 +62,7 @@ const triggerHaptic = () => {
 };
 
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН ВСТАВЬ_СВОЙ_ИНН_СЮДА)`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: 775101376595`;
 
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
@@ -86,9 +85,11 @@ const THEMES = {
   midnight: { id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' }
 };
 
+// --- ФОКУС ДНЯ: РАБОТАЕТ ПО ДАТАМ (ДД-ММ) ---
 const CALENDAR_READINGS = {
-  "19-01": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно." },
-  "20-01": { title: "Работа до падения", source: "Бытие 2:15", text: "И взял Господь Бог человека... чтобы возделывать его и хранить его.", thought: "Труд был задуман как часть жизни с Богом. Попробуй сегодня отнестись к своей работе как к служению, а не просто обязанности." },
+  "06-03": { title: "Сила тишины", source: "Псалом 61:2", text: "Только в Боге успокаивается душа моя: от Него спасение мое.", thought: "В мире, где всё требует нашего внимания, тишина становится самым ценным ресурсом. Найди сегодня 5 минут, чтобы просто побыть в Его присутствии." },
+  "07-03": { title: "Скрытая работа", source: "Матфея 6:6", text: "Ты же, когда молишься, войди в комнату твою и, затворив дверь твою, помолись Отцу твоему, Который втайне...", thought: "Самая важная работа происходит там, где никто не видит. Не ищи одобрения людей, ищи искренности перед Отцом." },
+  "08-03": { title: "Где ты?", source: "Бытие 3:9", text: "И воззвал Господь Бог к Адаму и сказал ему: где ты?", thought: "Бог обращается не к месту, а к сердцу. Найди сегодня время остановиться и честно посмотреть, где ты сейчас духовно." },
 };
 const DAILY_WORD_DEFAULT = { title: "Тишина", source: "Псалом 46:11", text: "Остановитесь и познайте, что Я — Бог.", thought: "В суете трудно услышать шепот." };
 
@@ -374,7 +375,6 @@ const App = () => {
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
   const [donateAmount, setDonateAmount] = useState('');
 
-  // Стейт для раскрытия путеводителя
   const [isGuideExpanded, setIsGuideExpanded] = useState(false);
 
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
@@ -823,8 +823,8 @@ const App = () => {
                 )}
 
                 {view === 'profile' && (
-                    <motion.div variants={pageVariants} className="text-center pt-28">
-                        <div className="pb-10">
+                    <motion.div variants={pageVariants} className="text-center pt-28 flex flex-col h-full">
+                        <div className="pb-10 flex-1">
                             <div className="flex justify-center items-end gap-2 mb-8">
                                 <div className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-light shadow-2xl ${theme.activeButton} ${fonts.content}`}>
                                     {user.displayName?.[0] || "A"}
@@ -838,7 +838,6 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
-                            {/* ВЫБОР АТМОСФЕРЫ (НОВЫЙ БЛОК) */}
                             <div className="mb-10 w-full">
                                 <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-4 opacity-60 text-left px-2 ${fonts.ui}`}>Атмосфера</h4>
                                 <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
@@ -927,9 +926,19 @@ const App = () => {
                                 </button>
                             </div>
 
-                            <div className={`text-center opacity-50 mt-auto px-10 ${fonts.ui}`}>
-                                 <p className="text-[10px] leading-relaxed whitespace-pre-wrap">{DISCLAIMER_TEXT}</p>
+                            {/* НОВЫЙ КРАСИВЫЙ БЛОК РАЗРАБОТЧИКА ВНИЗУ ПРОФИЛЯ */}
+                            <div className={`mt-auto pt-8 pb-4 flex flex-col items-center justify-center opacity-40 hover:opacity-80 transition-opacity ${fonts.ui}`}>
+                                <Feather size={14} className="mb-2 opacity-50" />
+                                <div className="text-[10px] uppercase tracking-widest font-bold mb-1">Amen App</div>
+                                <div className="text-[9px] leading-relaxed text-center max-w-[200px] mb-3 opacity-80">
+                                    Контент носит духовный характер и не заменяет профессиональную помощь.
+                                </div>
+                                <div className="text-[8px] uppercase tracking-widest opacity-50 text-center">
+                                    Создано с душой<br/>
+                                    НПД ИНН ВСТАВЬ_СВОЙ_ИНН
+                                </div>
                             </div>
+
                         </div>
                     </motion.div>
                 )}
