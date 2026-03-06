@@ -9,7 +9,7 @@ import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc,
   query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove, enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight, ChevronDown } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -62,7 +62,7 @@ const triggerHaptic = () => {
 };
 
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: 775101376595`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\n НПД\nИНН: 775101376595`;
 const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН 775101376595)`;
 
 const AUDIO_TRACKS = [
@@ -376,6 +376,9 @@ const App = () => {
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
   const [donateAmount, setDonateAmount] = useState('');
 
+  // Стейт для раскрытия путеводителя
+  const [isGuideExpanded, setIsGuideExpanded] = useState(false);
+
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
   const [successMessage, setSuccessMessage] = useState("Услышано");
   const [isUiVisible, setIsUiVisible] = useState(true); 
@@ -559,7 +562,6 @@ const App = () => {
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
   const saveEdit = async () => { if(!editForm.title.trim()) return; await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', editingId), { title: editForm.title, text: editForm.text }); setEditingId(null); };
   
-  // ФУНКЦИЯ ДЛЯ КНОПКИ "ЕСТЬ ОТВЕТ"
   const openAnswerModal = (id) => {
       triggerHaptic();
       setAnsweringId(id);
@@ -838,40 +840,66 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
-                            {/* ОБНОВЛЕННЫЙ ПУТЕВОДИТЕЛЬ */}
-                            <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md`}>
-                                <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-6 opacity-60 ${fonts.ui}`}>Путеводитель</h4>
-                                <div className="space-y-6">
-                                    <div>
-                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Disc size={16} className="opacity-60"/> Поток и Погружение</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца. Свободно меняйте фоны в меню и включайте музыку, чтобы отсечь лишний шум.</p>
-                                    </div>
-                                    <div className="w-12 h-px bg-current opacity-20"></div>
-                                    <div>
-                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><MessageCircle size={16} className="opacity-60"/> Единство</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте молитвы других словом Amen. Вы не одни.</p>
-                                    </div>
-                                    <div className="w-12 h-px bg-current opacity-20"></div>
-                                    <div>
-                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><BookOpen size={16} className="opacity-60"/> Дневник и Ответы</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — собирая свидетельства Его верности.</p>
-                                    </div>
-                                    <div className="w-12 h-px bg-current opacity-20"></div>
-                                    <div>
-                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sprout size={16} className="opacity-60"/> Сад веры</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
-                                    </div>
-                                    <div className="w-12 h-px bg-current opacity-20"></div>
-                                    <div>
-                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Feather size={16} className="opacity-60"/> Ангел проекта</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Поддерживая проект, вы становитесь его Ангелом. Это открывает доступ к дополнительным анимированным фонам, эксклюзивной музыке и закрытому чату основателей.</p>
-                                    </div>
-                                    <div className="w-12 h-px bg-current opacity-20"></div>
-                                    <div>
-                                        <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Mail size={16} className="opacity-60"/> Обратная связь</h5>
-                                        <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Кнопка «Написать» создана для прямой связи со мной. Нашли ошибку? Есть идея? Пишите, я читаю всё.</p>
-                                    </div>
-                                </div>
+                            {/* РАСКРЫВАЮЩИЙСЯ ПУТЕВОДИТЕЛЬ */}
+                            <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md transition-all`}>
+                                <button 
+                                    onClick={() => { triggerHaptic(); setIsGuideExpanded(!isGuideExpanded); }} 
+                                    className="w-full flex justify-between items-center group cursor-pointer"
+                                >
+                                    <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity ${fonts.ui}`}>Путеводитель</h4>
+                                    <motion.div animate={{ rotate: isGuideExpanded ? 180 : 0 }} transition={{ duration: 0.3 }} className="opacity-60 group-hover:opacity-100">
+                                        <ChevronDown size={16} />
+                                    </motion.div>
+                                </button>
+
+                                <AnimatePresence>
+                                    {isGuideExpanded && (
+                                        <motion.div 
+                                            initial={{ height: 0, opacity: 0 }} 
+                                            animate={{ height: "auto", opacity: 1 }} 
+                                            exit={{ height: 0, opacity: 0 }} 
+                                            transition={{ duration: 0.3, ease: "easeOut" }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="space-y-6 mt-6 pt-6 border-t border-current border-opacity-10">
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Disc size={16} className="opacity-60"/> Поток и Погружение</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца. Свободно меняйте фоны в меню и включайте музыку, чтобы отсечь лишний шум.</p>
+                                                </div>
+                                                <div className="w-12 h-px bg-current opacity-20"></div>
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><MessageCircle size={16} className="opacity-60"/> Единство</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте молитвы других словом Amen. Вы не одни.</p>
+                                                </div>
+                                                <div className="w-12 h-px bg-current opacity-20"></div>
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><BookOpen size={16} className="opacity-60"/> Дневник и Ответы</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — собирая свидетельства Его верности.</p>
+                                                </div>
+                                                <div className="w-12 h-px bg-current opacity-20"></div>
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sprout size={16} className="opacity-60"/> Сад веры</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
+                                                </div>
+                                                <div className="w-12 h-px bg-current opacity-20"></div>
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Feather size={16} className="opacity-60"/> Ангел проекта</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Делая добровольное пожертвование, вы помогаете проекту жить без рекламы. В знак благодарности вы получаете статус Ангела (перо возле имени) на один месяц.</p>
+                                                </div>
+                                                <div className="w-12 h-px bg-current opacity-20"></div>
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sparkles size={16} className="opacity-60"/> Премиум погружение</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Отдельная платная услуга (в разработке), которая открывает доступ к эксклюзивным анимированным фонам и расширенной музыкальной библиотеке.</p>
+                                                </div>
+                                                <div className="w-12 h-px bg-current opacity-20"></div>
+                                                <div>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Mail size={16} className="opacity-60"/> Обратная связь</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Кнопка «Написать» создана для прямой связи со мной. Нашли ошибку? Есть идея? Пишите, я читаю всё.</p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 mb-12">
