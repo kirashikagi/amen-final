@@ -62,8 +62,8 @@ const triggerHaptic = () => {
 };
 
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\n НПД\nИНН: 775101376595`;
-const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН 775101376595)`;
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
+const DISCLAIMER_TEXT = `Amen не заменяет профессиональную помощь.\nКонтент носит духовный характер.\nРазработано плательщиком НПД (ИНН ВСТАВЬ_СВОЙ_ИНН_СЮДА)`;
 
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
@@ -168,7 +168,7 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                             <div className="w-12 h-px bg-current opacity-20"></div>
                             <div>
                                 <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><Disc size={16} className="opacity-60"/> Погружение</h5>
-                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в меню), чтобы отсечь лишний шум.</p>
+                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в профиле), чтобы отсечь лишний шум.</p>
                             </div>
                         </div>
                     </div>
@@ -277,7 +277,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
   );
 };
 
-const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAdmin, isUiVisible }) => {
+const TopMenu = ({ view, setView, theme, openLegal, logout, isAdmin, isUiVisible }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [ { id: 'diary', label: 'Дневник' }, { id: 'flow', label: 'Поток' }, { id: 'profile', label: 'Профиль' } ];
 
@@ -296,7 +296,6 @@ const TopMenu = ({ view, setView, theme, openThemeModal, openLegal, logout, isAd
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>{item.label}</button>
                 ))}
-                <button onClick={() => { openThemeModal(); setIsOpen(false); }} className="text-left text-xl font-light opacity-100 hover:opacity-80">Атмосфера</button>
                 {isAdmin && <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-lg font-normal opacity-70 hover:opacity-100 flex items-center gap-3 mt-4"><Mail size={18}/> Входящие</button>}
               </div>
               <div className="mb-8 flex flex-col items-start gap-2 opacity-40">
@@ -366,7 +365,6 @@ const App = () => {
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -632,7 +630,7 @@ const App = () => {
       </AnimatePresence>
 
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden ${showWelcomeScreen ? 'pointer-events-none blur-sm' : ''}`}>
-        <TopMenu view={view} setView={setView} theme={theme} openThemeModal={() => setShowThemeModal(true)} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
+        <TopMenu view={view} setView={setView} theme={theme} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
         <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28 min-h-screen"> 
           
@@ -840,7 +838,24 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
-                            {/* РАСКРЫВАЮЩИЙСЯ ПУТЕВОДИТЕЛЬ */}
+                            {/* ВЫБОР АТМОСФЕРЫ (НОВЫЙ БЛОК) */}
+                            <div className="mb-10 w-full">
+                                <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-4 opacity-60 text-left px-2 ${fonts.ui}`}>Атмосфера</h4>
+                                <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
+                                    {Object.values(THEMES).map(t => (
+                                        <div key={t.id} className="flex flex-col items-center gap-2 shrink-0 snap-center">
+                                            <button 
+                                                onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); }} 
+                                                className={`relative w-16 h-16 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`}
+                                            >
+                                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                            </button>
+                                            <span className={`text-[10px] font-medium transition-opacity ${currentThemeId === t.id ? 'opacity-100' : 'opacity-40'} ${fonts.ui}`}>{t.label}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
                             <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md transition-all`}>
                                 <button 
                                     onClick={() => { triggerHaptic(); setIsGuideExpanded(!isGuideExpanded); }} 
@@ -864,7 +879,7 @@ const App = () => {
                                             <div className="space-y-6 mt-6 pt-6 border-t border-current border-opacity-10">
                                                 <div>
                                                     <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Disc size={16} className="opacity-60"/> Поток и Погружение</h5>
-                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца. Свободно меняйте фоны в меню и включайте музыку, чтобы отсечь лишний шум.</p>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ежедневный фокус из Писания для настройки сердца. Свободно меняйте фоны в профиле и включайте музыку, чтобы отсечь лишний шум.</p>
                                                 </div>
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
@@ -1038,27 +1053,6 @@ const App = () => {
                         <p className={`text-sm opacity-80 mb-4 leading-relaxed ${fonts.ui}`}>Нашли ошибку? Есть идея? Или просто хотите сказать спасибо? Я читаю всё.</p>
                         <textarea value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)} placeholder="Ваше сообщение..." className={`w-full p-4 rounded-xl outline-none h-32 text-[17px] leading-relaxed resize-none mb-6 ${theme.containerBg} ${fonts.content}`} />
                         <button onClick={sendFeedback} className={`w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition ${fonts.ui}`}>Отправить</button>
-                    </motion.div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-            {showThemeModal && (
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/30 backdrop-blur-md" onClick={() => setShowThemeModal(false)}>
-                    <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" onClick={e => e.stopPropagation()} className={`fixed top-1/2 left-6 right-6 -translate-y-1/2 z-[100] rounded-3xl p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[70vh] overflow-y-auto`}>
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Атмосфера</h3>
-                            <button onClick={() => setShowThemeModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            {Object.values(THEMES).map(t => (
-                                <button key={t.id} onClick={() => setCurrentThemeId(t.id)} className={`h-24 rounded-2xl relative overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-105' : 'opacity-80 hover:opacity-100'}`}>
-                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                                <span className={`absolute inset-0 flex items-center justify-center bg-black/30 text-white text-xs font-bold uppercase tracking-widest shadow-sm ${fonts.ui}`}>{t.label}</span>
-                                </button>
-                            ))}
-                        </div>
                     </motion.div>
                 </motion.div>
             )}
