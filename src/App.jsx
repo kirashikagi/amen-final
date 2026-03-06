@@ -61,8 +61,8 @@ const triggerHaptic = () => {
     }
 };
 
-// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
-const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: 775101376595`;
+// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ ---
+const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
 
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
@@ -85,7 +85,6 @@ const THEMES = {
   midnight: { id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' }
 };
 
-// --- ФОКУС ДНЯ: РАБОТАЕТ ПО ДАТАМ (ДД-ММ) ---
 const CALENDAR_READINGS = {
   "06-03": { title: "Сила тишины", source: "Псалом 61:2", text: "Только в Боге успокаивается душа моя: от Него спасение мое.", thought: "В мире, где всё требует нашего внимания, тишина становится самым ценным ресурсом. Найди сегодня 5 минут, чтобы просто побыть в Его присутствии." },
   "07-03": { title: "Скрытая работа", source: "Матфея 6:6", text: "Ты же, когда молишься, войди в комнату твою и, затворив дверь твою, помолись Отцу твоему, Который втайне...", thought: "Самая важная работа происходит там, где никто не видит. Не ищи одобрения людей, ищи искренности перед Отцом." },
@@ -616,8 +615,19 @@ const App = () => {
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
-      <div className={`fixed inset-0 z-[-1] bg-cover bg-center transition-all duration-1000`} style={{ backgroundImage: theme.bgImage ? `url(${theme.bgImage})` : 'none', backgroundColor: theme.fallbackColor }} />
-      <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay}`} />
+      {/* КИНЕМАТОГРАФИЧЕСКИЙ КРОССФЕЙД ФОНА */}
+      <div className={`fixed inset-0 z-[-2] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
+      <AnimatePresence>
+          <motion.div
+              key={currentThemeId}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.2, ease: "easeInOut" }}
+              className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${theme.bgImage})` }}
+          />
+      </AnimatePresence>
 
       <AnimatePresence>
           {showWelcomeScreen && (
@@ -838,19 +848,21 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
+                            {/* ОБНОВЛЕННЫЙ ВЫБОР АТМОСФЕРЫ (БЕЗ СКРОЛЛА) */}
                             <div className="mb-10 w-full">
-                                <h4 className={`text-[10px] font-bold uppercase tracking-widest mb-4 opacity-60 text-left px-2 ${fonts.ui}`}>Атмосфера</h4>
-                                <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
+                                <div className="flex items-center mb-4 px-2">
+                                     <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${fonts.ui}`}>Атмосфера</h4>
+                                     <span className={`text-[10px] uppercase tracking-widest ml-2 opacity-100 ${fonts.ui}`}>{theme.label}</span>
+                                </div>
+                                <div className="flex justify-between items-center w-full px-1">
                                     {Object.values(THEMES).map(t => (
-                                        <div key={t.id} className="flex flex-col items-center gap-2 shrink-0 snap-center">
-                                            <button 
-                                                onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); }} 
-                                                className={`relative w-16 h-16 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`}
-                                            >
-                                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                                            </button>
-                                            <span className={`text-[10px] font-medium transition-opacity ${currentThemeId === t.id ? 'opacity-100' : 'opacity-40'} ${fonts.ui}`}>{t.label}</span>
-                                        </div>
+                                        <button 
+                                            key={t.id}
+                                            onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); }} 
+                                            className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
+                                        >
+                                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -926,7 +938,6 @@ const App = () => {
                                 </button>
                             </div>
 
-                            {/* НОВЫЙ КРАСИВЫЙ БЛОК РАЗРАБОТЧИКА ВНИЗУ ПРОФИЛЯ */}
                             <div className={`mt-auto pt-8 pb-4 flex flex-col items-center justify-center opacity-40 hover:opacity-80 transition-opacity ${fonts.ui}`}>
                                 <Feather size={14} className="mb-2 opacity-50" />
                                 <div className="text-[10px] uppercase tracking-widest font-bold mb-1">Amen App</div>
@@ -935,7 +946,7 @@ const App = () => {
                                 </div>
                                 <div className="text-[8px] uppercase tracking-widest opacity-50 text-center">
                                     Создано с душой<br/>
-                                    НПД ИНН ВСТАВЬ_СВОЙ_ИНН
+                                    НПД ИНН ВСТАВЬ_СВОЙ_ИНН_СЮДА
                                 </div>
                             </div>
 
