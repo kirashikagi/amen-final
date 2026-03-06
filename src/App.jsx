@@ -9,7 +9,8 @@ import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc,
   query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove, enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight, ChevronDown } from 'lucide-react'; 
+// ДОБАВИЛ ИКОНКУ Lock ДЛЯ ЗАМОЧКА
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight, ChevronDown, Lock } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -61,7 +62,7 @@ const triggerHaptic = () => {
     }
 };
 
-// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ ---
+// --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
 
 const AUDIO_TRACKS = [
@@ -76,13 +77,19 @@ const AUDIO_TRACKS = [
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
 ];
 
+// --- ОБНОВЛЕННЫЕ ТЕМЫ: ДОБАВЛЕНЫ 3 ВИДЕО-ФОНА ---
 const THEMES = {
-  dawn: { id: 'dawn', label: 'Безмятежность', bgImage: '/dawn.jpg', fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
-  morning: { id: 'morning', label: 'Величие', bgImage: '/morning.jpg', fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
-  day: { id: 'day', label: 'Гармония', bgImage: '/day.jpg', fallbackColor: '#fdfce7', headerColor: '#fdfce7', cardBg: 'bg-[#fffff0]/70 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-800', containerBg: 'bg-white/80', button: 'border border-stone-900/10 hover:bg-white/60 text-stone-950', activeButton: 'bg-amber-950 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-amber-950', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-amber-950' },
-  sunset: { id: 'sunset', label: 'Откровение', bgImage: '/sunset.jpg', fallbackColor: '#fff1f2', headerColor: '#fff1f2', cardBg: 'bg-stone-950/40 backdrop-blur-3xl shadow-md', text: 'text-orange-50', subText: 'text-orange-100', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-100 text-stone-950 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-200', placeholderColor: 'placeholder:text-orange-100/70', progressBar: 'bg-orange-100' },
-  evening: { id: 'evening', label: 'Тайна', bgImage: '/evening.jpg', fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
-  midnight: { id: 'midnight', label: 'Волшебство', bgImage: '/midnight.jpg', fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' }
+  dawn: { id: 'dawn', type: 'image', label: 'Безмятежность', bgImage: '/dawn.jpg', isPremium: false, fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
+  morning: { id: 'morning', type: 'image', label: 'Величие', bgImage: '/morning.jpg', isPremium: false, fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
+  day: { id: 'day', type: 'image', label: 'Гармония', bgImage: '/day.jpg', isPremium: false, fallbackColor: '#fdfce7', headerColor: '#fdfce7', cardBg: 'bg-[#fffff0]/70 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-800', containerBg: 'bg-white/80', button: 'border border-stone-900/10 hover:bg-white/60 text-stone-950', activeButton: 'bg-amber-950 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-amber-950', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-amber-950' },
+  sunset: { id: 'sunset', type: 'image', label: 'Откровение', bgImage: '/sunset.jpg', isPremium: false, fallbackColor: '#fff1f2', headerColor: '#fff1f2', cardBg: 'bg-stone-950/40 backdrop-blur-3xl shadow-md', text: 'text-orange-50', subText: 'text-orange-100', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-100 text-stone-950 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-200', placeholderColor: 'placeholder:text-orange-100/70', progressBar: 'bg-orange-100' },
+  evening: { id: 'evening', type: 'image', label: 'Тайна', bgImage: '/evening.jpg', isPremium: false, fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
+  midnight: { id: 'midnight', type: 'image', label: 'Волшебство', bgImage: '/midnight.jpg', isPremium: false, fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
+  
+  // ПРЕМИУМ ВИДЕО-ФОНЫ
+  premium1: { id: 'premium1', type: 'video', label: 'Поток', bgVideo: '/vid1.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
+  premium2: { id: 'premium2', type: 'video', label: 'Огонь', bgVideo: '/vid2.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
+  premium3: { id: 'premium3', type: 'video', label: 'Свет', bgVideo: '/vid3.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-black/40 backdrop-blur-3xl shadow-md', text: 'text-white', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' }
 };
 
 const CALENDAR_READINGS = {
@@ -358,6 +365,7 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   const [isAngel, setIsAngel] = useState(false);
+  const [hasPremium, setHasPremium] = useState(false); // НОВЫЙ СТЕЙТ ДЛЯ ПРЕМИУМА
   const [seedStage, setSeedStage] = useState(0);
   const [seedFruits, setSeedFruits] = useState(0);
 
@@ -365,6 +373,7 @@ const App = () => {
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false); // МОДАЛКА ПРЕМИУМА
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -479,6 +488,7 @@ const App = () => {
               }
           }
           setIsAngel(currentIsAngel);
+          setHasPremium(data.hasPremium || false); // ЧИТАЕМ СТАТУС ПРЕМИУМА
 
           let lastVisitTime = 0;
           if (data.lastVisit && typeof data.lastVisit.toDate === 'function') {
@@ -515,7 +525,7 @@ const App = () => {
           setSeedStage(newStage);
           setSeedFruits(newFruits);
       } else {
-          await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false }, { merge: true });
+          await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false, hasPremium: false }, { merge: true });
       }
   };
 
@@ -615,19 +625,33 @@ const App = () => {
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
-      {/* КИНЕМАТОГРАФИЧЕСКИЙ КРОССФЕЙД ФОНА */}
-      <div className={`fixed inset-0 z-[-2] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
+      {/* КИНЕМАТОГРАФИЧЕСКИЙ КРОССФЕЙД ФОНОВ (без растягивания) */}
+      <div className={`fixed inset-0 z-[-3] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
       <AnimatePresence>
-          <motion.div
-              key={currentThemeId}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.2, ease: "easeInOut" }}
-              className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${theme.bgImage})` }}
-          />
+          {theme.type === 'video' ? (
+              <motion.video
+                  key={theme.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.5, ease: "easeInOut" }}
+                  autoPlay loop muted playsInline
+                  className="fixed inset-0 z-[-2] w-full h-full object-cover"
+                  src={theme.bgVideo}
+              />
+          ) : (
+              <motion.div
+                  key={theme.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.5, ease: "easeInOut" }}
+                  className="fixed inset-0 z-[-2] bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${theme.bgImage})` }}
+              />
+          )}
       </AnimatePresence>
+      <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay || ''}`} />
 
       <AnimatePresence>
           {showWelcomeScreen && (
@@ -848,20 +872,38 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
-                            {/* ОБНОВЛЕННЫЙ ВЫБОР АТМОСФЕРЫ (БЕЗ СКРОЛЛА) */}
+                            {/* ЖЕСТКАЯ СЕТКА КРУЖОЧКОВ ТЕМ БЕЗ СКРОЛЛА */}
                             <div className="mb-10 w-full">
                                 <div className="flex items-center mb-4 px-2">
                                      <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${fonts.ui}`}>Атмосфера</h4>
                                      <span className={`text-[10px] uppercase tracking-widest ml-2 opacity-100 ${fonts.ui}`}>{theme.label}</span>
                                 </div>
-                                <div className="flex justify-between items-center w-full px-1">
+                                <div className="flex justify-between items-center w-full px-2">
                                     {Object.values(THEMES).map(t => (
                                         <button 
                                             key={t.id}
-                                            onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); }} 
+                                            onClick={() => { 
+                                                triggerHaptic(); 
+                                                if (t.isPremium && !hasPremium) {
+                                                    setShowPremiumModal(true);
+                                                    return;
+                                                }
+                                                setCurrentThemeId(t.id); 
+                                            }} 
                                             className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
                                         >
-                                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                            {t.type === 'video' ? (
+                                                <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
+                                            ) : (
+                                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                            )}
+                                            
+                                            {/* ЗАМОЧЕК ДЛЯ ПРЕМИУМ-ТЕМ */}
+                                            {t.isPremium && !hasPremium && (
+                                                <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
+                                                    <Lock size={16} className="text-white opacity-90" />
+                                                </div>
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -915,7 +957,7 @@ const App = () => {
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
                                                     <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sparkles size={16} className="opacity-60"/> Премиум погружение</h5>
-                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Отдельная платная услуга (в разработке), которая открывает доступ к эксклюзивным анимированным фонам и расширенной музыкальной библиотеке.</p>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Отдельная платная услуга, которая открывает доступ к эксклюзивным анимированным фонам и расширенной музыкальной библиотеке.</p>
                                                 </div>
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
@@ -997,6 +1039,38 @@ const App = () => {
       </div>
 
       {/* --- MODALS --- */}
+      
+      {/* МОДАЛКА ПРЕМИУМА (НОВАЯ) */}
+      <AnimatePresence>
+            {showPremiumModal && (
+                <>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setShowPremiumModal(false)}/>
+                <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-[20%] left-6 right-6 z-[100] rounded-[2.5rem] p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[70vh] overflow-y-auto no-scrollbar`}>
+                    <div className="flex justify-between items-center mb-6">
+                        <div className="flex items-center gap-3">
+                            <Sparkles className={theme.iconColor} size={24} />
+                            <h3 className={`text-2xl font-medium ${fonts.ui}`}>Премиум</h3>
+                        </div>
+                        <button onClick={() => setShowPremiumModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
+                    </div>
+                    
+                    <div className={`p-6 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
+                        <p className={`text-[15px] leading-relaxed opacity-100 ${fonts.content}`}>
+                            Откройте полный доступ к эксклюзивным анимированным фонам и расширенной библиотеке музыки для глубокого погружения. Доступ предоставляется навсегда.
+                        </p>
+                    </div>
+
+                    <button 
+                        onClick={() => alert("Оплата Премиума (настроим в следующем шаге)")} 
+                        className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui}`}
+                    >
+                        Открыть доступ (499 ₽)
+                    </button>
+                </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+
       <AnimatePresence>
             {showSupportModal && (
                 <>
