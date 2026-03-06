@@ -9,7 +9,6 @@ import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc,
   query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove, enableIndexedDbPersistence
 } from "firebase/firestore";
-// ДОБАВИЛ ИКОНКУ Lock ДЛЯ ЗАМОЧКА
 import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight, ChevronDown, Lock } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
@@ -23,7 +22,7 @@ const firebaseConfig = {
 };
 
 const dbCollectionId = "amen-production"; 
-const ADMIN_NAMES = ['Admin', 'Founder', 'admin', 'founder', 'Киря'];
+const ADMIN_NAMES = ['Admin', 'Founder', 'admin', 'founder', 'Киря', 'Димон'];
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -65,6 +64,7 @@ const triggerHaptic = () => {
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
 
+// --- АУДИО (Добавлены премиум-треки с ценами) ---
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
   { id: 2, title: "Evening Prayer", url: "/music/evening-prayer.mp3" },
@@ -75,9 +75,13 @@ const AUDIO_TRACKS = [
   { id: 7, title: "Deep Prayer", url: "/music/prayer.mp3" },
   { id: 8, title: "Sunrise", url: "/music/sunrise.mp3" },
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
+  // ПРЕМИУМ ТРЕКИ
+  { id: 10, title: "Ангельские голоса (Premium)", url: "/music/premium1.mp3", isPremium: true, price: 99 },
+  { id: 11, title: "Глубокий океан (Premium)", url: "/music/premium2.mp3", isPremium: true, price: 99 },
+  { id: 12, title: "Небесная арфа (Premium)", url: "/music/premium3.mp3", isPremium: true, price: 99 },
 ];
 
-// --- ОБНОВЛЕННЫЕ ТЕМЫ: ДОБАВЛЕНЫ 3 ВИДЕО-ФОНА ---
+// --- ТЕМЫ (Добавлены цены на видео-фоны) ---
 const THEMES = {
   dawn: { id: 'dawn', type: 'image', label: 'Безмятежность', bgImage: '/dawn.jpg', isPremium: false, fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
   morning: { id: 'morning', type: 'image', label: 'Величие', bgImage: '/morning.jpg', isPremium: false, fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
@@ -86,10 +90,9 @@ const THEMES = {
   evening: { id: 'evening', type: 'image', label: 'Тайна', bgImage: '/evening.jpg', isPremium: false, fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   midnight: { id: 'midnight', type: 'image', label: 'Волшебство', bgImage: '/midnight.jpg', isPremium: false, fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   
-  // ПРЕМИУМ ВИДЕО-ФОНЫ
-  premium1: { id: 'premium1', type: 'video', label: 'Поток', bgVideo: '/vid1.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
-  premium2: { id: 'premium2', type: 'video', label: 'Огонь', bgVideo: '/vid2.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
-  premium3: { id: 'premium3', type: 'video', label: 'Свет', bgVideo: '/vid3.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-black/40 backdrop-blur-3xl shadow-md', text: 'text-white', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' }
+  premium1: { id: 'premium1', type: 'video', label: 'Поток', bgVideo: '/vid1.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
+  premium2: { id: 'premium2', type: 'video', label: 'Огонь', bgVideo: '/vid2.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
+  premium3: { id: 'premium3', type: 'video', label: 'Свет', bgVideo: '/vid3.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/40 backdrop-blur-3xl shadow-md', text: 'text-white', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' }
 };
 
 const CALENDAR_READINGS = {
@@ -119,83 +122,19 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`fixed inset-0 z-[80] bg-cover bg-center overflow-y-auto no-scrollbar`} style={{ backgroundImage: `url(${theme.bgImage})`, backgroundColor: theme.fallbackColor }}>
             <div className={`min-h-screen p-6 md:p-12 pb-32 flex flex-col max-w-2xl mx-auto ${theme.text} bg-black/20 backdrop-blur-sm`}>
-                
                 <div className="pt-16 pb-12 text-center">
                     <h1 className={`text-4xl font-semibold tracking-tight mb-4 ${fonts.ui}`}>Добро пожаловать</h1>
                     <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
                 </div>
-
                 <div className="space-y-6">
                     <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Что такое молитва?</h2>
-                        <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>
-                            Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами. Суета разрывает нас на части, а молитва возвращает в реальность — она неизбежно меняет того, кто молится.
-                        </p>
-                    </div>
-
-                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
-                        <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Анатомия разговора</h2>
-                        <ul className={`space-y-5 text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>
-                            <li className="flex gap-4">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
-                                <div><strong className="font-semibold block mb-1">Благодарение</strong>Смещение фокуса с того, чего у нас нет, на Того, кто дает всё.</div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
-                                <div><strong className="font-semibold block mb-1">Покаяние</strong>Сброс балласта. Искреннее признание ошибок исцеляет.</div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
-                                <div><strong className="font-semibold block mb-1">Прошение</strong>Доверие своих нужд и страхов в руки Отца.</div>
-                            </li>
-                            <li className="flex gap-4">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={18}/></div>
-                                <div><strong className="font-semibold block mb-1">Созерцание</strong>Момент, когда мы перестаем говорить и начинаем слушать тишину.</div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
-                        <h2 className={`text-xl font-semibold mb-6 ${fonts.ui}`}>Как устроен Amen</h2>
-                        <div className="space-y-6">
-                            <div>
-                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><MessageCircle size={16} className="opacity-60"/> Единство</h5>
-                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте чужие молитвы нажатием Amen. Вы не одни.</p>
-                            </div>
-                            <div className="w-12 h-px bg-current opacity-20"></div>
-                            <div>
-                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><BookOpen size={16} className="opacity-60"/> Дневник и Ответы</h5>
-                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — чтобы собирать свидетельства Его верности.</p>
-                            </div>
-                            <div className="w-12 h-px bg-current opacity-20"></div>
-                            <div>
-                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><Sprout size={16} className="opacity-60"/> Сад веры</h5>
-                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
-                            </div>
-                            <div className="w-12 h-px bg-current opacity-20"></div>
-                            <div>
-                                <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui}`}><Disc size={16} className="opacity-60"/> Погружение</h5>
-                                <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в профиле), чтобы отсечь лишний шум.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl text-center`}>
-                        <span className={`text-6xl opacity-20 block mb-2 leading-none ${fonts.content}`}>“</span>
-                        <p className={`text-lg leading-[1.7] font-medium opacity-90 mb-4 ${fonts.content}`}>
-                            Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий соблюдет сердца ваши...
-                        </p>
-                        <p className={`text-sm opacity-60 uppercase tracking-widest font-bold ${fonts.ui}`}>Филиппийцам 4:6-7</p>
+                        <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.</p>
                     </div>
                 </div>
-
                 <div className="mt-12 flex flex-col gap-6">
                     <div className="flex items-start gap-4 px-2">
-                        <button 
-                            type="button"
-                            onClick={() => { triggerHaptic(); setAccepted(!accepted); }}
-                            className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}
-                        >
+                        <button type="button" onClick={() => { triggerHaptic(); setAccepted(!accepted); }} className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}>
                             {accepted && <Check size={14} className="text-white dark:text-black" />}
                         </button>
                         <span className={`text-sm opacity-80 leading-relaxed ${fonts.ui}`}>
@@ -203,12 +142,7 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                             <button type="button" onClick={(e) => { e.stopPropagation(); openLegal(); }} className="underline underline-offset-4 opacity-100 font-semibold hover:opacity-70 transition-opacity">Пользовательского соглашения</button>.
                         </span>
                     </div>
-
-                    <button 
-                        onClick={onComplete} 
-                        disabled={!accepted}
-                        className={`w-full py-5 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}
-                    >
+                    <button onClick={onComplete} disabled={!accepted} className={`w-full py-5 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}>
                         Начать путь <ChevronRight size={18} />
                     </button>
                 </div>
@@ -217,7 +151,7 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
     );
 };
 
-const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
+const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible, isAdmin, unlockedTracks, openPremiumModal }) => {
   const audioRef = useRef(null);
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -253,11 +187,26 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="fixed inset-0 z-40 bg-black/10 backdrop-blur-sm" onClick={() => setShowPlaylist(false)} />
                 <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed bottom-28 left-4 right-4 z-50 rounded-2xl p-4 shadow-2xl ${theme.menuBg} max-h-72 overflow-y-auto ${fonts.ui}`}>
                     <h4 className="text-sm font-medium opacity-50 mb-4 px-2">Фонотека</h4>
-                    {AUDIO_TRACKS.map(track => (
-                        <button key={track.id} onClick={() => { changeTrack(track); setShowPlaylist(false); }} className={`w-full text-left py-3 px-2 rounded-lg text-sm font-normal transition-colors hover:bg-black/5 ${currentTrack.id === track.id ? 'bg-black/5 dark:bg-white/10 font-medium' : ''}`}>
-                            {track.title}
-                        </button>
-                    ))}
+                    {AUDIO_TRACKS.map(track => {
+                        const isUnlocked = isAdmin || !track.isPremium || unlockedTracks.includes(track.id);
+                        return (
+                            <button 
+                                key={track.id} 
+                                onClick={() => { 
+                                    if (!isUnlocked) {
+                                        openPremiumModal({ id: track.id, type: 'track', title: track.title, price: track.price });
+                                    } else {
+                                        changeTrack(track); 
+                                        setShowPlaylist(false); 
+                                    }
+                                }} 
+                                className={`w-full text-left py-3 px-2 rounded-lg text-sm font-normal transition-colors flex justify-between items-center hover:bg-black/5 ${currentTrack.id === track.id ? 'bg-black/5 dark:bg-white/10 font-medium' : ''}`}
+                            >
+                                <span className="truncate pr-2 opacity-90">{track.title}</span>
+                                {!isUnlocked && <Lock size={14} className="opacity-50 flex-shrink-0" />}
+                            </button>
+                        );
+                    })}
                 </motion.div>
             </>
         )}
@@ -364,8 +313,11 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
+  // СТАТУСЫ ПОЛЬЗОВАТЕЛЯ И ПОКУПКИ
   const [isAngel, setIsAngel] = useState(false);
-  const [hasPremium, setHasPremium] = useState(false); // НОВЫЙ СТЕЙТ ДЛЯ ПРЕМИУМА
+  const [unlockedThemes, setUnlockedThemes] = useState([]); // Массив купленных тем
+  const [unlockedTracks, setUnlockedTracks] = useState([]); // Массив купленных треков
+  
   const [seedStage, setSeedStage] = useState(0);
   const [seedFruits, setSeedFruits] = useState(0);
 
@@ -373,9 +325,11 @@ const App = () => {
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false); // МОДАЛКА ПРЕМИУМА
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Стейт для модалки покупки конкретного премиум-товара
+  const [premiumItemToBuy, setPremiumItemToBuy] = useState(null); // { id, type: 'theme'|'track', title, price }
 
   const [isFocusExpanded, setIsFocusExpanded] = useState(false);
   const [inlineFocusText, setInlineFocusText] = useState('');
@@ -488,7 +442,10 @@ const App = () => {
               }
           }
           setIsAngel(currentIsAngel);
-          setHasPremium(data.hasPremium || false); // ЧИТАЕМ СТАТУС ПРЕМИУМА
+          
+          // ЧИТАЕМ МАССИВЫ ПОКУПОК
+          setUnlockedThemes(data.unlockedThemes || []);
+          setUnlockedTracks(data.unlockedTracks || []);
 
           let lastVisitTime = 0;
           if (data.lastVisit && typeof data.lastVisit.toDate === 'function') {
@@ -525,7 +482,7 @@ const App = () => {
           setSeedStage(newStage);
           setSeedFruits(newFruits);
       } else {
-          await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false, hasPremium: false }, { merge: true });
+          await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false, unlockedThemes: [], unlockedTracks: [] }, { merge: true });
       }
   };
 
@@ -569,13 +526,7 @@ const App = () => {
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
   const saveEdit = async () => { if(!editForm.title.trim()) return; await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', editingId), { title: editForm.title, text: editForm.text }); setEditingId(null); };
   
-  const openAnswerModal = (id) => {
-      triggerHaptic();
-      setAnsweringId(id);
-      setAnswerText('');
-      setShowAnswerModal(true);
-  };
-
+  const openAnswerModal = (id) => { triggerHaptic(); setAnsweringId(id); setAnswerText(''); setShowAnswerModal(true); };
   const confirmAnswer = async () => { if(!answeringId) return; await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', answeringId), { status: 'answered', answerNote: answerText, answeredAt: serverTimestamp() }); const prayer = myPrayers.find(p => p.id === answeringId); if(prayer) { const q = query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), where('authorId', '==', user.uid)); const querySnapshot = await getDocs(q); querySnapshot.forEach(async (docSnap) => { if (docSnap.data().text.startsWith(prayer.title)) await updateDoc(docSnap.ref, { status: 'answered' }); }); } setShowAnswerModal(false); setAnsweringId(null); setSuccessMessage("Твой путь важен"); setShowSuccessModal(true); setTimeout(() => setShowSuccessModal(false), 2000); };
   const deletePost = async (id) => { if(confirm("Админ: Удалить пост?")) await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id)); };
   const deleteFeedback = async (id) => { if(confirm("Админ: Удалить отзыв?")) await deleteDoc(doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback', id)); };
@@ -597,6 +548,7 @@ const App = () => {
       } catch (error) { console.error("Ошибка сброса:", error); alert("Ошибка при сбросе."); }
   };
 
+  // ФУНКЦИЯ: ОПЛАТА АНГЕЛА
   const becomeAngel = async () => {
       triggerHaptic();
       setIsAuthLoading(true); 
@@ -605,7 +557,32 @@ const App = () => {
           const res = await fetch('/api/payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: user.uid, amount: amountToSend })
+              body: JSON.stringify({ userId: user.uid, amount: amountToSend, purchaseType: 'angel' })
+          });
+          const data = await res.json();
+          if (data.url) window.location.href = data.url; 
+          else throw new Error("Нет ссылки от сервера");
+      } catch (error) {
+          console.error("Ошибка инициализации платежа:", error);
+          setSuccessMessage("Ошибка связи с кассой");
+          setShowSuccessModal(true); setTimeout(() => setShowSuccessModal(false), 2000);
+      } finally { setIsAuthLoading(false); }
+  };
+
+  // ФУНКЦИЯ: ПОКУПКА ПРЕМИУМ-ТОВАРА (Фон или Музыка)
+  const buyPremiumItem = async () => {
+      triggerHaptic();
+      setIsAuthLoading(true); 
+      try {
+          const res = await fetch('/api/payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ 
+                  userId: user.uid, 
+                  amount: premiumItemToBuy.price, 
+                  purchaseType: premiumItemToBuy.type, // 'theme' или 'track'
+                  itemId: premiumItemToBuy.id // id фона или трека
+              })
           });
           const data = await res.json();
           if (data.url) window.location.href = data.url; 
@@ -625,7 +602,7 @@ const App = () => {
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
-      {/* КИНЕМАТОГРАФИЧЕСКИЙ КРОССФЕЙД ФОНОВ (без растягивания) */}
+      {/* КИНЕМАТОГРАФИЧЕСКИЙ КРОССФЕЙД ФОНОВ */}
       <div className={`fixed inset-0 z-[-3] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
       <AnimatePresence>
           {theme.type === 'video' ? (
@@ -872,40 +849,42 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
-                            {/* ЖЕСТКАЯ СЕТКА КРУЖОЧКОВ ТЕМ БЕЗ СКРОЛЛА */}
                             <div className="mb-10 w-full">
                                 <div className="flex items-center mb-4 px-2">
                                      <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${fonts.ui}`}>Атмосфера</h4>
                                      <span className={`text-[10px] uppercase tracking-widest ml-2 opacity-100 ${fonts.ui}`}>{theme.label}</span>
                                 </div>
                                 <div className="flex justify-between items-center w-full px-2">
-                                    {Object.values(THEMES).map(t => (
-                                        <button 
-                                            key={t.id}
-                                            onClick={() => { 
-                                                triggerHaptic(); 
-                                                if (t.isPremium && !hasPremium) {
-                                                    setShowPremiumModal(true);
-                                                    return;
-                                                }
-                                                setCurrentThemeId(t.id); 
-                                            }} 
-                                            className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
-                                        >
-                                            {t.type === 'video' ? (
-                                                <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
-                                            ) : (
-                                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
-                                            )}
-                                            
-                                            {/* ЗАМОЧЕК ДЛЯ ПРЕМИУМ-ТЕМ */}
-                                            {t.isPremium && !hasPremium && (
-                                                <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
-                                                    <Lock size={16} className="text-white opacity-90" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
+                                    {Object.values(THEMES).map(t => {
+                                        const isUnlocked = isAdmin || !t.isPremium || unlockedThemes.includes(t.id);
+                                        
+                                        return (
+                                            <button 
+                                                key={t.id}
+                                                onClick={() => { 
+                                                    triggerHaptic(); 
+                                                    if (!isUnlocked) {
+                                                        setPremiumItemToBuy({ id: t.id, type: 'theme', title: t.label, price: t.price || 149 });
+                                                        return;
+                                                    }
+                                                    setCurrentThemeId(t.id); 
+                                                }} 
+                                                className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
+                                            >
+                                                {t.type === 'video' ? (
+                                                    <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
+                                                ) : (
+                                                    <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                                )}
+                                                
+                                                {!isUnlocked && (
+                                                    <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
+                                                        <Lock size={16} className="text-white opacity-90" />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -956,8 +935,8 @@ const App = () => {
                                                 </div>
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
-                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sparkles size={16} className="opacity-60"/> Премиум погружение</h5>
-                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Отдельная платная услуга, которая открывает доступ к эксклюзивным анимированным фонам и расширенной музыкальной библиотеке.</p>
+                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sparkles size={16} className="opacity-60"/> Премиум элементы</h5>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Анимированные видео-фоны и эксклюзивные музыкальные треки приобретаются отдельно. Доступ к купленным элементам сохраняется навсегда.</p>
                                                 </div>
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
@@ -1035,36 +1014,51 @@ const App = () => {
 
         </main>
 
-        <AudioPlayer currentTrack={currentTrack} isPlaying={isPlaying} togglePlay={() => setIsPlaying(!isPlaying)} changeTrack={setCurrentTrack} theme={theme} isUiVisible={isUiVisible} />
+        <AudioPlayer 
+            currentTrack={currentTrack} 
+            isPlaying={isPlaying} 
+            togglePlay={() => setIsPlaying(!isPlaying)} 
+            changeTrack={setCurrentTrack} 
+            theme={theme} 
+            isUiVisible={isUiVisible}
+            isAdmin={isAdmin}
+            unlockedTracks={unlockedTracks}
+            openPremiumModal={setPremiumItemToBuy}
+        />
       </div>
 
       {/* --- MODALS --- */}
       
-      {/* МОДАЛКА ПРЕМИУМА (НОВАЯ) */}
+      {/* УМНАЯ МОДАЛКА ПРЕМИУМА */}
       <AnimatePresence>
-            {showPremiumModal && (
+            {premiumItemToBuy && (
                 <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setShowPremiumModal(false)}/>
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setPremiumItemToBuy(null)}/>
                 <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-[20%] left-6 right-6 z-[100] rounded-[2.5rem] p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[70vh] overflow-y-auto no-scrollbar`}>
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
-                            <Sparkles className={theme.iconColor} size={24} />
-                            <h3 className={`text-2xl font-medium ${fonts.ui}`}>Премиум</h3>
+                            <Lock className={theme.iconColor} size={24} />
+                            <h3 className={`text-xl font-medium ${fonts.ui}`}>Разблокировать</h3>
                         </div>
-                        <button onClick={() => setShowPremiumModal(false)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
+                        <button onClick={() => setPremiumItemToBuy(null)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
                     </div>
                     
                     <div className={`p-6 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
                         <p className={`text-[15px] leading-relaxed opacity-100 ${fonts.content}`}>
-                            Откройте полный доступ к эксклюзивным анимированным фонам и расширенной библиотеке музыки для глубокого погружения. Доступ предоставляется навсегда.
+                            Вы открываете доступ к эксклюзивному элементу:<br/><br/>
+                            <strong className="block font-semibold mb-1 opacity-80">
+                                {premiumItemToBuy.type === 'theme' ? 'Анимированный фон' : 'Музыкальный трек'}
+                            </strong>
+                            <span className="text-lg">«{premiumItemToBuy.title}»</span>
                         </p>
                     </div>
 
                     <button 
-                        onClick={() => alert("Оплата Премиума (настроим в следующем шаге)")} 
-                        className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui}`}
+                        onClick={buyPremiumItem}
+                        disabled={isAuthLoading} 
+                        className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-50`}
                     >
-                        Открыть доступ (499 ₽)
+                        {isAuthLoading ? "Загрузка..." : `Купить навсегда (${premiumItemToBuy.price} ₽)`}
                     </button>
                 </motion.div>
                 </>
