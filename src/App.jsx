@@ -64,7 +64,6 @@ const triggerHaptic = () => {
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
 
-// --- АУДИО ---
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
   { id: 2, title: "Evening Prayer", url: "/music/evening-prayer.mp3" },
@@ -81,14 +80,13 @@ const AUDIO_TRACKS = [
   { id: 12, title: "Небесная арфа (Premium)", url: "/music/premium3.mp3", isPremium: true, price: 99 },
 ];
 
-// --- ТЕМЫ ---
 const THEMES = {
-  dawn: { id: 'dawn', type: 'image', label: 'Безмятежность', bgImage: '/dawn.jpg', isPremium: false, fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
-  morning: { id: 'morning', type: 'image', label: 'Величие', bgImage: '/morning.jpg', isPremium: false, fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
-  day: { id: 'day', type: 'image', label: 'Гармония', bgImage: '/day.jpg', isPremium: false, fallbackColor: '#fdfce7', headerColor: '#fdfce7', cardBg: 'bg-[#fffff0]/70 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-800', containerBg: 'bg-white/80', button: 'border border-stone-900/10 hover:bg-white/60 text-stone-950', activeButton: 'bg-amber-950 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-amber-950', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-amber-950' },
-  sunset: { id: 'sunset', type: 'image', label: 'Откровение', bgImage: '/sunset.jpg', isPremium: false, fallbackColor: '#fff1f2', headerColor: '#fff1f2', cardBg: 'bg-stone-950/40 backdrop-blur-3xl shadow-md', text: 'text-orange-50', subText: 'text-orange-100', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-100 text-stone-950 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-200', placeholderColor: 'placeholder:text-orange-100/70', progressBar: 'bg-orange-100' },
-  evening: { id: 'evening', type: 'image', label: 'Тайна', bgImage: '/evening.jpg', isPremium: false, fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
-  midnight: { id: 'midnight', type: 'image', label: 'Волшебство', bgImage: '/midnight.jpg', isPremium: false, fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
+  dawn: { id: 'dawn', type: 'image', label: 'Безмятежность', bgImage: '/dawn.webp', isPremium: false, fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
+  morning: { id: 'morning', type: 'image', label: 'Величие', bgImage: '/morning.webp', isPremium: false, fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
+  day: { id: 'day', type: 'image', label: 'Гармония', bgImage: '/day.webp', isPremium: false, fallbackColor: '#fdfce7', headerColor: '#fdfce7', cardBg: 'bg-[#fffff0]/70 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-800', containerBg: 'bg-white/80', button: 'border border-stone-900/10 hover:bg-white/60 text-stone-950', activeButton: 'bg-amber-950 text-white shadow-lg shadow-amber-900/20', menuBg: 'bg-[#fffff0]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-amber-950', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-amber-950' },
+  sunset: { id: 'sunset', type: 'image', label: 'Откровение', bgImage: '/sunset.webp', isPremium: false, fallbackColor: '#fff1f2', headerColor: '#fff1f2', cardBg: 'bg-stone-950/40 backdrop-blur-3xl shadow-md', text: 'text-orange-50', subText: 'text-orange-100', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-100 text-stone-950 shadow-lg shadow-orange-500/20', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-200', placeholderColor: 'placeholder:text-orange-100/70', progressBar: 'bg-orange-100' },
+  evening: { id: 'evening', type: 'image', label: 'Тайна', bgImage: '/evening.webp', isPremium: false, fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
+  midnight: { id: 'midnight', type: 'image', label: 'Волшебство', bgImage: '/midnight.webp', isPremium: false, fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   
   premium1: { id: 'premium1', type: 'video', label: 'Поток', bgVideo: '/vid1.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
   premium2: { id: 'premium2', type: 'video', label: 'Огонь', bgVideo: '/vid2.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
@@ -116,25 +114,98 @@ const Card = ({ children, theme, className = "", onClick }) => (
   </motion.div>
 );
 
+// --- ВЕРНУЛ МОНУМЕНТАЛЬНЫЙ ОНБОРДИНГ ---
 const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
     const [accepted, setAccepted] = useState(false);
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`fixed inset-0 z-[80] bg-cover bg-center overflow-y-auto no-scrollbar`} style={{ backgroundImage: `url(${theme.bgImage})`, backgroundColor: theme.fallbackColor }}>
             <div className={`min-h-screen p-6 md:p-12 pb-32 flex flex-col max-w-2xl mx-auto ${theme.text} bg-black/20 backdrop-blur-sm`}>
-                <div className="pt-16 pb-12 text-center">
-                    <h1 className={`text-4xl font-semibold tracking-tight mb-4 ${fonts.ui}`}>Добро пожаловать</h1>
-                    <p className={`text-lg opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
+                
+                <div className="pt-20 pb-16 text-center">
+                    <h1 className={`text-4xl md:text-5xl font-semibold tracking-tight mb-6 ${fonts.ui}`}>Добро пожаловать</h1>
+                    <p className={`text-lg md:text-xl opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
                 </div>
-                <div className="space-y-6">
-                    <div className={`p-8 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
-                        <h2 className={`text-xl font-semibold mb-4 ${fonts.ui}`}>Что такое молитва?</h2>
-                        <p className={`text-[17px] leading-[1.7] opacity-90 ${fonts.content}`}>Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.</p>
+
+                <div className="space-y-8">
+                    <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-2xl font-semibold mb-6 ${fonts.ui}`}>Что такое молитва?</h2>
+                        <p className={`text-[17px] leading-[1.8] opacity-90 ${fonts.content}`}>
+                            Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.
+                        </p>
+                    </div>
+
+                    <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-2xl font-semibold mb-8 ${fonts.ui}`}>Анатомия разговора</h2>
+                        <ul className={`space-y-6 text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>
+                            <li className="flex gap-5">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
+                                <div><strong className="font-semibold block mb-1">Благодарение</strong>Смещение фокуса с того, чего у нас нет, на Того, кто дает всё.</div>
+                            </li>
+                            <li className="flex gap-5">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
+                                <div><strong className="font-semibold block mb-1">Покаяние</strong>Сброс балласта. Искреннее признание ошибок исцеляет.</div>
+                            </li>
+                            <li className="flex gap-5">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
+                                <div><strong className="font-semibold block mb-1">Прошение</strong>Доверие своих нужд и страхов в руки Отца.</div>
+                            </li>
+                            <li className="flex gap-5">
+                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
+                                <div><strong className="font-semibold block mb-1">Созерцание</strong>Момент, когда мы перестаем говорить и начинаем слушать тишину.</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* ВЕРНУЛ БЛОК "ЗАЧЕМ ЭТО НУЖНО" */}
+                    <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-2xl font-semibold mb-6 ${fonts.ui}`}>Зачем это нужно?</h2>
+                        <p className={`text-[17px] leading-[1.8] opacity-90 ${fonts.content}`}>
+                            Суета разрывает нас на части, заставляя жить в тревоге о будущем. Молитва возвращает нас в реальность. Она не всегда меняет обстоятельства мгновенно, но она неизбежно меняет того, кто молится. Это ваш якорь в шторме.
+                        </p>
+                    </div>
+
+                    <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
+                        <h2 className={`text-2xl font-semibold mb-8 ${fonts.ui}`}>Как устроен Amen</h2>
+                        <div className="space-y-8">
+                            <div>
+                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><MessageCircle size={18} className="opacity-60"/> Единство</h5>
+                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте чужие молитвы нажатием Amen. Вы не одни.</p>
+                            </div>
+                            <div className="w-16 h-px bg-current opacity-20"></div>
+                            <div>
+                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><BookOpen size={18} className="opacity-60"/> Дневник и Ответы</h5>
+                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — чтобы собирать свидетельства Его верности.</p>
+                            </div>
+                            <div className="w-16 h-px bg-current opacity-20"></div>
+                            <div>
+                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><Sprout size={18} className="opacity-60"/> Сад веры</h5>
+                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
+                            </div>
+                            <div className="w-16 h-px bg-current opacity-20"></div>
+                            <div>
+                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><Disc size={18} className="opacity-60"/> Погружение</h5>
+                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в профиле), чтобы отсечь лишний шум.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={`p-8 md:p-12 rounded-[2.5rem] ${theme.cardBg} shadow-xl text-center mt-12`}>
+                        <span className={`text-7xl opacity-20 block mb-4 leading-none ${fonts.content}`}>“</span>
+                        <p className={`text-xl leading-[1.8] font-medium opacity-90 mb-6 ${fonts.content}`}>
+                            Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий соблюдет сердца ваши...
+                        </p>
+                        <p className={`text-sm opacity-60 uppercase tracking-widest font-bold ${fonts.ui}`}>Филиппийцам 4:6-7</p>
                     </div>
                 </div>
-                <div className="mt-12 flex flex-col gap-6">
+
+                <div className="mt-16 flex flex-col gap-6">
                     <div className="flex items-start gap-4 px-2">
-                        <button type="button" onClick={() => { triggerHaptic(); setAccepted(!accepted); }} className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}>
+                        <button 
+                            type="button"
+                            onClick={() => { triggerHaptic(); setAccepted(!accepted); }}
+                            className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}
+                        >
                             {accepted && <Check size={14} className="text-white dark:text-black" />}
                         </button>
                         <span className={`text-sm opacity-80 leading-relaxed ${fonts.ui}`}>
@@ -142,7 +213,12 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                             <button type="button" onClick={(e) => { e.stopPropagation(); openLegal(); }} className="underline underline-offset-4 opacity-100 font-semibold hover:opacity-70 transition-opacity">Пользовательского соглашения</button>.
                         </span>
                     </div>
-                    <button onClick={onComplete} disabled={!accepted} className={`w-full py-5 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}>
+
+                    <button 
+                        onClick={onComplete} 
+                        disabled={!accepted}
+                        className={`w-full py-6 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}
+                    >
                         Начать путь <ChevronRight size={18} />
                     </button>
                 </div>
@@ -331,7 +407,6 @@ const App = () => {
   const [isFocusExpanded, setIsFocusExpanded] = useState(false);
   const [inlineFocusText, setInlineFocusText] = useState('');
   
-  // Прямой стейт для создания молитвы вместо формы
   const [newPrayerTitle, setNewPrayerTitle] = useState('');
   const [newPrayerText, setNewPrayerText] = useState('');
 
@@ -506,7 +581,6 @@ const App = () => {
   const handleLogin = async (e) => { e.preventDefault(); setAuthError(''); setIsAuthLoading(true); const { username, password } = e.target.elements; const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; try { await signInWithEmailAndPassword(auth, fakeEmail, password.value); } catch (err) { if(err.code.includes('not-found') || err.code.includes('invalid-credential')) { try { const u = await createUserWithEmailAndPassword(auth, fakeEmail, password.value); await updateProfile(u.user, { displayName: username.value }); } catch(ce) { setAuthError("Ошибка: " + ce.code); } } else { setAuthError("Ошибка: " + err.code); } } setIsAuthLoading(false); };
   const handleUpdateName = async () => { if(!newName.trim() || newName === user.displayName) return; await updateProfile(user, { displayName: newName }); };
   
-  // ИСПРАВЛЕННЫЙ МЕТОД: Работает от стейта, не зависит от формы
   const handleAmen = async () => { 
       if (isAmenAnimating) return;
       setIsAmenAnimating(true); triggerHaptic(); 
@@ -617,7 +691,6 @@ const App = () => {
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
-      {/* ИСПРАВЛЕНО: ЖЕСТКАЯ БЛОКИРОВКА КАСАНИЙ ДЛЯ ВИДЕО */}
       <div className={`fixed inset-0 z-[-3] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
       <AnimatePresence>
           {theme.type === 'video' ? (
@@ -886,7 +959,6 @@ const App = () => {
                                                 }} 
                                                 className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
                                             >
-                                                {/* ИСПРАВЛЕНО: КРУЖОЧКИ-ВИДЕО БЕЗ ЗНАЧКА ПЛЕЙ */}
                                                 {t.type === 'video' ? (
                                                     <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline disablePictureInPicture controls={false} />
                                                 ) : (
@@ -994,7 +1066,7 @@ const App = () => {
           )}
           </AnimatePresence>
 
-          {/* ИСПРАВЛЕНО: ОКНО СОЗДАНИЯ МОЛИТВЫ БЕЗ FORM */}
+          {/* WRITER MODE (OVERLAY) */}
           <AnimatePresence>
           {showInlineCreate && (
                 <motion.div 
