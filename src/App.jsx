@@ -64,7 +64,7 @@ const triggerHaptic = () => {
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
 
-// --- АУДИО (Добавлены премиум-треки с ценами) ---
+// --- АУДИО ---
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
   { id: 2, title: "Evening Prayer", url: "/music/evening-prayer.mp3" },
@@ -81,7 +81,7 @@ const AUDIO_TRACKS = [
   { id: 12, title: "Небесная арфа (Premium)", url: "/music/premium3.mp3", isPremium: true, price: 99 },
 ];
 
-// --- ТЕМЫ (Добавлены цены на видео-фоны) ---
+// --- ТЕМЫ ---
 const THEMES = {
   dawn: { id: 'dawn', type: 'image', label: 'Безмятежность', bgImage: '/dawn.jpg', isPremium: false, fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
   morning: { id: 'morning', type: 'image', label: 'Величие', bgImage: '/morning.jpg', isPremium: false, fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
@@ -313,10 +313,9 @@ const App = () => {
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
 
-  // СТАТУСЫ ПОЛЬЗОВАТЕЛЯ И ПОКУПКИ
   const [isAngel, setIsAngel] = useState(false);
-  const [unlockedThemes, setUnlockedThemes] = useState([]); // Массив купленных тем
-  const [unlockedTracks, setUnlockedTracks] = useState([]); // Массив купленных треков
+  const [unlockedThemes, setUnlockedThemes] = useState([]); 
+  const [unlockedTracks, setUnlockedTracks] = useState([]); 
   
   const [seedStage, setSeedStage] = useState(0);
   const [seedFruits, setSeedFruits] = useState(0);
@@ -325,18 +324,22 @@ const App = () => {
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false); 
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // Стейт для модалки покупки конкретного премиум-товара
-  const [premiumItemToBuy, setPremiumItemToBuy] = useState(null); // { id, type: 'theme'|'track', title, price }
-
   const [isFocusExpanded, setIsFocusExpanded] = useState(false);
   const [inlineFocusText, setInlineFocusText] = useState('');
+  
+  // Прямой стейт для создания молитвы вместо формы
+  const [newPrayerTitle, setNewPrayerTitle] = useState('');
+  const [newPrayerText, setNewPrayerText] = useState('');
+
   const [isFocusPublic, setIsFocusPublic] = useState(false);
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
   const [donateAmount, setDonateAmount] = useState('');
 
+  const [premiumItemToBuy, setPremiumItemToBuy] = useState(null); 
   const [isGuideExpanded, setIsGuideExpanded] = useState(false);
 
   const [isAmenAnimating, setIsAmenAnimating] = useState(false);
@@ -443,7 +446,6 @@ const App = () => {
           }
           setIsAngel(currentIsAngel);
           
-          // ЧИТАЕМ МАССИВЫ ПОКУПОК
           setUnlockedThemes(data.unlockedThemes || []);
           setUnlockedTracks(data.unlockedTracks || []);
 
@@ -504,12 +506,27 @@ const App = () => {
   const handleLogin = async (e) => { e.preventDefault(); setAuthError(''); setIsAuthLoading(true); const { username, password } = e.target.elements; const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; try { await signInWithEmailAndPassword(auth, fakeEmail, password.value); } catch (err) { if(err.code.includes('not-found') || err.code.includes('invalid-credential')) { try { const u = await createUserWithEmailAndPassword(auth, fakeEmail, password.value); await updateProfile(u.user, { displayName: username.value }); } catch(ce) { setAuthError("Ошибка: " + ce.code); } } else { setAuthError("Ошибка: " + err.code); } } setIsAuthLoading(false); };
   const handleUpdateName = async () => { if(!newName.trim() || newName === user.displayName) return; await updateProfile(user, { displayName: newName }); };
   
-  const handleAmen = async (e) => { 
-      e.preventDefault(); setIsAmenAnimating(true); triggerHaptic(); 
-      const title = e.target.elements.title?.value || "Молитва"; const text = e.target.elements.text.value; const isPublic = focusPrayerPublic; 
+  // ИСПРАВЛЕННЫЙ МЕТОД: Работает от стейта, не зависит от формы
+  const handleAmen = async () => { 
+      if (isAmenAnimating) return;
+      setIsAmenAnimating(true); triggerHaptic(); 
+      const title = newPrayerTitle.trim() || "Молитва"; 
+      const text = newPrayerText.trim(); 
+      const isPublic = focusPrayerPublic; 
+      
       await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), { title, text, createdAt: serverTimestamp(), status: 'active', updates: [], prayerCount: 1 }); 
       if(isPublic) await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { text: title + (text ? `\n\n${text}` : ""), authorId: user.uid, authorName: user.displayName || "Пилигрим", authorIsAngel: isAngel, createdAt: serverTimestamp(), likes: [] }); 
-      setTimeout(() => { setIsAmenAnimating(false); setShowInlineCreate(false); setSuccessMessage("Услышано"); setShowSuccessModal(true); e.target.reset(); setFocusPrayerPublic(false); setTimeout(() => setShowSuccessModal(false), 2000); }, 800); 
+      
+      setTimeout(() => { 
+          setIsAmenAnimating(false); 
+          setShowInlineCreate(false); 
+          setSuccessMessage("Услышано"); 
+          setShowSuccessModal(true); 
+          setNewPrayerTitle('');
+          setNewPrayerText('');
+          setFocusPrayerPublic(false); 
+          setTimeout(() => setShowSuccessModal(false), 2000); 
+      }, 800); 
   };
 
   const handleInlineFocusSubmit = async () => {
@@ -548,7 +565,6 @@ const App = () => {
       } catch (error) { console.error("Ошибка сброса:", error); alert("Ошибка при сбросе."); }
   };
 
-  // ФУНКЦИЯ: ОПЛАТА АНГЕЛА
   const becomeAngel = async () => {
       triggerHaptic();
       setIsAuthLoading(true); 
@@ -569,7 +585,6 @@ const App = () => {
       } finally { setIsAuthLoading(false); }
   };
 
-  // ФУНКЦИЯ: ПОКУПКА ПРЕМИУМ-ТОВАРА (Фон или Музыка)
   const buyPremiumItem = async () => {
       triggerHaptic();
       setIsAuthLoading(true); 
@@ -580,8 +595,8 @@ const App = () => {
               body: JSON.stringify({ 
                   userId: user.uid, 
                   amount: premiumItemToBuy.price, 
-                  purchaseType: premiumItemToBuy.type, // 'theme' или 'track'
-                  itemId: premiumItemToBuy.id // id фона или трека
+                  purchaseType: premiumItemToBuy.type,
+                  itemId: premiumItemToBuy.id 
               })
           });
           const data = await res.json();
@@ -602,7 +617,7 @@ const App = () => {
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
       <FilmGrain />
       
-      {/* КИНЕМАТОГРАФИЧЕСКИЙ КРОССФЕЙД ФОНОВ */}
+      {/* ИСПРАВЛЕНО: ЖЕСТКАЯ БЛОКИРОВКА КАСАНИЙ ДЛЯ ВИДЕО */}
       <div className={`fixed inset-0 z-[-3] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
       <AnimatePresence>
           {theme.type === 'video' ? (
@@ -612,8 +627,8 @@ const App = () => {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 1.5, ease: "easeInOut" }}
-                  autoPlay loop muted playsInline
-                  className="fixed inset-0 z-[-2] w-full h-full object-cover"
+                  autoPlay loop muted playsInline WebkitPlaysInline disablePictureInPicture controls={false}
+                  className="fixed inset-0 z-[-2] w-full h-full object-cover pointer-events-none"
                   src={theme.bgVideo}
               />
           ) : (
@@ -871,10 +886,11 @@ const App = () => {
                                                 }} 
                                                 className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
                                             >
+                                                {/* ИСПРАВЛЕНО: КРУЖОЧКИ-ВИДЕО БЕЗ ЗНАЧКА ПЛЕЙ */}
                                                 {t.type === 'video' ? (
-                                                    <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
+                                                    <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline disablePictureInPicture controls={false} />
                                                 ) : (
-                                                    <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover" alt={t.label} />
+                                                    <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover pointer-events-none" alt={t.label} />
                                                 )}
                                                 
                                                 {!isUnlocked && (
@@ -978,14 +994,14 @@ const App = () => {
           )}
           </AnimatePresence>
 
-          {/* WRITER MODE (OVERLAY) */}
+          {/* ИСПРАВЛЕНО: ОКНО СОЗДАНИЯ МОЛИТВЫ БЕЗ FORM */}
           <AnimatePresence>
           {showInlineCreate && (
                 <motion.div 
                     key="writer"
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
                     className="fixed inset-0 z-50 flex flex-col pt-28 px-6 backdrop-blur-3xl bg-black/10"
-                    style={{ height: lockedHeight, touchAction: "none" }} 
+                    style={{ height: lockedHeight }} 
                 >
                      <div className="fixed top-12 left-6 z-[60]">
                         <button onClick={() => setShowInlineCreate(false)} className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}>
@@ -993,21 +1009,38 @@ const App = () => {
                         </button>
                     </div>
 
-                    <form onSubmit={handleAmen} className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40 no-scrollbar"> 
+                    <div className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40 no-scrollbar"> 
                         <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.1}} className={`rounded-2xl p-4 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
-                            <input name="title" placeholder="Тема..." className={`w-full bg-transparent text-lg font-medium outline-none ${theme.text} ${theme.placeholderColor} text-center`} autoFocus />
+                            <input 
+                                value={newPrayerTitle} 
+                                onChange={(e) => setNewPrayerTitle(e.target.value)} 
+                                placeholder="Тема..." 
+                                className={`w-full bg-transparent text-lg font-medium outline-none ${theme.text} ${theme.placeholderColor} text-center`} 
+                                autoFocus 
+                            />
                         </motion.div>
                         <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.2}} className={`rounded-2xl p-4 flex-1 h-48 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
-                            <textarea name="text" placeholder={placeholderText} className={`w-full h-full bg-transparent text-base leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} ${fonts.content}`} />
+                            <textarea 
+                                value={newPrayerText} 
+                                onChange={(e) => setNewPrayerText(e.target.value)} 
+                                placeholder={placeholderText} 
+                                className={`w-full h-full bg-transparent text-base leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} ${fonts.content}`} 
+                            />
                         </motion.div>
                         <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.3}} className="flex gap-4 mt-2">
                             <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className={`flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}>
                                 <div className={`w-2 h-2 rounded-full ${focusPrayerPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-40'}`} />
                                 <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-80`}>{focusPrayerPublic ? "Все" : "Личное"}</span>
                             </div>
-                            <button className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>Amen</button>
+                            <button 
+                                onClick={handleAmen} 
+                                disabled={isAmenAnimating} 
+                                className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui} disabled:opacity-50`}
+                            >
+                                {isAmenAnimating ? "..." : "Amen"}
+                            </button>
                         </motion.div>
-                    </form>
+                    </div>
                 </motion.div>
             )}
           </AnimatePresence>
@@ -1028,8 +1061,6 @@ const App = () => {
       </div>
 
       {/* --- MODALS --- */}
-      
-      {/* УМНАЯ МОДАЛКА ПРЕМИУМА */}
       <AnimatePresence>
             {premiumItemToBuy && (
                 <>
