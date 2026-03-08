@@ -74,12 +74,12 @@ const AUDIO_TRACKS = [
   { id: 7, title: "Deep Prayer", url: "/music/prayer.mp3" },
   { id: 8, title: "Sunrise", url: "/music/sunrise.mp3" },
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
-  // ПРЕМИУМ ТРЕКИ
   { id: 10, title: "Ангельские голоса (Premium)", url: "/music/premium1.mp3", isPremium: true, price: 99 },
   { id: 11, title: "Глубокий океан (Premium)", url: "/music/premium2.mp3", isPremium: true, price: 99 },
   { id: 12, title: "Небесная арфа (Premium)", url: "/music/premium3.mp3", isPremium: true, price: 99 },
 ];
 
+// --- 9 ПРЕМИУМ ТЕМ ---
 const THEMES = {
   dawn: { id: 'dawn', type: 'image', label: 'Безмятежность', bgImage: '/dawn.webp', isPremium: false, fallbackColor: '#fff7ed', headerColor: '#fff7ed', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-stone-950', subText: 'text-stone-700', containerBg: 'bg-white/70', button: 'border border-stone-800/10 hover:bg-white/60 text-stone-900', activeButton: 'bg-stone-900 text-white shadow-lg shadow-stone-800/20', menuBg: 'bg-[#fffbf7]/95 backdrop-blur-3xl text-stone-950 border-l border-white/20', iconColor: 'text-stone-900', placeholderColor: 'placeholder:text-stone-600/70', progressBar: 'bg-stone-900' },
   morning: { id: 'morning', type: 'image', label: 'Величие', bgImage: '/morning.webp', isPremium: false, fallbackColor: '#f0f9ff', headerColor: '#f0f9ff', cardBg: 'bg-white/60 backdrop-blur-3xl shadow-sm', text: 'text-slate-950', subText: 'text-slate-700', containerBg: 'bg-white/70', button: 'border border-slate-800/10 hover:bg-white/60 text-slate-900', activeButton: 'bg-sky-950 text-white shadow-lg shadow-sky-900/20', menuBg: 'bg-white/95 backdrop-blur-3xl text-slate-950 border-l border-white/20', iconColor: 'text-sky-950', placeholderColor: 'placeholder:text-slate-600/70', progressBar: 'bg-sky-950' },
@@ -88,9 +88,15 @@ const THEMES = {
   evening: { id: 'evening', type: 'image', label: 'Тайна', bgImage: '/evening.webp', isPremium: false, fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   midnight: { id: 'midnight', type: 'image', label: 'Волшебство', bgImage: '/midnight.webp', isPremium: false, fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   
-  premium1: { id: 'premium1', type: 'video', label: 'Поток', bgVideo: '/vid1.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
-  premium2: { id: 'premium2', type: 'video', label: 'Огонь', bgVideo: '/vid2.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
-  premium3: { id: 'premium3', type: 'video', label: 'Свет', bgVideo: '/vid3.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/40 backdrop-blur-3xl shadow-md', text: 'text-white', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' }
+  premium1: { id: 'premium1', type: 'video', label: 'Эфир', bgVideo: '/vid1.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
+  premium2: { id: 'premium2', type: 'video', label: 'Пламя', bgVideo: '/vid2.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
+  premium3: { id: 'premium3', type: 'video', label: 'Свет', bgVideo: '/vid3.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-black/40 backdrop-blur-3xl shadow-md', text: 'text-white', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
+  premium4: { id: 'premium4', type: 'video', label: 'Космос', bgVideo: '/vid4.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#0f0f1a]/60 backdrop-blur-3xl shadow-md', text: 'text-indigo-50', containerBg: 'bg-white/10', button: 'border border-indigo-100/30 hover:bg-white/10 text-indigo-50', activeButton: 'bg-indigo-400 text-slate-950 shadow-lg', menuBg: 'bg-[#0a0a14]/95 backdrop-blur-3xl text-indigo-50 border-l border-white/10', iconColor: 'text-indigo-300', placeholderColor: 'placeholder:text-indigo-100/70' },
+  premium5: { id: 'premium5', type: 'video', label: 'Глубина', bgVideo: '/vid5.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#001a1a]/60 backdrop-blur-3xl shadow-md', text: 'text-teal-50', containerBg: 'bg-white/10', button: 'border border-teal-100/30 hover:bg-white/10 text-teal-50', activeButton: 'bg-teal-400 text-stone-950 shadow-lg', menuBg: 'bg-[#001010]/95 backdrop-blur-3xl text-teal-50 border-l border-white/10', iconColor: 'text-teal-300', placeholderColor: 'placeholder:text-teal-100/70' },
+  premium6: { id: 'premium6', type: 'video', label: 'Заря', bgVideo: '/vid6.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#2a1015]/60 backdrop-blur-3xl shadow-md', text: 'text-rose-50', containerBg: 'bg-white/10', button: 'border border-rose-100/30 hover:bg-white/10 text-rose-50', activeButton: 'bg-rose-400 text-stone-950 shadow-lg', menuBg: 'bg-[#150508]/95 backdrop-blur-3xl text-rose-50 border-l border-white/10', iconColor: 'text-rose-300', placeholderColor: 'placeholder:text-rose-100/70' },
+  premium7: { id: 'premium7', type: 'video', label: 'Туман', bgVideo: '/vid7.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#1a202c]/60 backdrop-blur-3xl shadow-md', text: 'text-gray-50', containerBg: 'bg-white/10', button: 'border border-gray-100/30 hover:bg-white/10 text-gray-50', activeButton: 'bg-gray-300 text-slate-900 shadow-lg', menuBg: 'bg-[#10141a]/95 backdrop-blur-3xl text-gray-50 border-l border-white/10', iconColor: 'text-gray-300', placeholderColor: 'placeholder:text-gray-100/70' },
+  premium8: { id: 'premium8', type: 'video', label: 'Лес', bgVideo: '/vid8.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#0f1f14]/60 backdrop-blur-3xl shadow-md', text: 'text-green-50', containerBg: 'bg-white/10', button: 'border border-green-100/30 hover:bg-white/10 text-green-50', activeButton: 'bg-green-400 text-stone-950 shadow-lg', menuBg: 'bg-[#0a140d]/95 backdrop-blur-3xl text-green-50 border-l border-white/10', iconColor: 'text-green-300', placeholderColor: 'placeholder:text-green-100/70' },
+  premium9: { id: 'premium9', type: 'video', label: 'Небо', bgVideo: '/vid9.mp4', isPremium: true, price: 149, fallbackColor: '#000000', cardBg: 'bg-[#101b2a]/60 backdrop-blur-3xl shadow-md', text: 'text-blue-50', containerBg: 'bg-white/10', button: 'border border-blue-100/30 hover:bg-white/10 text-blue-50', activeButton: 'bg-blue-400 text-slate-950 shadow-lg', menuBg: 'bg-[#0a101a]/95 backdrop-blur-3xl text-blue-50 border-l border-white/10', iconColor: 'text-blue-300', placeholderColor: 'placeholder:text-blue-100/70' }
 };
 
 const CALENDAR_READINGS = {
@@ -114,98 +120,55 @@ const Card = ({ children, theme, className = "", onClick }) => (
   </motion.div>
 );
 
-// --- ВЕРНУЛ МОНУМЕНТАЛЬНЫЙ ОНБОРДИНГ ---
 const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
     const [accepted, setAccepted] = useState(false);
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={`fixed inset-0 z-[80] bg-cover bg-center overflow-y-auto no-scrollbar`} style={{ backgroundImage: `url(${theme.bgImage})`, backgroundColor: theme.fallbackColor }}>
             <div className={`min-h-screen p-6 md:p-12 pb-32 flex flex-col max-w-2xl mx-auto ${theme.text} bg-black/20 backdrop-blur-sm`}>
-                
                 <div className="pt-20 pb-16 text-center">
                     <h1 className={`text-4xl md:text-5xl font-semibold tracking-tight mb-6 ${fonts.ui}`}>Добро пожаловать</h1>
                     <p className={`text-lg md:text-xl opacity-90 ${fonts.content}`}>В пространство тишины и разговора с Отцом.</p>
                 </div>
-
                 <div className="space-y-8">
                     <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-2xl font-semibold mb-6 ${fonts.ui}`}>Что такое молитва?</h2>
-                        <p className={`text-[17px] leading-[1.8] opacity-90 ${fonts.content}`}>
-                            Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.
-                        </p>
+                        <p className={`text-[17px] leading-[1.8] opacity-90 ${fonts.content}`}>Это не магический ритуал и не попытка впечатлить Творца красивыми словами. Молитва — это дыхание души, честный диалог с Тем, кто знает вас лучше, чем вы сами.</p>
                     </div>
-
                     <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-2xl font-semibold mb-8 ${fonts.ui}`}>Анатомия разговора</h2>
                         <ul className={`space-y-6 text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>
-                            <li className="flex gap-5">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
-                                <div><strong className="font-semibold block mb-1">Благодарение</strong>Смещение фокуса с того, чего у нас нет, на Того, кто дает всё.</div>
-                            </li>
-                            <li className="flex gap-5">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
-                                <div><strong className="font-semibold block mb-1">Покаяние</strong>Сброс балласта. Искреннее признание ошибок исцеляет.</div>
-                            </li>
-                            <li className="flex gap-5">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
-                                <div><strong className="font-semibold block mb-1">Прошение</strong>Доверие своих нужд и страхов в руки Отца.</div>
-                            </li>
-                            <li className="flex gap-5">
-                                <div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div>
-                                <div><strong className="font-semibold block mb-1">Созерцание</strong>Момент, когда мы перестаем говорить и начинаем слушать тишину.</div>
-                            </li>
+                            <li className="flex gap-5"><div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div><div><strong className="font-semibold block mb-1">Благодарение</strong>Смещение фокуса с того, чего у нас нет, на Того, кто дает всё.</div></li>
+                            <li className="flex gap-5"><div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div><div><strong className="font-semibold block mb-1">Покаяние</strong>Сброс балласта. Искреннее признание ошибок исцеляет.</div></li>
+                            <li className="flex gap-5"><div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div><div><strong className="font-semibold block mb-1">Прошение</strong>Доверие своих нужд и страхов в руки Отца.</div></li>
+                            <li className="flex gap-5"><div className="mt-1 opacity-60"><CheckCircle2 size={20}/></div><div><strong className="font-semibold block mb-1">Созерцание</strong>Момент, когда мы перестаем говорить и начинаем слушать тишину.</div></li>
                         </ul>
                     </div>
-
-                    {/* ВЕРНУЛ БЛОК "ЗАЧЕМ ЭТО НУЖНО" */}
                     <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-2xl font-semibold mb-6 ${fonts.ui}`}>Зачем это нужно?</h2>
-                        <p className={`text-[17px] leading-[1.8] opacity-90 ${fonts.content}`}>
-                            Суета разрывает нас на части, заставляя жить в тревоге о будущем. Молитва возвращает нас в реальность. Она не всегда меняет обстоятельства мгновенно, но она неизбежно меняет того, кто молится. Это ваш якорь в шторме.
-                        </p>
+                        <p className={`text-[17px] leading-[1.8] opacity-90 ${fonts.content}`}>Суета разрывает нас на части, заставляя жить в тревоге о будущем. Молитва возвращает нас в реальность. Она не всегда меняет обстоятельства мгновенно, но она неизбежно меняет того, кто молится. Это ваш якорь в шторме.</p>
                     </div>
-
                     <div className={`p-8 md:p-10 rounded-[2.5rem] ${theme.cardBg} shadow-xl`}>
                         <h2 className={`text-2xl font-semibold mb-8 ${fonts.ui}`}>Как устроен Amen</h2>
                         <div className="space-y-8">
-                            <div>
-                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><MessageCircle size={18} className="opacity-60"/> Единство</h5>
-                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте чужие молитвы нажатием Amen. Вы не одни.</p>
-                            </div>
+                            <div><h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><MessageCircle size={18} className="opacity-60"/> Единство</h5><p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Анонимная общая лента. Поддерживайте чужие молитвы нажатием Amen. Вы не одни.</p></div>
                             <div className="w-16 h-px bg-current opacity-20"></div>
-                            <div>
-                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><BookOpen size={18} className="opacity-60"/> Дневник и Ответы</h5>
-                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — чтобы собирать свидетельства Его верности.</p>
-                            </div>
+                            <div><h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><BookOpen size={18} className="opacity-60"/> Дневник и Ответы</h5><p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Ваша тайная комната. Записывайте личные просьбы и обязательно отмечайте «Ответы», когда Бог действует — чтобы собирать свидетельства Его верности.</p></div>
                             <div className="w-16 h-px bg-current opacity-20"></div>
-                            <div>
-                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><Sprout size={18} className="opacity-60"/> Сад веры</h5>
-                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
-                            </div>
+                            <div><h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><Sprout size={18} className="opacity-60"/> Сад веры</h5><p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p></div>
                             <div className="w-16 h-px bg-current opacity-20"></div>
-                            <div>
-                                <h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><Disc size={18} className="opacity-60"/> Погружение</h5>
-                                <p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в профиле), чтобы отсечь лишний шум.</p>
-                            </div>
+                            <div><h5 className={`text-base font-semibold mb-2 flex items-center gap-3 ${fonts.ui}`}><Disc size={18} className="opacity-60"/> Погружение</h5><p className={`text-[16px] leading-relaxed opacity-90 ${fonts.content}`}>Включайте фоновую музыку в плеере и меняйте темы оформления (в профиле), чтобы отсечь лишний шум.</p></div>
                         </div>
                     </div>
-
                     <div className={`p-8 md:p-12 rounded-[2.5rem] ${theme.cardBg} shadow-xl text-center mt-12`}>
                         <span className={`text-7xl opacity-20 block mb-4 leading-none ${fonts.content}`}>“</span>
-                        <p className={`text-xl leading-[1.8] font-medium opacity-90 mb-6 ${fonts.content}`}>
-                            Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий соблюдет сердца ваши...
-                        </p>
+                        <p className={`text-xl leading-[1.8] font-medium opacity-90 mb-6 ${fonts.content}`}>Не заботьтесь ни о чем, но всегда в молитве и прошении с благодарением открывайте свои желания пред Богом, и мир Божий соблюдет сердца ваши...</p>
                         <p className={`text-sm opacity-60 uppercase tracking-widest font-bold ${fonts.ui}`}>Филиппийцам 4:6-7</p>
                     </div>
                 </div>
-
                 <div className="mt-16 flex flex-col gap-6">
                     <div className="flex items-start gap-4 px-2">
-                        <button 
-                            type="button"
-                            onClick={() => { triggerHaptic(); setAccepted(!accepted); }}
-                            className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}
-                        >
+                        <button type="button" onClick={() => { triggerHaptic(); setAccepted(!accepted); }} className={`mt-1 flex-shrink-0 w-6 h-6 rounded-md border-2 border-current transition-colors flex items-center justify-center ${accepted ? theme.activeButton : 'opacity-40 hover:opacity-80'}`}>
                             {accepted && <Check size={14} className="text-white dark:text-black" />}
                         </button>
                         <span className={`text-sm opacity-80 leading-relaxed ${fonts.ui}`}>
@@ -213,12 +176,7 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
                             <button type="button" onClick={(e) => { e.stopPropagation(); openLegal(); }} className="underline underline-offset-4 opacity-100 font-semibold hover:opacity-70 transition-opacity">Пользовательского соглашения</button>.
                         </span>
                     </div>
-
-                    <button 
-                        onClick={onComplete} 
-                        disabled={!accepted}
-                        className={`w-full py-6 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}
-                    >
+                    <button onClick={onComplete} disabled={!accepted} className={`w-full py-6 rounded-2xl text-sm font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex justify-center items-center gap-2 ${accepted ? theme.activeButton : `${theme.containerBg} opacity-50 cursor-not-allowed`} ${fonts.ui}`}>
                         Начать путь <ChevronRight size={18} />
                     </button>
                 </div>
@@ -381,7 +339,11 @@ const App = () => {
 
   const [view, setView] = useState('flow'); 
   const [currentThemeId, setCurrentThemeId] = useState(() => localStorage.getItem('amen-theme-id') || 'dawn');
-  const theme = THEMES[currentThemeId] || THEMES.dawn;
+  
+  // СТЕЙТ ДЛЯ ПРЕДПРОСМОТРА
+  const [previewThemeId, setPreviewThemeId] = useState(null);
+  const theme = THEMES[previewThemeId] || THEMES[currentThemeId] || THEMES.dawn;
+
   const [currentTrack, setCurrentTrack] = useState(AUDIO_TRACKS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [myPrayers, setMyPrayers] = useState([]);
@@ -400,16 +362,13 @@ const App = () => {
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showSupportModal, setShowSupportModal] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false); 
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const [isFocusExpanded, setIsFocusExpanded] = useState(false);
-  const [inlineFocusText, setInlineFocusText] = useState('');
-  
   const [newPrayerTitle, setNewPrayerTitle] = useState('');
   const [newPrayerText, setNewPrayerText] = useState('');
-
+  const [isFocusExpanded, setIsFocusExpanded] = useState(false);
+  const [inlineFocusText, setInlineFocusText] = useState('');
   const [isFocusPublic, setIsFocusPublic] = useState(false);
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
   const [donateAmount, setDonateAmount] = useState('');
@@ -479,7 +438,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-      const images = ['/dawn.jpg', '/morning.jpg', '/day.jpg', '/sunset.jpg', '/evening.jpg', '/midnight.jpg'];
+      const images = ['/dawn.webp', '/morning.webp', '/day.webp', '/sunset.webp', '/evening.webp', '/midnight.webp'];
       images.forEach(src => { const img = new Image(); img.src = src; });
   }, []);
 
@@ -685,6 +644,9 @@ const App = () => {
 
   if (loading || !dailyVerse) return <div className={`h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light ${fonts.ui}`}><span className="italic animate-pulse">Загрузка тишины...</span><div className="w-5 h-5 border-2 border-stone-200 border-t-stone-400 rounded-full animate-spin"></div></div>;
   if (!user) return <div className={`fixed inset-0 flex flex-col items-center justify-center p-8 bg-[#fffbf7] ${fonts.ui}`}><div className="w-full max-w-xs space-y-8 text-center"><h1 className="text-6xl font-semibold text-stone-900 tracking-tight">Amen</h1><p className="text-stone-400 text-sm">Пространство тишины</p><form onSubmit={handleLogin} className="space-y-4 pt-8"><input name="username" type="text" placeholder="Имя" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition text-stone-900" required /><input name="password" type="password" placeholder="Пароль" className="w-full bg-transparent border-b border-stone-200 py-3 text-center text-lg outline-none focus:border-stone-800 transition text-stone-900" required />{authError && <p className="text-red-500 text-xs">{authError}</p>}<button disabled={isAuthLoading} className="w-full py-4 bg-stone-900 text-white text-sm font-medium rounded-xl">{isAuthLoading ? "..." : "Войти"}</button></form><button onClick={() => signInAnonymously(auth)} className="text-stone-400 text-sm">Войти тихо</button></div></div>;
+
+  const freeThemes = Object.values(THEMES).filter(t => !t.isPremium);
+  const premiumThemes = Object.values(THEMES).filter(t => t.isPremium);
 
   return (
     <>
@@ -940,37 +902,65 @@ const App = () => {
                             <div className="mb-10 w-full">
                                 <div className="flex items-center mb-4 px-2">
                                      <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${fonts.ui}`}>Атмосфера</h4>
-                                     <span className={`text-[10px] uppercase tracking-widest ml-2 opacity-100 ${fonts.ui}`}>{theme.label}</span>
+                                     <span className={`text-[10px] uppercase tracking-widest ml-2 opacity-100 ${fonts.ui}`}>
+                                         {freeThemes.find(t => t.id === (previewThemeId || currentThemeId))?.label || 'Бесплатные'}
+                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center w-full px-2">
-                                    {Object.values(THEMES).map(t => {
-                                        const isUnlocked = isAdmin || !t.isPremium || unlockedThemes.includes(t.id);
-                                        
+                                    {freeThemes.map(t => (
+                                        <button 
+                                            key={t.id}
+                                            onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); setPreviewThemeId(null); }} 
+                                            className={`relative w-11 h-11 rounded-full shrink-0 snap-center overflow-hidden transition-all duration-300 ${(previewThemeId || currentThemeId) === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`}
+                                        >
+                                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover pointer-events-none" alt={t.label} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* ВИТРИНА ПРЕМИУМ-ФОНОВ */}
+                            <div className="mb-12 w-full">
+                                <div className="flex items-center mb-4 px-2">
+                                     <h4 className={`text-[10px] font-bold uppercase tracking-widest text-amber-500 flex items-center gap-2 ${fonts.ui}`}>
+                                         <Sparkles size={14}/> Премиум фоны
+                                     </h4>
+                                </div>
+                                <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
+                                    {premiumThemes.map(t => {
+                                        const isUnlocked = isAdmin || unlockedThemes.includes(t.id);
+                                        const isActive = (previewThemeId || currentThemeId) === t.id;
+
                                         return (
-                                            <button 
-                                                key={t.id}
-                                                onClick={() => { 
-                                                    triggerHaptic(); 
-                                                    if (!isUnlocked) {
-                                                        setPremiumItemToBuy({ id: t.id, type: 'theme', title: t.label, price: t.price || 149 });
-                                                        return;
-                                                    }
-                                                    setCurrentThemeId(t.id); 
-                                                }} 
-                                                className={`relative w-11 h-11 rounded-full overflow-hidden transition-all duration-300 ${currentThemeId === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-50 hover:opacity-100'}`}
-                                            >
-                                                {t.type === 'video' ? (
-                                                    <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline disablePictureInPicture controls={false} />
-                                                ) : (
-                                                    <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover pointer-events-none" alt={t.label} />
-                                                )}
+                                            <div key={t.id} className="relative w-28 h-44 rounded-2xl overflow-hidden shrink-0 snap-center shadow-lg border border-white/10 flex flex-col justify-end p-2 bg-black/50">
+                                                <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
                                                 
-                                                {!isUnlocked && (
-                                                    <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center">
-                                                        <Lock size={16} className="text-white opacity-90" />
-                                                    </div>
-                                                )}
-                                            </button>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+
+                                                <div className="relative z-10 flex flex-col items-center w-full">
+                                                    <span className={`text-xs font-medium text-white mb-2 shadow-sm ${fonts.ui}`}>{t.label}</span>
+                                                    
+                                                    {isUnlocked ? (
+                                                        <button 
+                                                            onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); setPreviewThemeId(null); }}
+                                                            className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${currentThemeId === t.id ? 'bg-white text-black' : 'bg-white/20 text-white backdrop-blur-md hover:bg-white/30'}`}
+                                                        >
+                                                            {currentThemeId === t.id ? 'Выбрано' : 'Применить'}
+                                                        </button>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => { 
+                                                                triggerHaptic(); 
+                                                                setPreviewThemeId(t.id); // Включаем предпросмотр!
+                                                                setPremiumItemToBuy({ id: t.id, type: 'theme', title: t.label, price: t.price || 149 }); 
+                                                            }}
+                                                            className={`w-full py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-amber-500/90 text-white backdrop-blur-md transition-all active:scale-95 flex items-center justify-center gap-1`}
+                                                        >
+                                                            <Lock size={10} /> {t.price} ₽
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
                                         );
                                     })}
                                 </div>
@@ -1136,14 +1126,15 @@ const App = () => {
       <AnimatePresence>
             {premiumItemToBuy && (
                 <>
-                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => setPremiumItemToBuy(null)}/>
+                {/* ПРИ ЗАКРЫТИИ ОКНА - СБРАСЫВАЕМ ПРЕДПРОСМОТР */}
+                <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm" onClick={() => { setPremiumItemToBuy(null); setPreviewThemeId(null); }}/>
                 <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-[20%] left-6 right-6 z-[100] rounded-[2.5rem] p-8 shadow-2xl ${theme.cardBg} ${theme.text} max-h-[70vh] overflow-y-auto no-scrollbar`}>
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
                             <Lock className={theme.iconColor} size={24} />
                             <h3 className={`text-xl font-medium ${fonts.ui}`}>Разблокировать</h3>
                         </div>
-                        <button onClick={() => setPremiumItemToBuy(null)} className="opacity-50 hover:opacity-100"><X size={24}/></button>
+                        <button onClick={() => { setPremiumItemToBuy(null); setPreviewThemeId(null); }} className="opacity-50 hover:opacity-100"><X size={24}/></button>
                     </div>
                     
                     <div className={`p-6 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
