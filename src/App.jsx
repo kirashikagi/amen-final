@@ -50,9 +50,9 @@ const itemAnim = {
 };
 
 const modalAnim = {
-    hidden: { opacity: 0, y: 50, scale: 0.96 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: "easeOut" } },
-    exit: { opacity: 0, y: 20, scale: 0.96, transition: { duration: 0.2, ease: "easeIn" } }
+    hidden: { opacity: 0, scale: 0.96 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
+    exit: { opacity: 0, scale: 0.96, transition: { duration: 0.15, ease: "easeIn" } }
 };
 
 const triggerHaptic = () => {
@@ -64,7 +64,6 @@ const triggerHaptic = () => {
 // --- ЮРИДИЧЕСКИЕ ТЕКСТЫ (Впиши ИНН) ---
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: ВСТАВЬ_СВОЙ_ИНН_СЮДА`;
 
-// --- ВСЯ МУЗЫКА ТЕПЕРЬ БЕСПЛАТНА ---
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
   { id: 2, title: "Evening Prayer", url: "/music/evening-prayer.mp3" },
@@ -88,7 +87,6 @@ const THEMES = {
   evening: { id: 'evening', type: 'image', label: 'Тайна', bgImage: '/evening.webp', isPremium: false, fallbackColor: '#f5f3ff', headerColor: '#2e1065', cardBg: 'bg-[#1e0a45]/40 backdrop-blur-3xl shadow-md', text: 'text-white', subText: 'text-purple-100', containerBg: 'bg-black/30', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-purple-950 shadow-lg shadow-purple-500/20', menuBg: 'bg-[#150530]/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   midnight: { id: 'midnight', type: 'image', label: 'Волшебство', bgImage: '/midnight.webp', isPremium: false, fallbackColor: '#020617', headerColor: '#020617', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', subText: 'text-slate-200', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70', progressBar: 'bg-white' },
   
-  // АНИМИРОВАННЫЕ ФОНЫ (ТОЛЬКО ДЛЯ АНГЕЛОВ)
   premium1: { id: 'premium1', type: 'video', label: 'Эфир', bgVideo: '/vid1.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-black/50 backdrop-blur-3xl shadow-md', text: 'text-slate-50', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-slate-50 border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
   premium2: { id: 'premium2', type: 'video', label: 'Пламя', bgVideo: '/vid2.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-[#2c1810]/60 backdrop-blur-3xl shadow-md', text: 'text-orange-50', containerBg: 'bg-black/40', button: 'border border-orange-100/30 hover:bg-white/10 text-orange-50', activeButton: 'bg-orange-400 text-stone-950 shadow-lg', menuBg: 'bg-[#1a0f0a]/95 backdrop-blur-3xl text-orange-50 border-l border-white/10', iconColor: 'text-orange-300', placeholderColor: 'placeholder:text-orange-100/70' },
   premium3: { id: 'premium3', type: 'video', label: 'Свет', bgVideo: '/vid3.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-black/40 backdrop-blur-3xl shadow-md', text: 'text-white', containerBg: 'bg-white/10', button: 'border border-white/20 hover:bg-white/10 text-white', activeButton: 'bg-white text-black shadow-lg shadow-white/10', menuBg: 'bg-black/95 backdrop-blur-3xl text-white border-l border-white/10', iconColor: 'text-white', placeholderColor: 'placeholder:text-white/70' },
@@ -262,7 +260,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
   );
 };
 
-// --- НОВОЕ НИЖНЕЕ МЕНЮ С КНОПКОЙ АНГЕЛА ---
+// --- КЛАССИЧЕСКОЕ БОКОВОЕ МЕНЮ (С АККУРАТНОЙ КНОПКОЙ ВНИЗУ) ---
 const TopMenu = ({ view, setView, theme, openLegal, openSupport, logout, isAdmin, isUiVisible }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [ { id: 'diary', label: 'Дневник' }, { id: 'flow', label: 'Поток' }, { id: 'profile', label: 'Профиль' } ];
@@ -275,27 +273,27 @@ const TopMenu = ({ view, setView, theme, openLegal, openSupport, logout, isAdmin
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-sm`} onClick={() => setIsOpen(false)}/>
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 26, stiffness: 200 }} className={`fixed bottom-0 left-0 right-0 z-50 rounded-t-[2.5rem] p-8 pb-12 shadow-2xl flex flex-col ${theme.menuBg} ${fonts.ui}`}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.4 }} className={`fixed inset-0 z-40 bg-black/10 backdrop-blur-sm`} onClick={() => setIsOpen(false)}/>
+            <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 250 }} className={`fixed top-0 right-0 bottom-0 z-50 w-72 p-10 shadow-2xl flex flex-col justify-between ${theme.menuBg} ${fonts.ui}`}>
+              <div className="mt-8 flex flex-col items-start gap-8">
+                <div className={`${fonts.ui} text-4xl font-light tracking-wide mb-10 opacity-30 uppercase`}>Amen</div>
+                {menuItems.map(item => (
+                  <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>{item.label}</button>
+                ))}
+                {isAdmin && <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-lg font-normal opacity-70 hover:opacity-100 flex items-center gap-3 mt-4"><Mail size={18}/> Входящие</button>}
+              </div>
               
-              <div className="w-12 h-1 bg-current opacity-20 rounded-full mx-auto mb-8" />
-
-              <div className="flex flex-col gap-6 mb-8">
-                  {menuItems.map(item => (
-                    <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-3xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>{item.label}</button>
-                  ))}
-                  {isAdmin && <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-lg font-normal opacity-70 hover:opacity-100 flex items-center gap-3 mt-2"><Mail size={18}/> Входящие</button>}
+              {/* НИЖНИЙ БЛОК С АНГЕЛОМ И СОГЛАШЕНИЕМ */}
+              <div className="mb-8 flex flex-col items-start gap-4">
+                  <button onClick={() => { triggerHaptic(); openSupport(); setIsOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 hover:opacity-80 transition-opacity">
+                      <Feather size={14} /> Стать Ангелом
+                  </button>
+                  <div className="w-8 h-px bg-current opacity-10"></div>
+                  <div className="flex flex-col items-start gap-3 opacity-50">
+                      <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs hover:opacity-100"><FileText size={12}/> Соглашение</button>
+                      <button onClick={logout} className="text-xs hover:opacity-100">Выйти</button>
+                  </div>
               </div>
-
-              <button onClick={() => { triggerHaptic(); openSupport(); setIsOpen(false); }} className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest text-xs transition active:scale-95 shadow-lg ${theme.activeButton} bg-amber-500 text-white dark:bg-amber-400 dark:text-stone-900`}>
-                  <Feather size={16} /> Стать Ангелом
-              </button>
-
-              <div className="flex justify-between items-center mt-8 pt-6 border-t border-current border-opacity-10">
-                  <button onClick={() => { openLegal(); setIsOpen(false); }} className="text-xs font-medium opacity-50 hover:opacity-100 flex items-center gap-2"><FileText size={14}/> Соглашение</button>
-                  <button onClick={logout} className="text-xs font-medium opacity-50 hover:opacity-100">Выйти</button>
-              </div>
-
             </motion.div>
           </>
         )}
@@ -514,6 +512,7 @@ const App = () => {
           setSeedStage(newStage);
           setSeedFruits(newFruits);
       } else {
+          // убрали массивы покупок, оставили только isAngel
           await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false }, { merge: true });
       }
   };
@@ -1094,8 +1093,8 @@ const App = () => {
                     
                     <div className={`p-6 rounded-3xl mb-6 ${theme.containerBg} shadow-inner`}>
                         <p className={`text-[15px] leading-relaxed opacity-100 ${fonts.content}`}>
-                            Сделайте добровольное пожертвование, чтобы помочь проекту жить без рекламы.<br/><br/>
-                            В знак благодарности ваш аккаунт на 1 месяц получает статус Ангела (перо рядом с именем) и <strong>открывает полный доступ ко всем анимированным видео-фонам.</strong>
+                            Amen — это пространство без рекламы. Но для оплаты серверов и развития проекта нужны средства.<br/><br/>
+                            Сделайте добровольное пожертвование, чтобы стать частью тех, кто помогает этому месту жить и служить людям. В знак благодарности ваш аккаунт на 1 месяц получает статус Ангела (перо рядом с именем) и <strong>открывает полный доступ ко всем анимированным видео-фонам.</strong>
                         </p>
                     </div>
 
