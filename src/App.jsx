@@ -350,6 +350,9 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   const [isAngel, setIsAngel] = useState(false);
+  const [angelTheme, setAngelTheme] = useState(null); // ТЕКУЩИЙ КУПЛЕННЫЙ ФОН
+  const [selectedAngelTheme, setSelectedAngelTheme] = useState(null); // ФОН, ВЫБРАННЫЙ ПЕРЕД ДОНАТОМ
+
   const [seedStage, setSeedStage] = useState(0);
   const [seedFruits, setSeedFruits] = useState(0);
 
@@ -469,10 +472,11 @@ const App = () => {
               const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
               if (diffDays >= 30) {
                   currentIsAngel = false;
-                  await setDoc(userRef, { isAngel: false }, { merge: true }); 
+                  await setDoc(userRef, { isAngel: false, angelTheme: null }, { merge: true }); 
               }
           }
           setIsAngel(currentIsAngel);
+          setAngelTheme(data.angelTheme || null);
 
           let lastVisitTime = 0;
           if (data.lastVisit && typeof data.lastVisit.toDate === 'function') {
@@ -509,7 +513,7 @@ const App = () => {
           setSeedStage(newStage);
           setSeedFruits(newFruits);
       } else {
-          await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false }, { merge: true });
+          await setDoc(userRef, { lastVisit: serverTimestamp(), seedStage: 0, seedFruits: 0, isAngel: false, angelTheme: null }, { merge: true });
       }
   };
 
@@ -562,8 +566,24 @@ const App = () => {
       setTimeout(() => { setIsFocusSubmitting(false); setInlineFocusText(''); setIsFocusExpanded(false); setSuccessMessage("Услышано"); setShowSuccessModal(true); setTimeout(() => setShowSuccessModal(false), 2000); }, 800); 
   };
 
+  // ИСПРАВЛЕННАЯ ЛОГИКА AMEN (С защитой от ложных кликов)
+  const toggleLike = async (e, id, likes) => { 
+      e.preventDefault();
+      e.stopPropagation();
+      triggerHaptic(); 
+      try {
+          const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); 
+          const hasLiked = likes && likes.includes(user.uid);
+          await updateDoc(ref, { 
+              likes: hasLiked ? arrayRemove(user.uid) : arrayUnion(user.uid) 
+          }); 
+      } catch (err) {
+          console.error("Like error:", err);
+          alert("Ошибка лайка. Проверьте интернет.");
+      }
+  };
+
   const incrementPrayerCount = async (id, currentCount) => { triggerHaptic(); await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', id), { prayerCount: (currentCount || 1) + 1 }); };
-  const toggleLike = async (id, likes) => { triggerHaptic(); const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); await updateDoc(ref, { likes: likes?.includes(user.uid) ? arrayRemove(user.uid) : arrayUnion(user.uid) }); };
   const startEditing = (p) => { setEditingId(p.id); setEditForm({ title: p.title, text: p.text }); };
   const saveEdit = async () => { if(!editForm.title.trim()) return; await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', editingId), { title: editForm.title, text: editForm.text }); setEditingId(null); };
   
@@ -594,10 +614,11 @@ const App = () => {
       setIsAuthLoading(true); 
       try {
           const amountToSend = donateAmount ? Number(donateAmount) : 100;
+          // ПЕРЕДАЕМ ВЫБРАННЫЙ ФОН В КАЧЕСТВЕ itemId
           const res = await fetch('/api/payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: user.uid, amount: amountToSend, purchaseType: 'angel' })
+              body: JSON.stringify({ userId: user.uid, amount: amountToSend, purchaseType: 'angel', itemId: selectedAngelTheme })
           });
           const data = await res.json();
           if (data.url) window.location.href = data.url; 
@@ -614,6 +635,11 @@ const App = () => {
 
   const freeThemes = Object.values(THEMES).filter(t => !t.isPremium);
   const premiumThemes = Object.values(THEMES).filter(t => t.isPremium);
+
+  // В профиле показываем бесплатные + тот ОДИН премиум, который купил юзер
+  const availableThemes = isAdmin 
+      ? [...freeThemes, ...premiumThemes] 
+      : [...freeThemes, ...premiumThemes.filter(t => isAngel && angelTheme === t.id)];
 
   return (
     <>
@@ -740,8 +766,11 @@ const App = () => {
                                      </div>
                                  </div>
                                  <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-100 ${fonts.content}`}>{post.text}</p>
-                                 <button onClick={() => toggleLike(post.id, post.likes)} className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}>
-                                     {post.likes?.includes(user.uid) ? "Amen" : "Amen"}
+                                 <button 
+                                    onClick={(e) => toggleLike(e, post.id, post.likes)} 
+                                    className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}
+                                 >
+                                     {post.likes?.includes(user.uid) ? "Amen 🙏" : "Amen"}
                                      {post.likes?.length > 0 && <span className="opacity-80 ml-1">{post.likes.length}</span>}
                                  </button>
                                  {isAdmin && <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-30 hover:opacity-100"><Trash2 size={16} /></button>}
@@ -910,7 +939,7 @@ const App = () => {
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
                                                     <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Feather size={16} className="opacity-60"/> Ангел проекта</h5>
-                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Статус Ангела (в меню) выдается за поддержку проекта. Он дает специальный значок и открывает доступ ко всем живым анимированным фонам.</p>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Статус Ангела (в меню) выдается за поддержку проекта. Он дает специальный значок и открывает 1 живой видеофон на выбор на весь месяц.</p>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -918,22 +947,26 @@ const App = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* 2. БЕСПЛАТНЫЕ ФОНЫ ВНИЗУ */}
+                            {/* 2. АТМОСФЕРА ВНИЗУ (Бесплатные + Купленный) */}
                             <div className="mb-10 w-full">
                                 <div className="flex items-center mb-4 px-2">
                                      <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${fonts.ui}`}>Атмосфера</h4>
                                      <span className={`text-[10px] uppercase tracking-widest ml-2 opacity-100 ${fonts.ui}`}>
-                                         {freeThemes.find(t => t.id === (previewThemeId || currentThemeId))?.label || 'Премиум'}
+                                         {availableThemes.find(t => t.id === (previewThemeId || currentThemeId))?.label || 'Классика'}
                                      </span>
                                 </div>
                                 <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
-                                    {freeThemes.map(t => (
+                                    {availableThemes.map(t => (
                                         <button 
                                             key={t.id}
                                             onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); setPreviewThemeId(null); }} 
                                             className={`relative w-16 h-16 rounded-full shrink-0 snap-center overflow-hidden transition-all duration-300 ${(previewThemeId || currentThemeId) === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`}
                                         >
-                                            <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover pointer-events-none" alt={t.label} />
+                                            {t.type === 'video' ? (
+                                                <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
+                                            ) : (
+                                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover pointer-events-none" alt={t.label} />
+                                            )}
                                         </button>
                                     ))}
                                 </div>
@@ -1027,7 +1060,7 @@ const App = () => {
 
       {/* --- МОДАЛКИ --- */}
       
-      {/* ОКНО АНГЕЛА (ТЕПЕРЬ С ВИДЕО-ФОНАМИ ВНУТРИ) */}
+      {/* ОКНО АНГЕЛА (ТЕПЕРЬ С ВЫБОРОМ 1 ФОНА) */}
       <AnimatePresence>
             {showSupportModal && (
                 <>
@@ -1043,61 +1076,62 @@ const App = () => {
                     
                     <div className={`p-6 rounded-3xl mb-8 flex-shrink-0 ${theme.containerBg} shadow-inner`}>
                         <p className={`text-[15px] leading-relaxed opacity-100 ${fonts.content}`}>
-                            Сделайте добровольное пожертвование, чтобы помочь проекту жить без рекламы.<br/><br/>
-                            В знак благодарности ваш аккаунт на 1 месяц получает статус Ангела (перо) и <strong>открывает полный доступ ко всем живым видео-фонам ниже.</strong>
+                            В знак благодарности за поддержку ваш аккаунт на 1 месяц получает статус Ангела (перо) и <strong>открывает 1 эксклюзивный видео-фон на ваш выбор.</strong>
                         </p>
                     </div>
 
-                    {/* ВИТРИНА ФОНОВ ПРЯМО В ОКНЕ */}
-                    <div className="mb-10 w-full flex-shrink-0">
-                        <div className="flex items-center mb-4 px-2">
-                            <h4 className={`text-[10px] font-bold uppercase tracking-widest text-amber-500 flex items-center gap-2 ${fonts.ui}`}>
-                                <Sparkles size={14}/> Эксклюзивные фоны
-                            </h4>
+                    {isAngel ? (
+                        <div className="flex flex-col items-center mt-auto flex-shrink-0">
+                            <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest ${theme.containerBg} opacity-60 mb-4`}>
+                                Услуга активна
+                            </div>
+                            {angelTheme && (
+                                <div className={`text-sm opacity-80 text-center ${fonts.ui}`}>
+                                    Выбранный фон: <strong className="font-semibold">{premiumThemes.find(t => t.id === angelTheme)?.label || 'Установлен'}</strong>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
-                            {premiumThemes.map(t => {
-                                const isUnlocked = isAdmin || isAngel;
-                                const isActive = (previewThemeId || currentThemeId) === t.id;
+                    ) : (
+                        <>
+                            {/* ВИТРИНА ФОНОВ ПРЯМО В ОКНЕ */}
+                            <div className="mb-6 w-full flex-shrink-0">
+                                <div className="flex items-center mb-4 px-2">
+                                    <h4 className={`text-[10px] font-bold uppercase tracking-widest text-amber-500 flex items-center gap-2 ${fonts.ui}`}>
+                                        <Sparkles size={14}/> Выберите фон
+                                    </h4>
+                                </div>
+                                <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
+                                    {premiumThemes.map(t => (
+                                        <div 
+                                            key={t.id}
+                                            onClick={() => { 
+                                                triggerHaptic(); 
+                                                setSelectedAngelTheme(t.id); 
+                                                setPreviewThemeId(t.id); 
+                                            }} 
+                                            className={`relative w-24 h-36 rounded-2xl overflow-hidden shrink-0 snap-center shadow-lg border transition-all duration-300 cursor-pointer ${selectedAngelTheme === t.id ? 'border-amber-400 ring-2 ring-amber-400 scale-105' : 'border-white/10 opacity-60 hover:opacity-100'} bg-black/50 active:scale-95`}
+                                        >
+                                            <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
+                                            
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
 
-                                return (
-                                    <button 
-                                        key={t.id}
-                                        onClick={() => { 
-                                            triggerHaptic(); 
-                                            if (!isUnlocked) {
-                                                setPreviewThemeId(t.id); // Включаем демо-режим на заднем плане!
-                                                return;
-                                            }
-                                            setCurrentThemeId(t.id); 
-                                            setPreviewThemeId(null);
-                                        }} 
-                                        className={`relative w-24 h-36 rounded-2xl overflow-hidden shrink-0 snap-center shadow-lg border transition-all duration-300 ${isActive ? 'border-white/50 ring-2 ring-white/20 scale-105' : 'border-white/10 opacity-80 hover:opacity-100'} bg-black/50 active:scale-95`}
-                                    >
-                                        <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
-                                        
-                                        {!isUnlocked && (
-                                            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                                                <Lock size={20} className="text-white/90" />
+                                            <div className="absolute bottom-3 left-0 right-0 text-center z-10">
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest text-white shadow-sm ${fonts.ui}`}>{t.label}</span>
                                             </div>
-                                        )}
-                                        
-                                        <div className="absolute bottom-3 left-0 right-0 text-center z-10">
-                                            <span className={`text-[10px] font-bold uppercase tracking-widest text-white shadow-sm ${fonts.ui}`}>{t.label}</span>
+                                            
+                                            {selectedAngelTheme === t.id && (
+                                                <div className="absolute top-2 right-2 bg-amber-400 text-stone-900 rounded-full p-1 shadow-md">
+                                                    <Check size={12} strokeWidth={3} />
+                                                </div>
+                                            )}
                                         </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
+                                    ))}
+                                </div>
+                            </div>
 
-                    <div className="mt-auto flex-shrink-0">
-                        {isAngel ? (
-                            <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest ${theme.containerBg} opacity-60`}>Услуга активна</div>
-                        ) : (
-                            <>
+                            <div className="mt-auto flex-shrink-0">
                                 <div className="mb-6">
-                                    <label className={`text-[10px] font-bold opacity-70 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Сумма пожертвования (от 100 ₽)</label>
+                                    <label className={`text-[10px] font-bold opacity-70 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Пожертвование (от 100 ₽)</label>
                                     <input 
                                         type="number" 
                                         min="100"
@@ -1110,14 +1144,14 @@ const App = () => {
 
                                 <button 
                                     onClick={becomeAngel} 
-                                    disabled={isAuthLoading || Number(donateAmount) < 100} 
+                                    disabled={isAuthLoading || Number(donateAmount) < 100 || !selectedAngelTheme} 
                                     className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest ${theme.activeButton} shadow-lg active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-50 disabled:active:scale-100`}
                                 >
-                                    {isAuthLoading ? "Загрузка..." : `Пожертвовать`}
+                                    {isAuthLoading ? "Загрузка..." : (!selectedAngelTheme ? "Сначала выберите фон" : `Оплатить и получить фон`)}
                                 </button>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                        </>
+                    )}
                 </motion.div>
                 </>
             )}

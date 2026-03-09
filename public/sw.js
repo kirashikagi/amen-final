@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-cache-v3';
+const CACHE_NAME = 'amen-cache-v4';
 
 const urlsToCache = [
   '/',
