@@ -57,7 +57,7 @@ export default async function handler(req, res) {
                 capture: true,
                 confirmation: {
                     type: 'redirect',
-                    return_url: 'https://amen-final.vercel.app/'
+                    return_url: "https://amen-app.ru"
                 },
                 description: description,
                 metadata: { 
