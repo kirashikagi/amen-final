@@ -614,7 +614,7 @@ const App = () => {
       setIsAuthLoading(true); 
       try {
           const amountToSend = donateAmount ? Number(donateAmount) : 100;
-          const res = await fetch('/api/payment', {
+          const res = await fetch('https://amen-final.vercel.app/api/payment', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId: user.uid, amount: amountToSend, purchaseType: 'angel', itemId: selectedAngelTheme })
