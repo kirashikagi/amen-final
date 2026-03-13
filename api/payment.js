@@ -1,83 +1,52 @@
-import admin from 'firebase-admin';
-
-// Безопасная инициализация БД
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        })
-    });
-}
-
 export default async function handler(req, res) {
-    // --- ЖЕСТКИЙ CORS ДЛЯ FIREBASE ---
+  // 1. ЖЕСТКИЙ CORS (Пропускаем запросы от Firebase)
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Разрешаем доступ отовсюду
+  res.setHeader('Access-Control-Allow-Origin', '*'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  // Если браузер просто проверяет права (OPTIONS) — сразу даем добро и закрываем запрос
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-  // ---------------------------------
 
-  // ... дальше идет твой обычный код (if req.method === 'POST' и логика ЮKassa) ...
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).json({error: "Method not allowed"});
+
+  try {
+    const { userId, amount, purchaseType, itemId } = req.body;
     
-    // Принимаем данные от фронтенда: кто, сколько, и что именно покупает
-    const { userId, amount, purchaseType, itemId } = req.body; 
-    if (!userId) return res.status(400).json({ error: 'Missing userId' });
+    // Твои ключи из настроек Vercel (Environment Variables)
+    const SHOP_ID = process.env.YOOKASSA_SHOP_ID;
+    const SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
+    const authString = Buffer.from(`${SHOP_ID}:${SECRET_KEY}`).toString('base64');
+    const idempotenceKey = Math.random().toString(36).substring(7);
+
+    // 2. Создаем платеж типа "EMBEDDED" (Встроенный виджет)
+    const response = await fetch('https://api.yookassa.ru/v3/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Basic ${authString}`,
+        'Idempotence-Key': idempotenceKey
+      },
+      body: JSON.stringify({
+        amount: { value: amount.toString(), currency: 'RUB' },
+        capture: true,
+        confirmation: { type: 'embedded' }, // МАГИЯ ЗДЕСЬ
+        description: `Amen: Статус Ангела (${itemId})`,
+        metadata: { userId, purchaseType, itemId }
+      })
+    });
+
+    const data = await response.json();
     
-    // Минимальная сумма 99 руб (т.к. треки стоят 99)
-    const finalAmount = amount && !isNaN(amount) && Number(amount) >= 99 ? Number(amount) : 100;
-
-    // Формируем правильное описание для чека ЮKassa
-    let description = 'Оплата цифровой услуги в Amen';
-    if (purchaseType === 'angel') description = 'Добровольное пожертвование (Статус Ангела)';
-    if (purchaseType === 'theme') description = 'Покупка анимированного фона';
-    if (purchaseType === 'track') description = 'Покупка музыкального трека';
-
-    try {
-        const idempotencyKey = Math.random().toString(36).substring(2, 15);
-        const authHeader = Buffer.from(`${process.env.YOOKASSA_SHOP_ID}:${process.env.YOOKASSA_SECRET_KEY}`).toString('base64');
-
-        const response = await fetch('https://api.yookassa.ru/v3/payments', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Idempotence-Key': idempotencyKey,
-                'Authorization': `Basic ${authHeader}`
-            },
-            body: JSON.stringify({
-                amount: { value: `${finalAmount}.00`, currency: 'RUB' },
-                capture: true,
-                confirmation: {
-                    type: 'redirect',
-                    return_url: "https://amen-app.ru"
-                },
-                description: description,
-                metadata: { 
-                    userId: userId,
-                    purchaseType: purchaseType || 'angel',
-                    itemId: String(itemId || 'none') 
-                }
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.confirmation && data.confirmation.confirmation_url) {
-            res.status(200).json({ url: data.confirmation.confirmation_url });
-        } else {
-            console.error('YooKassa error:', data);
-            res.status(500).json({ error: 'Payment creation failed' });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+    if (data.confirmation && data.confirmation.confirmation_token) {
+      // Отдаем токен фронтенду
+      res.status(200).json({ confirmation_token: data.confirmation.confirmation_token });
+    } else {
+      res.status(400).json({ error: "Ошибка создания платежа", details: data });
     }
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 }
