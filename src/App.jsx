@@ -350,8 +350,8 @@ const App = () => {
   const [feedbacks, setFeedbacks] = useState([]);
 
   const [isAngel, setIsAngel] = useState(false);
-  const [angelTheme, setAngelTheme] = useState(null); // ТЕКУЩИЙ КУПЛЕННЫЙ ФОН
-  const [selectedAngelTheme, setSelectedAngelTheme] = useState(null); // ФОН, ВЫБРАННЫЙ ПЕРЕД ДОНАТОМ
+  const [angelTheme, setAngelTheme] = useState(null); 
+  const [selectedAngelTheme, setSelectedAngelTheme] = useState(null); 
 
   const [seedStage, setSeedStage] = useState(0);
   const [seedFruits, setSeedFruits] = useState(0);
@@ -362,6 +362,9 @@ const App = () => {
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // НОВОЕ СОСТОЯНИЕ ДЛЯ ВИДЖЕТА КАССЫ
+  const [showPaymentWidget, setShowPaymentWidget] = useState(false);
 
   const [newPrayerTitle, setNewPrayerTitle] = useState('');
   const [newPrayerText, setNewPrayerText] = useState('');
@@ -566,7 +569,6 @@ const App = () => {
       setTimeout(() => { setIsFocusSubmitting(false); setInlineFocusText(''); setIsFocusExpanded(false); setSuccessMessage("Услышано"); setShowSuccessModal(true); setTimeout(() => setShowSuccessModal(false), 2000); }, 800); 
   };
 
-  // ИСПРАВЛЕННАЯ ЛОГИКА AMEN (С защитой от ложных кликов)
   const toggleLike = async (e, id, likes) => { 
       e.preventDefault();
       e.stopPropagation();
@@ -609,6 +611,12 @@ const App = () => {
       } catch (error) { console.error("Ошибка сброса:", error); alert("Ошибка при сбросе."); }
   };
 
+  const closeSupportModal = () => {
+      setShowSupportModal(false); 
+      setPreviewThemeId(null); 
+      setShowPaymentWidget(false); 
+  };
+
   const becomeAngel = async () => {
       triggerHaptic();
       setIsAuthLoading(true); 
@@ -620,8 +628,31 @@ const App = () => {
               body: JSON.stringify({ userId: user.uid, amount: amountToSend, purchaseType: 'angel', itemId: selectedAngelTheme })
           });
           const data = await res.json();
-          if (data.url) window.location.href = data.url; 
-          else throw new Error("Нет ссылки от сервера");
+          
+          if (data.confirmation_token) {
+              setShowPaymentWidget(true); 
+              
+              setTimeout(() => {
+                  const checkout = new window.YooMoneyCheckoutWidget({
+                      confirmation_token: data.confirmation_token,
+                      return_url: 'https://amen-app.ru', 
+                      customization: {
+                          colors: { control_primary: '#fbbf24' } 
+                      },
+                      error_callback: function(error) {
+                          console.error(error);
+                          setSuccessMessage("Ошибка платежа");
+                          setShowSuccessModal(true);
+                          setTimeout(() => setShowSuccessModal(false), 2000);
+                          setShowPaymentWidget(false);
+                      }
+                  });
+                  checkout.render('payment-form'); 
+              }, 100);
+
+          } else {
+              throw new Error("Нет токена от сервера");
+          }
       } catch (error) {
           console.error("Ошибка инициализации платежа:", error);
           setSuccessMessage("Ошибка связи с кассой");
@@ -635,7 +666,6 @@ const App = () => {
   const freeThemes = Object.values(THEMES).filter(t => !t.isPremium);
   const premiumThemes = Object.values(THEMES).filter(t => t.isPremium);
 
-  // В профиле показываем бесплатные + тот ОДИН премиум, который купил юзер
   const availableThemes = isAdmin 
       ? [...freeThemes, ...premiumThemes] 
       : [...freeThemes, ...premiumThemes.filter(t => isAngel && angelTheme === t.id)];
@@ -894,7 +924,6 @@ const App = () => {
                             
                             <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
 
-                            {/* 1. ПУТЕВОДИТЕЛЬ ПЕРВЫМ */}
                             <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md transition-all`}>
                                 <button 
                                     onClick={() => { triggerHaptic(); setIsGuideExpanded(!isGuideExpanded); }} 
@@ -946,7 +975,6 @@ const App = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* 2. АТМОСФЕРА ВНИЗУ (Бесплатные + Купленный) */}
                             <div className="mb-10 w-full">
                                 <div className="flex items-center mb-4 px-2">
                                      <h4 className={`text-[10px] font-bold uppercase tracking-widest opacity-60 ${fonts.ui}`}>Атмосфера</h4>
@@ -1059,102 +1087,106 @@ const App = () => {
 
       {/* --- МОДАЛКИ --- */}
       
-      {/* ОКНО АНГЕЛА (ТЕПЕРЬ С ВЫБОРОМ 1 ФОНА И НОВЫМ ТЕКСТОМ) */}
+      {/* ОКНО АНГЕЛА (СО ВСТРОЕННЫМ ВИДЖЕТОМ ЮКАССЫ) */}
       <AnimatePresence>
           {showSupportModal && (
               <>
-              <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm" onClick={() => { setShowSupportModal(false); setPreviewThemeId(null); }}/>
+              <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm" onClick={closeSupportModal}/>
               <motion.div variants={modalAnim} initial="hidden" animate="visible" exit="exit" className={`fixed top-[5%] bottom-[5%] left-6 right-6 z-[100] rounded-[2.5rem] p-8 shadow-2xl bg-black/40 backdrop-blur-md border border-white/20 text-white overflow-y-auto no-scrollbar flex flex-col`}>
                   <div className="flex justify-between items-center mb-6 flex-shrink-0">
                       <div className="flex items-center gap-3">
                           <Feather className="text-amber-400" size={24} />
                           <h3 className={`text-2xl font-medium ${fonts.ui}`}>Ангел проекта</h3>
                       </div>
-                      <button onClick={() => { setShowSupportModal(false); setPreviewThemeId(null); }} className="opacity-50 hover:opacity-100 transition-opacity"><X size={24}/></button>
-                  </div>
-                  
-                  <div className={`p-6 rounded-3xl mb-8 flex-shrink-0 bg-white/10 shadow-inner space-y-4`}>
-                      <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>
-                          Amen — это бесплатное пространство тишины. У нас нет инвесторов, и мы принципиально никогда не добавим сюда отвлекающую рекламу.
-                      </p>
-                      <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>
-                          Ваши средства идут на оплату серверов, безопасность данных и развитие. В знак благодарности ваш аккаунт на 1 месяц получает статус Ангела (перо) и <strong>открывает 1 эксклюзивный видео-фон на выбор.</strong>
-                      </p>
-                      <p className={`text-xs opacity-50 italic mt-2 ${fonts.content}`}>
-                          * Все переводы являются добровольными пожертвованиями на поддержку проекта.
-                      </p>
+                      <button onClick={closeSupportModal} className="opacity-50 hover:opacity-100 transition-opacity"><X size={24}/></button>
                   </div>
 
-                  {isAngel ? (
-                      <div className="flex flex-col items-center mt-auto flex-shrink-0">
-                          <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest bg-white/10 opacity-60 mb-4`}>
-                              Услуга активна
-                          </div>
-                          {angelTheme && (
-                              <div className={`text-sm opacity-80 text-center ${fonts.ui}`}>
-                                  Выбранный фон: <strong className="font-semibold text-amber-400">{premiumThemes.find(t => t.id === angelTheme)?.label || 'Установлен'}</strong>
-                              </div>
-                          )}
+                  {/* ЕСЛИ ПОКАЗАН ВИДЖЕТ - ПРЯЧЕМ ВСЁ ОСТАЛЬНОЕ И РИСУЕМ ЕГО */}
+                  {showPaymentWidget ? (
+                      <div className="flex-1 flex flex-col items-center justify-center">
+                          <p className={`mb-4 text-sm opacity-60 text-center ${fonts.ui}`}>Безопасная оплата</p>
+                          {/* Контейнер для виджета. Он должен быть белым, так как виджет Юкассы светлый */}
+                          <div id="payment-form" className="w-full bg-white rounded-2xl overflow-hidden shadow-2xl min-h-[400px]"></div>
                       </div>
                   ) : (
                       <>
-                          {/* ВИТРИНА ФОНОВ ПРЯМО В ОКНЕ */}
-                          <div className="mb-6 w-full flex-shrink-0">
-                              <div className="flex items-center mb-4 px-2">
-                                  <h4 className={`text-[10px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 ${fonts.ui}`}>
-                                      <Sparkles size={14}/> Выберите фон
-                                  </h4>
-                              </div>
-                              <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
-                                  {premiumThemes.map(t => (
-                                      <div 
-                                          key={t.id}
-                                          onClick={() => { 
-                                              triggerHaptic(); 
-                                              setSelectedAngelTheme(t.id); 
-                                              setPreviewThemeId(t.id); 
-                                          }} 
-                                          className={`relative w-24 h-36 rounded-2xl overflow-hidden shrink-0 snap-center shadow-lg border transition-all duration-300 cursor-pointer ${selectedAngelTheme === t.id ? 'border-amber-400 ring-2 ring-amber-400 scale-105' : 'border-white/20 opacity-60 hover:opacity-100'} bg-black/50 active:scale-95`}
-                                      >
-                                          <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
-                                          
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                          {/* СТАНДАРТНОЕ ОКНО (ТЕКСТ + ФОНЫ) */}
+                          <div className={`p-6 rounded-3xl mb-8 flex-shrink-0 bg-white/10 shadow-inner space-y-4`}>
+                              <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>
+                                  Amen — это бесплатное пространство тишины. У нас нет инвесторов, и мы принципиально никогда не добавим сюда отвлекающую рекламу.
+                              </p>
+                              <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>
+                                  Ваши средства идут на оплату серверов, безопасность данных и развитие. В знак благодарности ваш аккаунт на 1 месяц получает статус Ангела (перо) и <strong>открывает 1 эксклюзивный видео-фон на выбор.</strong>
+                              </p>
+                              <p className={`text-xs opacity-50 italic mt-2 ${fonts.content}`}>
+                                  * Все переводы являются добровольными пожертвованиями.
+                              </p>
+                          </div>
 
-                                          <div className="absolute bottom-3 left-0 right-0 text-center z-10">
-                                              <span className={`text-[10px] font-bold uppercase tracking-widest text-white shadow-sm ${fonts.ui}`}>{t.label}</span>
-                                          </div>
-                                          
-                                          {selectedAngelTheme === t.id && (
-                                              <div className="absolute top-2 right-2 bg-amber-400 text-stone-900 rounded-full p-1 shadow-md">
-                                                  <Check size={12} strokeWidth={3} />
-                                              </div>
-                                          )}
+                          {isAngel ? (
+                              <div className="flex flex-col items-center mt-auto flex-shrink-0">
+                                  <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest bg-white/10 opacity-60 mb-4`}>
+                                      Услуга активна
+                                  </div>
+                                  {angelTheme && (
+                                      <div className={`text-sm opacity-80 text-center ${fonts.ui}`}>
+                                          Выбранный фон: <strong className="font-semibold text-amber-400">{premiumThemes.find(t => t.id === angelTheme)?.label || 'Установлен'}</strong>
                                       </div>
-                                  ))}
+                                  )}
                               </div>
-                          </div>
+                          ) : (
+                              <>
+                                  <div className="mb-6 w-full flex-shrink-0">
+                                      <div className="flex items-center mb-4 px-2">
+                                          <h4 className={`text-[10px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 ${fonts.ui}`}>
+                                              <Sparkles size={14}/> Выберите фон
+                                          </h4>
+                                      </div>
+                                      <div className="flex gap-4 overflow-x-auto px-2 pb-4 no-scrollbar snap-x">
+                                          {premiumThemes.map(t => (
+                                              <div 
+                                                  key={t.id}
+                                                  onClick={() => { triggerHaptic(); setSelectedAngelTheme(t.id); setPreviewThemeId(t.id); }} 
+                                                  className={`relative w-24 h-36 rounded-2xl overflow-hidden shrink-0 snap-center shadow-lg border transition-all duration-300 cursor-pointer ${selectedAngelTheme === t.id ? 'border-amber-400 ring-2 ring-amber-400 scale-105' : 'border-white/20 opacity-60 hover:opacity-100'} bg-black/50 active:scale-95`}
+                                              >
+                                                  <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
+                                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
+                                                  <div className="absolute bottom-3 left-0 right-0 text-center z-10">
+                                                      <span className={`text-[10px] font-bold uppercase tracking-widest text-white shadow-sm ${fonts.ui}`}>{t.label}</span>
+                                                  </div>
+                                                  {selectedAngelTheme === t.id && (
+                                                      <div className="absolute top-2 right-2 bg-amber-400 text-stone-900 rounded-full p-1 shadow-md">
+                                                          <Check size={12} strokeWidth={3} />
+                                                      </div>
+                                                  )}
+                                              </div>
+                                          ))}
+                                      </div>
+                                  </div>
 
-                          <div className="mt-auto flex-shrink-0">
-                              <div className="mb-6">
-                                  <label className={`text-[10px] font-bold opacity-70 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Добровольное пожертвование (от 100 ₽)</label>
-                                  <input 
-                                      type="number" 
-                                      min="100"
-                                      value={donateAmount}
-                                      onChange={(e) => setDonateAmount(e.target.value)}
-                                      placeholder="Сумма"
-                                      className={`w-full bg-transparent border-b border-white/30 py-3 text-center text-3xl font-medium outline-none transition focus:border-white placeholder:opacity-40 text-white ${fonts.ui}`}
-                                  />
-                              </div>
+                                  <div className="mt-auto flex-shrink-0">
+                                      <div className="mb-6">
+                                          <label className={`text-[10px] font-bold opacity-70 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Добровольное пожертвование (от 100 ₽)</label>
+                                          <input 
+                                              type="number" 
+                                              min="100"
+                                              value={donateAmount}
+                                              onChange={(e) => setDonateAmount(e.target.value)}
+                                              placeholder="Сумма"
+                                              className={`w-full bg-transparent border-b border-white/30 py-3 text-center text-3xl font-medium outline-none transition focus:border-white placeholder:opacity-40 text-white ${fonts.ui}`}
+                                          />
+                                      </div>
 
-                              <button 
-                                  onClick={becomeAngel} 
-                                  disabled={isAuthLoading || Number(donateAmount) < 100 || !selectedAngelTheme} 
-                                  className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest bg-white text-stone-900 shadow-lg hover:bg-white/90 active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-50 disabled:active:scale-100`}
-                              >
-                                  {isAuthLoading ? "Загрузка..." : (!selectedAngelTheme ? "Сначала выберите фон" : `Оплатить и получить фон`)}
-                              </button>
-                          </div>
+                                      <button 
+                                          onClick={becomeAngel} 
+                                          disabled={isAuthLoading || Number(donateAmount) < 100 || !selectedAngelTheme} 
+                                          className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest bg-white text-stone-900 shadow-lg hover:bg-white/90 active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-50 disabled:active:scale-100`}
+                                      >
+                                          {isAuthLoading ? "Загрузка..." : (!selectedAngelTheme ? "Сначала выберите фон" : `Оплатить и получить фон`)}
+                                      </button>
+                                  </div>
+                              </>
+                          )}
                       </>
                   )}
               </motion.div>

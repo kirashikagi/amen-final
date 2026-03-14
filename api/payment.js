@@ -15,9 +15,14 @@ export default async function handler(req, res) {
   try {
     const { userId, amount, purchaseType, itemId } = req.body;
     
-    // Твои ключи из настроек Vercel (Environment Variables)
+    // Ключи из настроек Vercel (Environment Variables)
     const SHOP_ID = process.env.YOOKASSA_SHOP_ID;
     const SECRET_KEY = process.env.YOOKASSA_SECRET_KEY;
+    
+    if (!SHOP_ID || !SECRET_KEY) {
+        throw new Error("Не настроены ключи ЮKassa в Vercel");
+    }
+
     const authString = Buffer.from(`${SHOP_ID}:${SECRET_KEY}`).toString('base64');
     const idempotenceKey = Math.random().toString(36).substring(7);
 
@@ -32,7 +37,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         amount: { value: amount.toString(), currency: 'RUB' },
         capture: true,
-        confirmation: { type: 'embedded' }, // МАГИЯ ЗДЕСЬ
+        confirmation: { type: 'embedded' }, // Команда отдать токен для виджета
         description: `Amen: Статус Ангела (${itemId})`,
         metadata: { userId, purchaseType, itemId }
       })
