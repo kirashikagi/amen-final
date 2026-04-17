@@ -63,6 +63,7 @@ const triggerHaptic = () => {
 
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: 775101376595`;
 
+// --- МУЗЫКА (ОБНОВЛЕННЫЙ СПИСОК БЕЗ 10, 11, 12 ТРЕКОВ) ---
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
   { id: 2, title: "Evening Prayer", url: "/music/evening-prayer.mp3" },
@@ -73,9 +74,6 @@ const AUDIO_TRACKS = [
   { id: 7, title: "Deep Prayer", url: "/music/prayer.mp3" },
   { id: 8, title: "Sunrise", url: "/music/sunrise.mp3" },
   { id: 9, title: "Worship Flow", url: "/music/worship.mp3" },
-  { id: 10, title: "Ангельские голоса", url: "/music/premium1.mp3" },
-  { id: 11, title: "Глубокий океан", url: "/music/premium2.mp3" },
-  { id: 12, title: "Небесная арфа", url: "/music/premium3.mp3" },
 ];
 
 const THEMES = {
@@ -803,7 +801,7 @@ const App = () => {
                       <>
                           <div className={`p-6 rounded-3xl mb-8 bg-white/10 shadow-inner space-y-4`}>
                               <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>Amen — это бесплатное пространство тишины. Мы принципиально не добавляем рекламу, чтобы сохранить чистоту проекта.</p>
-                              <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>Вы можете помочь развитию и поддержанию проекта. В знак благодарности ваш аккаунт получит статус Ангела и <strong>откроет 1 живой видео-фон на выбор.</strong></p>
+                              <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>Вы можете помочь развитию и поддержанию проекта. В знак благодарности ваш аккаунт получит статус Ангела и <strong>открывает 1 эксклюзивный живой видео-фон на выбор.</strong></p>
                               <p className="text-xs opacity-50 italic">* Переводы являются добровольными пожертвованиями.</p>
                           </div>
                           {!isAngel ? <>
