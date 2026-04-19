@@ -9,7 +9,7 @@ import {
   getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc,
   query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove, enableIndexedDbPersistence
 } from "firebase/firestore";
-import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight, ChevronDown, Lock } from 'lucide-react'; 
+import { List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, Sparkles, BookOpen, ChevronRight, ChevronDown, Lock, Shield } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
 const firebaseConfig = {
@@ -63,7 +63,7 @@ const triggerHaptic = () => {
 
 const TERMS_TEXT = `1. Amen — пространство тишины.\n2. Мы не используем ваши данные.\n3. Дневник — личное, Единство — общее.\n4. Будьте светом.\n\nРеквизиты разработчика:\nПлательщик НПД\nИНН: 775101376595`;
 
-// --- МУЗЫКА (ОБНОВЛЕННЫЙ СПИСОК БЕЗ 10, 11, 12 ТРЕКОВ) ---
+// --- МУЗЫКА ---
 const AUDIO_TRACKS = [
   { id: 1, title: "Beautiful Worship", url: "/music/beautiful-worship.mp3" },
   { id: 2, title: "Evening Prayer", url: "/music/evening-prayer.mp3" },
@@ -92,7 +92,6 @@ const THEMES = {
   premium9: { id: 'premium9', type: 'video', label: 'Небо', bgVideo: '/vid9.mp4', isPremium: true, fallbackColor: '#000000', cardBg: 'bg-[#101b2a]/60 backdrop-blur-3xl shadow-md', text: 'text-blue-50', containerBg: 'bg-white/10', button: 'border border-blue-100/30 hover:bg-white/10 text-blue-50', activeButton: 'bg-blue-400 text-slate-950 shadow-lg', menuBg: 'bg-[#0a101a]/95 backdrop-blur-3xl text-blue-50 border-l border-white/10', iconColor: 'text-blue-300', placeholderColor: 'placeholder:text-blue-100/70' }
 };
 
-// --- БАЗА КОНТЕНТА НА 30 ДНЕЙ ---
 const CALENDAR_READINGS = {
   "16-04": { title: "Твердость", source: "Иисус Навин 1:9", text: "Будь тверд и мужествен, не страшись и не ужасайся; ибо с тобою Господь Бог твой везде, куда ни пойдешь.", thought: "Твое видение будет подвергаться сомнению. Где сегодня тебе нужно проявить твердость, опираясь не на свои силы, а на Его обещание?" },
   "17-04": { title: "Дефицит мудрости", source: "Иакова 1:5", text: "Если же у кого из вас недостает мудрости, да просит у Бога, дающего всем просто и без упреков, — и дастся ему.", thought: "В бизнесе и жизни бывают тупики. Признать: 'Мне не хватает мудрости' — это не слабость, это доступ к безграничному ресурсу." },
@@ -280,7 +279,14 @@ const TopMenu = ({ view, setView, theme, openLegal, openSupport, logout, isAdmin
                 {menuItems.map(item => (
                   <button key={item.id} onClick={() => { triggerHaptic(); setView(item.id); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === item.id ? 'opacity-100' : 'opacity-50 hover:opacity-80'}`}>{item.label}</button>
                 ))}
-                {isAdmin && <button onClick={() => { setView('admin_feedback'); setIsOpen(false); }} className="text-left text-lg font-normal opacity-70 hover:opacity-100 flex items-center gap-3 mt-4"><Mail size={18}/> Входящие</button>}
+                
+                {/* КНОПКА АДМИН-ПАНЕЛИ */}
+                {isAdmin && (
+                    <button onClick={() => { triggerHaptic(); setView('admin'); setIsOpen(false); }} className={`text-left text-xl font-light transition-opacity ${view === 'admin' ? 'opacity-100' : 'opacity-50 hover:opacity-100'} mt-8`}>
+                        Управление
+                    </button>
+                )}
+
               </div>
               
               <div className="mb-8 flex flex-col items-start gap-4">
@@ -350,6 +356,7 @@ const App = () => {
   const [publicPosts, setPublicPosts] = useState([]);
   const [dailyVerse, setDailyVerse] = useState(null);
   const [feedbacks, setFeedbacks] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0); // Состояние для счетчика пользователей
 
   const [isAngel, setIsAngel] = useState(false);
   const [angelTheme, setAngelTheme] = useState(null); 
@@ -500,6 +507,21 @@ const App = () => {
       }
   };
 
+  // Получение количества пользователей для админ панели
+  useEffect(() => {
+      if (view === 'admin' && isAdmin) {
+          const fetchUsersCount = async () => {
+              try {
+                  const snap = await getDocs(collection(db, 'artifacts', dbCollectionId, 'users'));
+                  setTotalUsers(snap.size);
+              } catch (e) {
+                  console.error("Ошибка загрузки пользователей:", e);
+              }
+          };
+          fetchUsersCount();
+      }
+  }, [view, isAdmin]);
+
   useEffect(() => {
     if (!showInlineCreate && !isFocusExpanded) { clearInterval(intervalRef.current); setPlaceholderText(""); return; }
     const text = "Мысли, молитвы, благодарность...";
@@ -513,7 +535,7 @@ const App = () => {
 
   useEffect(() => { if (!user) return; return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), orderBy('createdAt', 'desc')), snap => setMyPrayers(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, [user]);
   useEffect(() => { return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), orderBy('createdAt', 'desc'), limit(50)), snap => setPublicPosts(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, []);
-  useEffect(() => { if (view !== 'admin_feedback' || !isAdmin) return; return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), orderBy('createdAt', 'desc')), snap => setFeedbacks(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, [view, isAdmin]);
+  useEffect(() => { if (!isAdmin) return; return onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), orderBy('createdAt', 'desc')), snap => setFeedbacks(snap.docs.map(d => ({id: d.id, ...d.data()})))); }, [isAdmin]);
 
   const handleLogin = async (e) => { e.preventDefault(); setAuthError(''); setIsAuthLoading(true); const { username, password } = e.target.elements; const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; try { await signInWithEmailAndPassword(auth, fakeEmail, password.value); } catch (err) { if(err.code.includes('not-found') || err.code.includes('invalid-credential')) { try { const u = await createUserWithEmailAndPassword(auth, fakeEmail, password.value); await updateProfile(u.user, { displayName: username.value }); } catch(ce) { setAuthError("Ошибка: " + ce.code); } } else { setAuthError("Ошибка: " + err.code); } } setIsAuthLoading(false); };
   const handleUpdateName = async () => { if(!newName.trim() || newName === user.displayName) return; await updateProfile(user, { displayName: newName }); };
@@ -621,6 +643,7 @@ const App = () => {
           <AnimatePresence mode="wait">
           {!showInlineCreate && (
               <motion.div key={view} variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8">
+                
                 {view === 'flow' && (
                   <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
                     <Card theme={theme} className="text-center py-10 relative overflow-hidden">
@@ -708,18 +731,52 @@ const App = () => {
                     </motion.div>
                 )}
 
-                {view === 'admin_feedback' && isAdmin && (
-                    <div className="space-y-4 pt-28">
-                         <h2 className="text-center mb-4">Отзывы</h2>
-                         <button onClick={resetAllAngels} className="w-full py-2 bg-red-500/10 text-red-500 rounded-xl mb-8">Сбросить Ангелов</button>
-                         {feedbacks.map(msg => (
-                             <Card key={msg.id} theme={theme}>
-                                 <div className="flex justify-between mb-3 opacity-60 text-xs"><span>{msg.userName}</span></div>
-                                 <p className="mb-4 text-sm">{msg.text}</p>
-                                 <button onClick={() => deleteFeedback(msg.id)} className="text-red-400"><Trash2 size={16} /></button>
-                             </Card>
-                         ))}
-                    </div>
+                {/* --- НОВАЯ АДМИН ПАНЕЛЬ С МЕТРИКАМИ --- */}
+                {view === 'admin' && isAdmin && (
+                    <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-10 pt-10 px-2 pb-20">
+                         <h2 className={`text-4xl font-light tracking-tight opacity-90 ${theme.text} ${fonts.ui}`}>Управление</h2>
+                         
+                         <div className="grid grid-cols-2 gap-4">
+                             <div className={`p-6 rounded-[2rem] border border-current border-opacity-10 ${theme.cardBg} ${theme.text} flex flex-col items-center justify-center text-center`}>
+                                 <div className={`text-4xl font-light mb-2 ${fonts.ui}`}>{totalUsers}</div>
+                                 <div className={`text-[9px] font-bold uppercase tracking-widest opacity-50 ${fonts.ui}`}>Пилигримов</div>
+                             </div>
+                             <div className={`p-6 rounded-[2rem] border border-current border-opacity-10 ${theme.cardBg} ${theme.text} flex flex-col items-center justify-center text-center`}>
+                                 <div className={`text-4xl font-light mb-2 ${fonts.ui}`}>{feedbacks.length}</div>
+                                 <div className={`text-[9px] font-bold uppercase tracking-widest opacity-50 ${fonts.ui}`}>Отзывов</div>
+                             </div>
+                         </div>
+
+                         <div className="flex flex-col gap-4">
+                             <h3 className={`text-[10px] font-bold uppercase tracking-widest opacity-50 ${theme.text} ${fonts.ui}`}>Система</h3>
+                             <button onClick={resetAllAngels} className={`w-full py-5 border border-red-500/30 text-red-400 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-red-500/10 transition active:scale-95 ${fonts.ui}`}>
+                                 Сбросить статусы Ангелов
+                             </button>
+                         </div>
+
+                         <div className="flex flex-col gap-4">
+                             <h3 className={`text-[10px] font-bold uppercase tracking-widest opacity-50 ${theme.text} ${fonts.ui}`}>Входящие отзывы</h3>
+                             
+                             {feedbacks.length === 0 && (
+                                 <div className={`opacity-40 text-sm py-4 ${fonts.ui}`}>Нет новых сообщений</div>
+                             )}
+
+                             {feedbacks.map(msg => (
+                                 <div key={msg.id} className={`p-6 rounded-[2rem] border border-current border-opacity-10 ${theme.cardBg} ${theme.text}`}>
+                                     <div className={`flex justify-between mb-4 opacity-50 text-xs font-medium tracking-wide ${fonts.ui}`}>
+                                         <span>{msg.userName}</span>
+                                         <span>{msg.createdAt?.toDate ? msg.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
+                                     </div>
+                                     <p className={`mb-6 text-[17px] leading-[1.75] opacity-90 ${fonts.content}`}>{msg.text}</p>
+                                     <div className="flex justify-end">
+                                         <button onClick={() => deleteFeedback(msg.id)} className={`text-xs font-bold uppercase tracking-widest text-red-400 opacity-60 hover:opacity-100 transition active:scale-95 ${fonts.ui}`}>
+                                             Удалить
+                                         </button>
+                                     </div>
+                                 </div>
+                             ))}
+                         </div>
+                    </motion.div>
                 )}
 
                 {view === 'profile' && (
