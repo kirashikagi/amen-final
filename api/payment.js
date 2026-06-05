@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   const idempotenceKey = crypto.randomUUID(); 
 
   try {
-    const authString = Buffer.from(`${process.env.SHOP_ID}:${process.env.SECRET_KEY}`).toString('base64');
+    const authString = Buffer.from(`${process.env.YOOKASSA_SHOP_ID}:${process.env.YOOKASSA_SECRET_KEY}`).toString('base64');
 
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
       method: 'POST',
