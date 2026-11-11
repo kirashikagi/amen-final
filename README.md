@@ -1,16 +1,26 @@
-# React + Vite
+# AMEN
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AMEN is a Russian-language prayer and reflection app built with React 19, Vite, Tailwind CSS, Framer Motion, and Firebase.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Requirements: Node.js 20.19+ or 22.12+, and npm.
 
-## React Compiler
+```sh
+npm ci
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Vite prints the local URL after startup. Create a production build with `npm run build`, preview it with `npm run preview`, and run ESLint with `npm run lint`.
 
-## Expanding the ESLint configuration
+## Firebase
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The client connects to the AMEN Firebase project from `src/firebase.js`. The Firebase web configuration in that file is public client configuration; Firestore Security Rules and Firebase Authentication must protect user data. Do not put Firebase Admin credentials or other server secrets in client code.
+
+## Payments
+
+Payments are disabled. The checkout interface, YooKassa client script, payment API, webhook, and Firebase Admin dependency have been removed. All background themes are available without payment.
+
+## Deployment
+
+The app is a static Vite site and can be deployed to Vercel using its Vite framework preset. Preview deployments should use a non-production Firebase project before they are used for interactive testing.
