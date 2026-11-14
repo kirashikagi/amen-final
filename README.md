@@ -15,7 +15,9 @@ Vite prints the local URL after startup. Create a production build with `npm run
 
 ## Firebase
 
-The client connects to the AMEN Firebase project from `src/firebase.js`. The Firebase web configuration in that file is public client configuration; Firestore Security Rules and Firebase Authentication must protect user data. Do not put Firebase Admin credentials or other server secrets in client code.
+Copy `.env.example` to `.env.local` and fill it with the Firebase web app configuration for the environment you intend to use. Firebase web configuration is public client configuration; protect data with Firebase Authentication and Firestore Security Rules. Never put Firebase Admin credentials or other server secrets in Vite variables or client code.
+
+Use a separate Firebase project for local development and Vercel Preview. In Vercel, add the `VITE_FIREBASE_*` variables to the Preview environment using the test project's values. Add the production project's values to the Production environment before merging changes into the production branch. Do not reuse production credentials in Preview.
 
 ## Payments
 
