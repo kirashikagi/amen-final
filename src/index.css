@@ -6,13 +6,24 @@
   font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+  color-scheme: light;
+  background: transparent;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #000; /* Базовый черный, чтобы не было белых вспышек */
+  background-color: transparent;
+  overscroll-behavior-y: none;
 }
 
 /* Скрываем скроллбар, но оставляем прокрутку */
@@ -24,4 +35,27 @@ body {
 /* Предотвращение зума на iOS */
 input, textarea {
   font-size: 16px !important;
+}
+
+button, input, textarea, select, summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(166, 126, 73, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

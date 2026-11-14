@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amen-cache-v4';
+const CACHE_NAME = 'amen-cache-v5';
 
 const urlsToCache = [
   '/',
@@ -9,12 +9,6 @@ const urlsToCache = [
   '/sunset.webp',
   '/evening.webp',
   '/midnight.webp',
-  '/vid1.mp4',
-  '/vid4.mp4',
-  '/vid5.mp4',
-  '/vid6.mp4',
-  '/vid7.mp4',
-  '/vid9.mp4'
 ];
 
 self.addEventListener('install', (event) => {
@@ -25,14 +19,30 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.headers.get('range')) return; 
+  const request = event.request;
+  const requestUrl = new URL(request.url);
+  if (request.method !== 'GET' || request.headers.get('range') || requestUrl.origin !== self.location.origin) return;
 
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-        if (response) return response;
-        return fetch(event.request);
-      })
-  );
+  event.respondWith((async () => {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+
+    try {
+      const response = await fetch(request);
+      const isAppAsset = ['script', 'style', 'image', 'font', 'document'].includes(request.destination);
+      if (response.ok && isAppAsset) {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put(request, response.clone());
+      }
+      return response;
+    } catch (error) {
+      if (request.mode === 'navigate') {
+        const offlinePage = await caches.match('/index.html');
+        if (offlinePage) return offlinePage;
+      }
+      throw error;
+    }
+  })());
 });
 
 self.addEventListener('activate', (event) => {

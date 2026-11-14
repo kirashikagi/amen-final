@@ -1,41 +1,26 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { initializeApp } from "firebase/app";
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { 
-  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, 
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile,
   onAuthStateChanged, signInAnonymously, signOut 
 } from "firebase/auth";
 import { 
-  getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc,
-  query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove, enableIndexedDbPersistence
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc, writeBatch,
+  query, where, orderBy, limit, getDocs, onSnapshot, serverTimestamp, arrayUnion, arrayRemove
 } from "firebase/firestore";
+import { auth, db } from './firebase';
+import PrayerPause from './components/PrayerPause';
+import { JOURNAL_CATEGORIES, QUIET_JOURNEY, QUIET_PROMPTS } from './lib/prayerContent';
 import { 
-  List, X, Check, Disc, Plus, CheckCircle2, FileText, Heart, CalendarDays, 
+  List, X, Check, Disc, Plus, Play, Pause, CheckCircle2, FileText, Heart, CalendarDays,
   Edit3, MessageCircle, Trash2, Mail, Copy, Hand, SkipBack, SkipForward, 
   PenLine, Sprout, Leaf, Apple, CloudRain, Circle, CircleDot, Feather, 
-  Sparkles, BookOpen, ChevronRight, ChevronDown, Lock, Shield, LayoutDashboard 
+  Sparkles, BookOpen, ChevronRight, ChevronDown, ChevronUp, Lock, Shield, LayoutDashboard, Bookmark
 } from 'lucide-react'; 
 
 // --- CONFIGURATION ---
-const firebaseConfig = {
-  apiKey: "AIzaSyAnW6B3CEoFEQy08WFGKIfNVzs3TevBPtc",
-  authDomain: "amen-app-b0da2.firebaseapp.com",
-  projectId: "amen-app-b0da2",
-  storageBucket: "amen-app-b0da2.firebasestorage.app",
-  messagingSenderId: "964550407508",
-  appId: "1:964550407508:web:2d6a8c18fcf461af97c4c1"
-};
-
 const dbCollectionId = "amen-production"; 
 const ADMIN_NAMES = ['Admin', 'Founder', 'admin', 'founder', 'Киря', 'Димон', 'Катерина'];
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-try {
-  enableIndexedDbPersistence(db).catch(() => {});
-} catch (e) {}
 
 // --- ANIMATIONS ---
 const pageVariants = {
@@ -237,8 +222,10 @@ const WelcomeScreen = ({ theme, onComplete, openLegal }) => {
 const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, isUiVisible }) => {
   const audioRef = useRef(null);
   const [showPlaylist, setShowPlaylist] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const playerVisible = isUiVisible || isPlaying;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -318,9 +305,9 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
       </AnimatePresence>
 
       <motion.div 
-        animate={{ y: isUiVisible ? 0 : 100, opacity: isUiVisible ? 1 : 0 }} 
+        animate={{ y: playerVisible ? 0 : 100, opacity: playerVisible ? 1 : 0 }}
         transition={{ type: "spring", damping: 26, stiffness: 200 }} 
-        className={`fixed bottom-6 left-6 right-6 z-40 h-20 px-6 rounded-3xl backdrop-blur-2xl shadow-lg flex flex-col justify-center ${theme.menuBg} ${fonts.ui}`}
+        className={`fixed bottom-4 left-4 right-4 z-40 ${isExpanded ? 'min-h-20' : 'min-h-14'} px-4 py-2 rounded-2xl border border-white/10 backdrop-blur-2xl shadow-lg flex flex-col justify-center transition-[min-height] duration-300 ${theme.menuBg} ${fonts.ui}`}
       >
         <audio 
             ref={audioRef} 
@@ -330,7 +317,7 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
             onLoadedMetadata={handleLoadedMetadata} 
         />
         
-        <div className="w-full flex items-center mb-2">
+        {isExpanded && <div className="w-full flex items-center mb-2">
             <input 
                 type="range" 
                 min="0" 
@@ -339,20 +326,25 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
                 onChange={handleSeek} 
                 className="w-full h-1 bg-current opacity-20 rounded-lg appearance-none cursor-pointer transition-opacity hover:opacity-40 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2 [&::-webkit-slider-thumb]:h-2 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-current" 
             />
-        </div>
+        </div>}
         
         <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-4 overflow-hidden cursor-pointer flex-1 transition-opacity hover:opacity-70" onClick={() => setShowPlaylist(true)}>
+            <button aria-label="Открыть список музыки" className="flex min-w-0 items-center gap-3 overflow-hidden text-left flex-1 transition-opacity hover:opacity-70" onClick={() => setShowPlaylist(true)}>
                 <div className={`p-2 rounded-full bg-black/5 dark:bg-white/10`}>
-                    <Disc size={18} className={isPlaying ? "animate-spin-slow" : ""} />
+                    <Disc size={17} className={isPlaying ? "motion-safe:animate-spin-slow" : ""} />
                 </div>
-                <span className="text-xs font-medium truncate tracking-wide opacity-80">{currentTrack.title}</span>
-            </div>
+                <span className="truncate text-xs font-medium tracking-wide opacity-80">{isPlaying ? currentTrack.title : 'Музыка'}</span>
+            </button>
             
-            <div className="flex items-center gap-6">
-                <button onClick={handlePrevTrack} className="opacity-50 hover:opacity-100 transition active:scale-90"><SkipBack size={18}/></button>
-                <button onClick={() => { triggerHaptic(); togglePlay(); }} className="text-xs font-medium hover:opacity-60 transition active:scale-90 uppercase tracking-wider">{isPlaying ? "Pause" : "Play"}</button>
-                <button onClick={handleNextTrack} className="opacity-50 hover:opacity-100 transition active:scale-90"><SkipForward size={18}/></button>
+            <div className="flex shrink-0 items-center gap-1">
+                {isExpanded && <button aria-label="Предыдущий трек" onClick={handlePrevTrack} className="flex h-10 w-10 items-center justify-center rounded-full opacity-55 hover:opacity-100 transition active:scale-90"><SkipBack size={16}/></button>}
+                <button aria-label={isPlaying ? 'Поставить музыку на паузу' : 'Включить музыку'} onClick={() => { triggerHaptic(); togglePlay(); }} className={`flex h-10 min-w-10 items-center justify-center rounded-full ${theme.activeButton} transition active:scale-90`}>
+                  {isPlaying ? <Pause size={15} /> : <Play size={15} fill="currentColor" />}
+                </button>
+                {isExpanded && <button aria-label="Следующий трек" onClick={handleNextTrack} className="flex h-10 w-10 items-center justify-center rounded-full opacity-55 hover:opacity-100 transition active:scale-90"><SkipForward size={16}/></button>}
+                <button aria-label={isExpanded ? 'Свернуть музыкальный плеер' : 'Развернуть музыкальный плеер'} aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)} className="flex h-10 w-10 items-center justify-center rounded-full opacity-55 hover:opacity-100 transition">
+                  {isExpanded ? <ChevronDown size={17} /> : <ChevronUp size={17} />}
+                </button>
             </div>
         </div>
       </motion.div>
@@ -360,11 +352,12 @@ const AudioPlayer = ({ currentTrack, isPlaying, togglePlay, changeTrack, theme, 
   );
 };
 
-const TopMenu = ({ view, setView, theme, openLegal, openSupport, logout, isAdmin, isUiVisible }) => {
+const TopMenu = ({ view, setView, theme, openLegal, logout, isAdmin, isUiVisible }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuItems = [ 
-      { id: 'diary', label: 'Дневник' }, 
-      { id: 'flow', label: 'Поток' }, 
+      { id: 'flow', label: 'Сегодня' },
+      { id: 'diary', label: 'Дневник' },
+      { id: 'unity', label: 'Единство' },
       { id: 'profile', label: 'Профиль' } 
   ];
 
@@ -428,12 +421,6 @@ const TopMenu = ({ view, setView, theme, openLegal, openSupport, logout, isAdmin
             </div>
             
             <div className="mb-8 flex flex-col items-start gap-4">
-                <button 
-                    onClick={() => { triggerHaptic(); openSupport(); setIsOpen(false); }} 
-                    className="flex items-center gap-2 text-sm font-medium text-amber-600 dark:text-amber-400 hover:opacity-80 transition-opacity"
-                >
-                    <Feather size={14} /> Ангел проекта
-                </button>
                 <div className="w-8 h-px bg-current opacity-10"></div>
                 <div className="flex flex-col items-start gap-3 opacity-50">
                     <button onClick={() => { openLegal(); setIsOpen(false); }} className="flex items-center gap-2 text-xs hover:opacity-100"><FileText size={12}/> Соглашение</button>
@@ -447,7 +434,7 @@ const TopMenu = ({ view, setView, theme, openLegal, openSupport, logout, isAdmin
   );
 };
 
-const DivineSeed = ({ stage, fruits, theme }) => {
+const DivineSeed = ({ stage, theme }) => {
     let icon = <CircleDot size={48} strokeWidth={1} />;
     let text = "Посажено";
     
@@ -468,7 +455,7 @@ const DivineSeed = ({ stage, fruits, theme }) => {
             </motion.div>
             
             <h3 className={`text-xl font-normal ${fonts.content} mb-1`}>{text}</h3>
-            <p className="text-xs opacity-50 uppercase tracking-widest font-bold">День {stage} из 7</p>
+            <p className="text-xs opacity-55">Сад растёт в твоём ритме</p>
             
             <div className="flex gap-2 mt-6">
                 {[...Array(7)].map((_, i) => ( 
@@ -476,19 +463,7 @@ const DivineSeed = ({ stage, fruits, theme }) => {
                 ))}
             </div>
             
-            <AnimatePresence>
-                {fruits > 0 && (
-                    <motion.div 
-                        initial={{ opacity: 0, scale: 0.5 }} 
-                        animate={{ opacity: 1, scale: 1 }} 
-                        exit={{ opacity: 0, scale: 0.5 }}
-                        className="mt-6 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md flex items-center gap-2"
-                    >
-                        <Apple size={14} className={theme.iconColor}/>
-                        <span className="text-xs font-medium">{fruits} плодов</span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <p className="mt-5 max-w-[14rem] text-center text-xs leading-5 opacity-50">Можно возвращаться, когда будет удобно.</p>
         </motion.div>
     );
 };
@@ -511,34 +486,32 @@ const App = () => {
   const [myPrayers, setMyPrayers] = useState([]);
   const [publicPosts, setPublicPosts] = useState([]);
   const [dailyVerse, setDailyVerse] = useState(null);
+  const [savedReadings, setSavedReadings] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('amen-saved-readings') || '[]');
+    } catch {
+      return [];
+    }
+  });
   const [feedbacks, setFeedbacks] = useState([]);
   const [stats, setStats] = useState({ users: 0 });
   const [adminUsers, setAdminUsers] = useState([]);
-  const [selectedThemeForUser, setSelectedThemeForUser] = useState({});
-
-  const [isAngel, setIsAngel] = useState(false);
-  const [angelTheme, setAngelTheme] = useState(null); 
-  const [selectedAngelTheme, setSelectedAngelTheme] = useState(null); 
 
   const [seedStage, setSeedStage] = useState(0);
-  const [seedFruits, setSeedFruits] = useState(0);
 
   const [showInlineCreate, setShowInlineCreate] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [showSupportModal, setShowSupportModal] = useState(false);
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showPrayerPause, setShowPrayerPause] = useState(false);
 
-  const [showPaymentWidget, setShowPaymentWidget] = useState(false);
 
   const [newPrayerTitle, setNewPrayerTitle] = useState('');
   const [newPrayerText, setNewPrayerText] = useState('');
   const [isFocusExpanded, setIsFocusExpanded] = useState(false);
   const [inlineFocusText, setInlineFocusText] = useState('');
-  const [isFocusPublic, setIsFocusPublic] = useState(false);
   const [isFocusSubmitting, setIsFocusSubmitting] = useState(false);
-  const [donateAmount, setDonateAmount] = useState('');
 
   // ДЛЯ ОТВЕТОВ НА ОТЗЫВЫ
   const [replyingToFeedbackId, setReplyingToFeedbackId] = useState(null);
@@ -554,6 +527,8 @@ const App = () => {
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [focusPrayerPublic, setFocusPrayerPublic] = useState(false);
   const [diaryTab, setDiaryTab] = useState('active'); 
+  const [prayerSearch, setPrayerSearch] = useState('');
+  const [newPrayerCategory, setNewPrayerCategory] = useState('Личное');
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ title: '', text: '' });
@@ -561,13 +536,15 @@ const App = () => {
   const [answerText, setAnswerText] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
 
-  const [placeholderText, setPlaceholderText] = useState("");
-  const intervalRef = useRef(null);
   const [lockedHeight, setLockedHeight] = useState('100dvh');
   const mainScrollRef = useRef(null);
+  const prefersReducedMotion = useReducedMotion();
+  const [isDocumentVisible, setIsDocumentVisible] = useState(!document.hidden);
 
-  const freeThemes = Object.values(THEMES).filter(t => !t.isPremium);
-  const premiumThemes = Object.values(THEMES).filter(t => t.isPremium);
+  const journeyDay = QUIET_JOURNEY[new Date().getDay()];
+  const reflectionPrompt = QUIET_PROMPTS[new Date().getDate() % QUIET_PROMPTS.length];
+  const currentVerseSaved = savedReadings.some((reading) => reading.text === dailyVerse?.text && reading.source === dailyVerse?.source);
+
 
   useEffect(() => {
     if (showInlineCreate) {
@@ -602,6 +579,17 @@ const App = () => {
   useEffect(() => { 
       localStorage.setItem('amen-theme-id', currentThemeId); 
   }, [currentThemeId]);
+
+  useEffect(() => {
+    localStorage.setItem('amen-saved-readings', JSON.stringify(savedReadings));
+  }, [savedReadings]);
+
+  const toggleSavedReading = () => {
+    if (!dailyVerse) return;
+    setSavedReadings((readings) => currentVerseSaved
+      ? readings.filter((reading) => !(reading.text === dailyVerse.text && reading.source === dailyVerse.source))
+      : [{ title: dailyVerse.title, text: dailyVerse.text, source: dailyVerse.source }, ...readings]);
+  };
 
   useEffect(() => {
     const today = new Date();
@@ -651,47 +639,13 @@ const App = () => {
       const today = new Date().setHours(0,0,0,0);
 
       let newStage = 0;
-      let newFruits = 0;
-
       if (userSnap.exists()) {
           const data = userSnap.data();
           
-          let currentIsAngel = data.isAngel || false;
-          if (currentIsAngel && data.angelSince) {
-              const angelDate = data.angelSince.toDate();
-              const diffDays = Math.floor((new Date() - angelDate) / (1000 * 60 * 60 * 24));
-              if (diffDays >= 30) {
-                  currentIsAngel = false;
-                  await setDoc(userRef, { isAngel: false, angelTheme: null }, { merge: true }); 
-              }
-          }
-          setIsAngel(currentIsAngel);
-          setAngelTheme(data.angelTheme || null);
-
-          let lastVisitTime = data.lastVisit?.toDate?.()?.setHours(0,0,0,0) || 0;
+          const lastVisitTime = data.lastVisit?.toDate?.()?.setHours(0,0,0,0) || 0;
           newStage = data.seedStage || 0;
-          newFruits = data.seedFruits || 0;
           
-          if (lastVisitTime > 0) {
-              const diffDays = Math.ceil(Math.abs(today - lastVisitTime) / (1000 * 60 * 60 * 24)); 
-              if (diffDays === 1) {
-                  newStage += 1;
-                  if (newStage > 7) {
-                      newFruits += 1;
-                      newStage = 0; 
-                      setSuccessMessage("Плод созрел!");
-                      setShowSuccessModal(true);
-                      setTimeout(() => setShowSuccessModal(false), 3000);
-                  }
-              } else if (diffDays > 1) {
-                  if (newStage > 0) {
-                      setSuccessMessage("Сад пересох...");
-                      setShowSuccessModal(true);
-                      setTimeout(() => setShowSuccessModal(false), 2000);
-                  }
-                  newStage = 0;
-              }
-          }
+          if (lastVisitTime > 0 && today > lastVisitTime) newStage = Math.min(newStage + 1, 7);
       }
 
       await setDoc(userRef, { 
@@ -699,11 +653,9 @@ const App = () => {
           email: currentUser.email || 'Анонимный вход',
           lastVisit: serverTimestamp(), 
           seedStage: newStage, 
-          seedFruits: newFruits 
       }, { merge: true });
-      
+
       setSeedStage(newStage);
-      setSeedFruits(newFruits);
   };
 
   // ПОЛУЧЕНИЕ ОТЗЫВОВ (ДЛЯ АДМИНА - ВСЕ, ДЛЯ ПОЛЬЗОВАТЕЛЯ - ТОЛЬКО ЕГО)
@@ -742,26 +694,10 @@ const App = () => {
   }, [view, isAdmin]);
 
   useEffect(() => {
-    if (!showInlineCreate && !isFocusExpanded) { 
-        clearInterval(intervalRef.current); 
-        setPlaceholderText(""); 
-        return; 
-    }
-    
-    const text = "Мысли, молитвы, благодарность...";
-    let currentIndex = 0;
-    
-    intervalRef.current = setInterval(() => {
-      if (currentIndex <= text.length) { 
-          setPlaceholderText(text.slice(0, currentIndex)); 
-          currentIndex++; 
-      } else {
-          clearInterval(intervalRef.current);
-      }
-    }, 45); 
-    
-    return () => clearInterval(intervalRef.current);
-  }, [showInlineCreate, isFocusExpanded]);
+    const updateVisibility = () => setIsDocumentVisible(!document.hidden);
+    document.addEventListener('visibilitychange', updateVisibility);
+    return () => document.removeEventListener('visibilitychange', updateVisibility);
+  }, []);
 
   useEffect(() => { 
       if (!user) return; 
@@ -772,20 +708,21 @@ const App = () => {
   }, [user]);
 
   useEffect(() => { 
+      if (view !== 'unity') return undefined;
       const unsubscribe = onSnapshot(query(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), orderBy('createdAt', 'desc'), limit(50)), snap => {
           setPublicPosts(snap.docs.map(d => ({id: d.id, ...d.data()})));
       });
       return () => unsubscribe();
-  }, []);
+  }, [view]);
 
   const handleLogin = async (e) => { 
       e.preventDefault(); 
       setAuthError(''); 
       setIsAuthLoading(true); 
-      
+
       const { username, password } = e.target.elements; 
       const fakeEmail = `${username.value.trim().replace(/\s/g, '').toLowerCase()}@amen.app`; 
-      
+
       try { 
           await signInWithEmailAndPassword(auth, fakeEmail, password.value); 
       } catch (err) { 
@@ -811,90 +748,92 @@ const App = () => {
   const handleAmen = async () => { 
       if (isAmenAnimating) return;
       if (newPrayerTitle.trim() === '') return;
-      
+
       setIsAmenAnimating(true); 
       triggerHaptic(); 
-      
+
       const title = newPrayerTitle.trim(); 
       const text = newPrayerText.trim(); 
-      const isPublic = focusPrayerPublic; 
-      
-      await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), { 
-          title, 
-          text, 
-          createdAt: serverTimestamp(), 
-          status: 'active', 
-          updates: [], 
-          prayerCount: 1 
-      }); 
-      
-      if(isPublic) {
-          await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { 
-              text: title + (text ? `\n\n${text}` : ""), 
-              authorId: user.uid, 
-              authorName: user.displayName || "Пилигрим", 
-              authorIsAngel: isAngel, 
-              createdAt: serverTimestamp(), 
-              likes: [] 
-          }); 
-      }
-      
-      setTimeout(() => { 
-          setIsAmenAnimating(false); 
+      try {
+          const batch = writeBatch(db);
+          const prayerRef = doc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'));
+          batch.set(prayerRef, {
+              title,
+              text,
+              category: newPrayerCategory,
+              createdAt: serverTimestamp(),
+              status: 'active',
+              updates: [],
+          });
+
+          if (focusPrayerPublic) {
+              const postRef = doc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'));
+              batch.set(postRef, {
+                  text: title + (text ? `\n\n${text}` : ''),
+                  authorId: user.uid,
+                  authorName: 'Участник',
+                  createdAt: serverTimestamp(),
+                  likes: [],
+              });
+          }
+
+          await batch.commit();
           setShowInlineCreate(false); 
-          setSuccessMessage("Услышано"); 
+          setSuccessMessage(focusPrayerPublic ? 'Просьба стала общей' : 'Запись сохранена');
           setShowSuccessModal(true); 
           setNewPrayerTitle(''); 
           setNewPrayerText(''); 
+          setNewPrayerCategory('Личное');
           setFocusPrayerPublic(false); 
           setTimeout(() => setShowSuccessModal(false), 2000); 
-      }, 800); 
+      } catch (error) {
+          console.error('Не удалось сохранить молитву:', error);
+          setSuccessMessage('Не удалось сохранить. Попробуй ещё раз.');
+          setShowSuccessModal(true);
+          setTimeout(() => setShowSuccessModal(false), 3000);
+      } finally {
+          setIsAmenAnimating(false);
+      }
   };
 
   const handleInlineFocusSubmit = async () => {
       if (!inlineFocusText.trim()) return;
-      
+
       setIsFocusSubmitting(true); 
       triggerHaptic();
-      
+
       const title = dailyVerse.title; 
       const text = inlineFocusText;
-      
-      await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), { 
-          title, 
-          text, 
-          createdAt: serverTimestamp(), 
-          status: 'active', 
-          updates: [], 
-          prayerCount: 1 
-      }); 
-      
-      if(isFocusPublic) {
-          await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts'), { 
-              text: `[${title}]\n\n${text}`, 
-              authorId: user.uid, 
-              authorName: user.displayName || "Пилигрим", 
-              authorIsAngel: isAngel, 
-              createdAt: serverTimestamp(), 
-              likes: [] 
-          }); 
-      }
-      
-      setTimeout(() => { 
-          setIsFocusSubmitting(false); 
+
+      try {
+          await addDoc(collection(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers'), {
+              title,
+              text,
+              category: 'Размышление',
+              createdAt: serverTimestamp(),
+              status: 'active',
+              updates: [],
+          });
           setInlineFocusText(''); 
           setIsFocusExpanded(false); 
-          setSuccessMessage("Услышано"); 
+          setSuccessMessage('Запись сохранена');
           setShowSuccessModal(true); 
           setTimeout(() => setShowSuccessModal(false), 2000); 
-      }, 800); 
+      } catch (error) {
+          console.error('Не удалось сохранить размышление:', error);
+          setSuccessMessage('Не удалось сохранить. Попробуй ещё раз.');
+          setShowSuccessModal(true);
+          setTimeout(() => setShowSuccessModal(false), 3000);
+      } finally {
+          setIsFocusSubmitting(false);
+      }
   };
 
   const toggleLike = async (e, id, likes) => { 
       e.preventDefault(); 
       e.stopPropagation(); 
       triggerHaptic(); 
-      
+
       try {
           const ref = doc(db, 'artifacts', dbCollectionId, 'public', 'data', 'posts', id); 
           const hasLiked = likes && likes.includes(user.uid);
@@ -906,23 +845,17 @@ const App = () => {
       }
   };
 
-  const incrementPrayerCount = async (id, currentCount) => { 
-      triggerHaptic(); 
-      await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', id), { 
-          prayerCount: (currentCount || 1) + 1 
-      }); 
-  };
-
   const startEditing = (p) => { 
       setEditingId(p.id); 
-      setEditForm({ title: p.title, text: p.text }); 
+      setEditForm({ title: p.title, text: p.text, category: p.category || 'Личное' });
   };
 
   const saveEdit = async () => { 
       if(!editForm.title.trim()) return; 
       await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', editingId), { 
           title: editForm.title, 
-          text: editForm.text 
+          text: editForm.text,
+          category: editForm.category || 'Личное',
       }); 
       setEditingId(null); 
   };
@@ -936,18 +869,18 @@ const App = () => {
 
   const confirmAnswer = async () => { 
       if(!answeringId) return; 
-      
+
       await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', answeringId), { 
           status: 'answered', 
           answerNote: answerText, 
           answeredAt: serverTimestamp() 
       }); 
-      
+
       setShowAnswerModal(false); 
       setAnsweringId(null); 
       setSuccessMessage("Твой путь важен"); 
       setShowSuccessModal(true); 
-      
+
       setTimeout(() => setShowSuccessModal(false), 2000); 
   };
 
@@ -965,14 +898,14 @@ const App = () => {
 
   const sendFeedback = async () => { 
       if(!feedbackText.trim()) return; 
-      
+
       await addDoc(collection(db, 'artifacts', dbCollectionId, 'public', 'data', 'feedback'), { 
           text: feedbackText, 
           userId: user.uid, 
           userName: user.displayName, 
           createdAt: serverTimestamp() 
       }); 
-      
+
       setFeedbackText(''); 
       setShowFeedbackModal(false); 
       alert("Отправлено!"); 
@@ -989,84 +922,11 @@ const App = () => {
           setReplyingToFeedbackId(null);
           setAdminReplyText('');
           alert("Ответ отправлен Пилигриму!");
-      } catch (e) {
+      } catch {
           alert("Ошибка отправки ответа");
       }
   };
   
-  const resetAllAngels = async () => {
-      if (!confirm("ВНИМАНИЕ! Лишить статуса ВСЕХ?")) return;
-      
-      const snap = await getDocs(collection(db, 'artifacts', dbCollectionId, 'users'));
-      snap.forEach(async (userDoc) => { 
-          if (userDoc.data().isAngel) {
-              await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', userDoc.id), { 
-                  isAngel: false 
-              }); 
-          }
-      });
-      alert("Сброс завершен.");
-  };
-
-  const toggleUserAngel = async (userId, makeAngel, themeId = null) => {
-      if (!confirm(`Точно ${makeAngel ? 'назначить Ангелом' : 'лишить статуса'}?`)) return;
-      
-      try {
-          const updates = makeAngel 
-              ? { isAngel: true, angelTheme: themeId, angelSince: serverTimestamp() }
-              : { isAngel: false, angelTheme: null };
-              
-          await updateDoc(doc(db, 'artifacts', dbCollectionId, 'users', userId), updates);
-          
-          setAdminUsers(users => users.map(u => u.id === userId ? { ...u, ...updates } : u));
-          alert("Успешно");
-      } catch (e) {
-          alert("Ошибка обновления");
-      }
-  };
-
-  const closeSupportModal = () => { 
-      setShowSupportModal(false); 
-      setPreviewThemeId(null); 
-      setShowPaymentWidget(false); 
-  };
-
-  const becomeAngel = async () => {
-      triggerHaptic(); 
-      setIsAuthLoading(true); 
-      
-      try {
-          const amountToSend = donateAmount ? Number(donateAmount) : 100;
-          const res = await fetch('https://amen-final.vercel.app/api/payment', {
-              method: 'POST', 
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: user.uid, amount: amountToSend, purchaseType: 'angel', itemId: selectedAngelTheme })
-          });
-          
-          const data = await res.json();
-          if (data.confirmation_token) {
-              setShowPaymentWidget(true); 
-              setTimeout(() => {
-                  const checkout = new window.YooMoneyCheckoutWidget({
-                      confirmation_token: data.confirmation_token,
-                      return_url: window.location.href, 
-                      customization: { colors: { control_primary: '#fbbf24' } },
-                      error_callback: () => { setShowPaymentWidget(false); }
-                  });
-                  checkout.render('payment-form'); 
-              }, 100);
-          } else {
-              throw new Error("Нет токена");
-          }
-      } catch (error) { 
-          setSuccessMessage("Ошибка связи"); 
-          setShowSuccessModal(true); 
-          setTimeout(() => setShowSuccessModal(false), 2000); 
-      } finally { 
-          setIsAuthLoading(false); 
-      }
-  };
-
   if (loading || !dailyVerse) return (
       <div className={`h-screen bg-[#f4f5f0] flex flex-col items-center justify-center gap-4 text-stone-400 font-light ${fonts.ui}`}>
           <span className="italic animate-pulse">Загрузка тишины...</span>
@@ -1094,31 +954,34 @@ const App = () => {
       </div>
   );
 
-  const availableThemes = isAdmin 
-      ? Object.values(THEMES) 
-      : [...freeThemes, ...premiumThemes.filter(t => isAngel && angelTheme === t.id)];
+  const availableThemes = Object.values(THEMES);
+  const visiblePrayers = myPrayers.filter((prayer) => {
+      const matchesTab = diaryTab === 'answered' ? prayer.status === 'answered' : prayer.status !== 'answered';
+      const searchText = `${prayer.title || ''} ${prayer.text || ''} ${prayer.category || ''}`.toLocaleLowerCase('ru-RU');
+      return matchesTab && searchText.includes(prayerSearch.trim().toLocaleLowerCase('ru-RU'));
+  });
 
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Spectral:wght@400;500&display=swap" rel="stylesheet" />
-      
+
       <FilmGrain />
 
       <div className={`fixed inset-0 z-[-3] transition-colors duration-1000`} style={{ backgroundColor: theme.fallbackColor }} />
-      
+
       <AnimatePresence>
-          {theme.type === 'video' ? (
+          {theme.type === 'video' && !prefersReducedMotion && isDocumentVisible && !showPrayerPause ? (
               <motion.video 
                 key={theme.id} 
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
                 exit={{ opacity: 0 }} 
                 transition={{ duration: 1.5 }} 
-                autoPlay loop muted playsInline WebkitPlaysInline disablePictureInPicture 
+                autoPlay loop muted playsInline WebkitPlaysInline disablePictureInPicture preload="none"
                 className="fixed inset-0 z-[-2] w-full h-full object-cover pointer-events-none" 
                 src={theme.bgVideo} 
               />
-          ) : (
+          ) : theme.type === 'image' ? (
               <motion.div 
                 key={theme.id} 
                 initial={{ opacity: 0 }} 
@@ -1128,9 +991,19 @@ const App = () => {
                 className="fixed inset-0 z-[-2] bg-cover bg-center" 
                 style={{ backgroundImage: `url(${theme.bgImage})` }} 
               />
+          ) : (
+              <motion.div
+                key={`${theme.id}-still`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: prefersReducedMotion ? 0 : 0.7 }}
+                className="fixed inset-0 z-[-2]"
+                style={{ background: `radial-gradient(ellipse at 50% 35%, ${theme.fallbackColor} 0%, #121512 88%)` }}
+              />
           )}
       </AnimatePresence>
-      
+
       <div className={`fixed inset-0 z-[-1] transition-all duration-1000 ${theme.overlay || ''}`} />
 
       <AnimatePresence>
@@ -1141,98 +1014,168 @@ const App = () => {
 
       <div className={`relative z-10 h-[100dvh] w-full flex flex-col max-w-md mx-auto overflow-hidden ${showWelcomeScreen ? 'pointer-events-none blur-sm' : ''}`}>
         
-        <TopMenu view={view} setView={setView} theme={theme} openLegal={() => setShowLegalModal(true)} openSupport={() => setShowSupportModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
+        <TopMenu view={view} setView={setView} theme={theme} openLegal={() => setShowLegalModal(true)} logout={() => signOut(auth)} isAdmin={isAdmin} isUiVisible={isUiVisible} />
 
-        <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-44 no-scrollbar scroll-smooth pt-28 min-h-screen"> 
+        <main ref={mainScrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-6 pb-28 no-scrollbar scroll-smooth pt-24 min-h-screen">
           <AnimatePresence mode="wait">
           {!showInlineCreate && (
               <motion.div key={view} variants={pageVariants} initial="initial" animate="animate" exit="exit" className="space-y-8">
                 
-                {/* --- FLOW VIEW --- */}
+                {/* --- TODAY VIEW --- */}
                 {view === 'flow' && (
-                  <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-8">
-                    
-                    <Card theme={theme} className="text-center py-10 relative overflow-hidden group">
-                        <div className={`text-xs font-medium uppercase opacity-60 mb-6 tracking-widest ${fonts.ui}`}>Фокус дня</div>
-                        <h2 className={`text-2xl font-normal leading-tight mb-6 px-2 ${fonts.content}`}>{dailyVerse.title}</h2>
-                        
-                        <div className="mb-6 px-2 relative">
-                            <span className={`text-4xl absolute -top-4 -left-2 opacity-10 ${fonts.content}`}>“</span>
-                            <p className={`text-lg leading-[1.75] opacity-90 relative z-10 ${fonts.content}`}>{dailyVerse.text}</p>
-                            <span className={`text-4xl absolute -bottom-8 -right-2 opacity-10 ${fonts.content}`}>”</span>
-                        </div>
-                        
-                        <div className={`text-sm opacity-60 ${isFocusExpanded ? 'mb-8' : 'mb-0'} ${fonts.ui}`}>{dailyVerse.source}</div>
+                  <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-5 pb-8">
+                    <div className={`px-2 pb-2 ${theme.text}`}>
+                      <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] opacity-55 ${fonts.ui}`}>
+                        {new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </p>
+                      <h1 className={`font-serif text-[2.15rem] font-normal leading-tight tracking-tight ${fonts.content}`}>Место тишины</h1>
+                      <p className={`mt-2 max-w-[18rem] text-sm leading-6 opacity-70 ${fonts.ui}`}>Остановись на мгновение. Этого уже достаточно.</p>
+                    </div>
 
-                        <AnimatePresence>
-                            {!isFocusExpanded ? (
-                                <motion.button key="btn-immerse" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { triggerHaptic(); setIsFocusExpanded(true); }} className={`mt-8 w-full py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition active:scale-95 ${theme.button} ${fonts.ui}`}>
-                                    Погрузиться
-                                </motion.button>
-                            ) : (
-                                <motion.div key="immersion-content" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.4, ease: "easeOut" }} className="overflow-hidden">
-                                    <div className={`${theme.containerBg} rounded-[2rem] p-6 mb-6 mx-2 text-left shadow-inner backdrop-blur-md`}>
-                                        <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>{dailyVerse.thought}</p>
-                                    </div>
-                                    <div className="mx-2 flex flex-col gap-3">
-                                        <textarea value={inlineFocusText} onChange={(e) => setInlineFocusText(e.target.value)} placeholder={placeholderText} className={`w-full p-5 rounded-2xl ${theme.containerBg} backdrop-blur-md text-[15px] leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} transition focus:scale-[1.01] ${fonts.content}`} rows="3" />
-                                        <AnimatePresence>
-                                            {inlineFocusText.length > 0 && (
-                                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex gap-3 mt-1">
-                                                    <div onClick={() => setIsFocusPublic(!isFocusPublic)} className={`flex-1 py-3 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}>
-                                                        <div className={`w-2 h-2 rounded-full ${isFocusPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-40'}`} />
-                                                        <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-80`}>{isFocusPublic ? "Все" : "Личное"}</span>
-                                                    </div>
-                                                    <button onClick={handleInlineFocusSubmit} disabled={isFocusSubmitting} className={`flex-[2] py-3 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui}`}>
-                                                        {isFocusSubmitting ? "..." : "Amen"}
-                                                    </button>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                </motion.div>
+                    <Card theme={theme} className="!rounded-[2rem] !px-7 !py-8 text-left shadow-[0_24px_70px_rgba(48,38,23,0.09)] sm:!px-9">
+                      <div className={`mb-5 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-55 ${fonts.ui}`}>
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-700/70" />Чтение дня
+                      </div>
+                      <h2 className={`mb-5 font-serif text-2xl font-normal leading-snug ${theme.text} ${fonts.content}`}>{dailyVerse.title}</h2>
+                      <blockquote className={`border-l border-current/20 pl-5 font-serif text-[1.15rem] leading-[1.8] opacity-90 ${theme.text} ${fonts.content}`}>
+                        {dailyVerse.text}
+                      </blockquote>
+                      <p className={`mb-6 mt-4 pl-5 text-xs tracking-wide opacity-55 ${theme.text} ${fonts.ui}`}>{dailyVerse.source}</p>
+                      <button onClick={toggleSavedReading} aria-pressed={currentVerseSaved} className={`ml-5 inline-flex min-h-10 items-center gap-2 rounded-full border border-current/10 px-3 py-2 text-[10px] font-medium transition hover:bg-white/30 ${theme.text} ${fonts.ui}`}>
+                        <Bookmark size={14} fill={currentVerseSaved ? 'currentColor' : 'none'} />{currentVerseSaved ? 'Сохранено на этом устройстве' : 'Сохранить чтение'}
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {isFocusExpanded && (
+                          <motion.div
+                            initial={prefersReducedMotion ? false : { opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.28, ease: 'easeOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className={`${theme.containerBg} mb-5 rounded-2xl px-5 py-4`}>
+                              <p className={`text-[15px] leading-7 opacity-85 ${theme.text} ${fonts.content}`}>{dailyVerse.thought}</p>
+                            </div>
+                            <label className={`mb-2 block text-[10px] font-semibold uppercase tracking-[0.16em] opacity-60 ${theme.text} ${fonts.ui}`} htmlFor="today-reflection">
+                              Для личной записи
+                            </label>
+                            <textarea
+                              id="today-reflection"
+                              value={inlineFocusText}
+                              onChange={(event) => setInlineFocusText(event.target.value)}
+                              placeholder={reflectionPrompt}
+                              rows={3}
+                              className={`w-full resize-none rounded-2xl border border-current/10 p-4 text-sm leading-6 outline-none transition focus:border-current/30 ${theme.containerBg} ${theme.text} ${theme.placeholderColor} ${fonts.content}`}
+                            />
+                            <div className={`mt-3 flex items-center gap-2 text-[11px] opacity-60 ${theme.text} ${fonts.ui}`}>
+                              <Lock size={13} />Эта заметка сохранится только в твоём дневнике.
+                            </div>
+                            {inlineFocusText.trim() && (
+                              <button onClick={handleInlineFocusSubmit} disabled={isFocusSubmitting} className={`mt-4 min-h-12 w-full rounded-xl px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] ${theme.activeButton} disabled:opacity-50 ${fonts.ui}`}>
+                                {isFocusSubmitting ? 'Сохраняем…' : 'Сохранить в дневник'}
+                              </button>
                             )}
-                        </AnimatePresence>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="mt-6 grid grid-cols-1 gap-2.5">
+                        <button onClick={() => { setIsPlaying(false); setShowPrayerPause(true); }} className="flex min-h-14 items-center justify-center gap-2.5 rounded-2xl bg-stone-800 px-5 py-4 text-xs font-semibold uppercase tracking-[0.15em] text-white shadow-[0_12px_25px_rgba(40,36,29,0.17)] transition hover:bg-stone-700 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 focus-visible:ring-offset-2">
+                          <Play size={15} fill="currentColor" />Начать молитву
+                        </button>
+                        <button
+                          onClick={() => { triggerHaptic(); setIsFocusExpanded((expanded) => !expanded); }}
+                          aria-expanded={isFocusExpanded}
+                          className={`flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-current/10 px-5 py-3 text-xs font-semibold uppercase tracking-[0.13em] transition hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/50 ${theme.text} ${fonts.ui}`}
+                        >
+                          <PenLine size={15} />{isFocusExpanded ? 'Свернуть размышление' : 'Поразмышлять и записать'}
+                        </button>
+                      </div>
                     </Card>
 
-                    <div className="flex items-center justify-center my-8 opacity-50">
-                        <div className="h-px bg-current w-16"></div>
-                        <span className={`mx-4 text-xs font-medium uppercase tracking-widest ${fonts.ui}`}>Единство</span>
-                        <div className="h-px bg-current w-16"></div>
-                    </div>
+                    <Card theme={theme} className="!rounded-[1.75rem] !p-6 text-left">
+                      <div className={`mb-4 flex items-center justify-between gap-4 ${theme.text}`}>
+                        <div>
+                          <p className={`mb-1 text-[9px] font-semibold uppercase tracking-[0.2em] opacity-50 ${fonts.ui}`}>Путь тишины · {new Date().getDay() + 1} из 7</p>
+                          <h3 className={`font-serif text-xl font-normal ${fonts.content}`}>{journeyDay.title}</h3>
+                        </div>
+                        <BookOpen size={19} className="shrink-0 opacity-45" />
+                      </div>
+                      <p className={`mb-3 text-xs font-medium opacity-65 ${theme.text} ${fonts.ui}`}>{journeyDay.reading}</p>
+                      <p className={`text-sm leading-6 opacity-80 ${theme.text} ${fonts.content}`}>{journeyDay.prompt}</p>
+                      <button onClick={() => { setIsFocusExpanded(true); setInlineFocusText(''); mainScrollRef.current?.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' }); }} className={`mt-4 inline-flex min-h-10 items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.14em] opacity-65 transition hover:opacity-100 ${theme.text} ${fonts.ui}`}>
+                        Остаться с этим <ChevronRight size={14} />
+                      </button>
+                    </Card>
 
-                    <div className="space-y-4">
-                        {publicPosts.map(post => (
-                             <Card key={post.id} theme={theme} className="!p-6 relative group">
-                                 <div className={`flex justify-between items-center mb-4 opacity-70 text-xs font-normal ${fonts.ui}`}>
-                                     <span className="flex items-center gap-1.5">
-                                         {post.authorName} 
-                                         {post.authorIsAngel && <Feather size={12} className={theme.iconColor} />}
-                                     </span>
-                                     <div className="flex gap-2 mr-0">
-                                        {post.status === 'answered' && <span className={`${theme.iconColor} font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Чудо</span>}
-                                        <span>{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
-                                     </div>
-                                 </div>
-                                 
-                                 <p className={`mb-6 text-[17px] leading-[1.75] whitespace-pre-wrap opacity-100 ${fonts.content}`}>{post.text}</p>
-                                 
-                                 <button 
-                                    onClick={(e) => toggleLike(e, post.id, post.likes)} 
-                                    className={`w-full py-3 text-sm font-medium transition rounded-xl flex items-center justify-center gap-2 ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}
-                                 >
-                                     {post.likes?.includes(user.uid) ? "Amen 🙏" : "Amen"}
-                                     {post.likes?.length > 0 && <span className="opacity-80 ml-1">{post.likes.length}</span>}
-                                 </button>
+                    {savedReadings.length > 0 && (
+                      <Card theme={theme} className="!rounded-[1.75rem] !p-0 text-left">
+                        <details className="group">
+                          <summary className={`flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-6 py-4 ${theme.text}`}>
+                            <span className="flex items-center gap-2 text-sm"><Bookmark size={15} className="opacity-55" />Сохранённые чтения</span>
+                            <ChevronDown size={15} className="opacity-45 transition-transform group-open:rotate-180" />
+                          </summary>
+                          <div className="space-y-3 px-6 pb-5">
+                            {savedReadings.map((reading) => (
+                              <div key={`${reading.source}-${reading.text}`} className={`rounded-2xl border border-current/10 p-4 ${theme.containerBg} ${theme.text}`}>
+                                <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-55 ${fonts.ui}`}>{reading.source}</p>
+                                <p className={`font-serif text-sm leading-6 ${fonts.content}`}>{reading.text}</p>
+                                <button onClick={() => setSavedReadings((items) => items.filter((item) => item !== reading))} className={`mt-3 min-h-9 text-[10px] opacity-55 transition hover:opacity-100 ${fonts.ui}`}>Убрать из сохранённых</button>
+                              </div>
+                            ))}
+                            <p className={`text-[10px] leading-5 opacity-45 ${theme.text} ${fonts.ui}`}>Сохранённые чтения доступны в этом браузере на этом устройстве.</p>
+                          </div>
+                        </details>
+                      </Card>
+                    )}
 
-                                 {isAdmin && (
-                                     <button onClick={() => deletePost(post.id)} className="absolute bottom-4 right-4 text-red-400 opacity-30 hover:opacity-100 transition">
-                                         <Trash2 size={16} />
-                                     </button>
-                                 )}
-                             </Card>
-                         ))}
+                    <button onClick={() => setView('diary')} className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 text-xs font-medium opacity-65 transition hover:opacity-100 ${theme.text} ${fonts.ui}`}>
+                      <BookOpen size={15} />Открыть личный дневник
+                    </button>
+                  </motion.div>
+                )}
+
+                {/* --- UNITY VIEW --- */}
+                {view === 'unity' && (
+                  <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-5 pb-8">
+                    <div className={`px-2 pb-2 ${theme.text}`}>
+                      <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] opacity-55 ${fonts.ui}`}>Тихая общность</p>
+                      <h1 className={`font-serif text-[2.1rem] font-normal tracking-tight ${fonts.content}`}>Единство</h1>
+                      <p className={`mt-2 max-w-sm text-sm leading-6 opacity-70 ${fonts.ui}`}>Здесь люди делятся просьбами о молитве. Откликнись в тишине, если хочется.</p>
                     </div>
+                    <div className={`flex items-start gap-3 rounded-2xl border border-current/10 px-4 py-4 text-xs leading-5 opacity-75 ${theme.text} ${theme.containerBg} ${fonts.ui}`}>
+                      <Lock size={14} className="mt-0.5 shrink-0" />Публикации видны другим участникам. Не указывай адреса, телефоны и другие личные данные.
+                    </div>
+                    {publicPosts.length === 0 ? (
+                      <Card theme={theme} className="!rounded-[1.75rem] !p-7 text-center">
+                        <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${theme.containerBg} ${theme.iconColor}`}><Heart size={20} strokeWidth={1.5} /></div>
+                        <h2 className={`mb-2 font-serif text-xl font-normal ${theme.text} ${fonts.content}`}>Пока тихо</h2>
+                        <p className={`mx-auto max-w-xs text-sm leading-6 opacity-65 ${theme.text} ${fonts.ui}`}>Когда появятся общие просьбы, ты увидишь их здесь.</p>
+                      </Card>
+                    ) : publicPosts.map((post) => (
+                      <Card key={post.id} theme={theme} className="!relative !rounded-[1.75rem] !p-6 text-left">
+                        <div className={`mb-4 flex items-center justify-between gap-3 text-[10px] opacity-55 ${theme.text} ${fonts.ui}`}>
+                          <span>Общая просьба</span>
+                          <span>{post.createdAt?.toDate ? post.createdAt.toDate().toLocaleDateString('ru-RU') : 'Недавно'}</span>
+                        </div>
+                        <p className={`mb-5 whitespace-pre-wrap text-[16px] leading-[1.8] ${theme.text} ${fonts.content}`}>{post.text}</p>
+                        <div className="flex items-center justify-between gap-3 border-t border-current/10 pt-4">
+                          <span className={`text-[10px] opacity-50 ${theme.text} ${fonts.ui}`}>Имя автора: {post.authorName || 'Анонимно'}</span>
+                          <button
+                            onClick={(event) => toggleLike(event, post.id, post.likes)}
+                            aria-pressed={post.likes?.includes(user.uid) || false}
+                            className={`flex min-h-10 items-center gap-2 rounded-full px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] transition ${post.likes?.includes(user.uid) ? theme.activeButton : theme.button} ${fonts.ui}`}
+                          >
+                            <Hand size={14} />{post.likes?.includes(user.uid) ? 'Я помолился' : 'Помолился'}
+                          </button>
+                        </div>
+                        {isAdmin && <button onClick={() => deletePost(post.id)} aria-label="Удалить публикацию" className="absolute right-4 top-4 p-2 text-red-400 opacity-40 hover:opacity-100"><Trash2 size={14} /></button>}
+                      </Card>
+                    ))}
+                    <button onClick={() => { setFocusPrayerPublic(true); setShowInlineCreate(true); }} className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-current/15 px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] transition hover:bg-white/20 ${theme.text} ${fonts.ui}`}>
+                      <Plus size={15} />Поделиться просьбой
+                    </button>
                   </motion.div>
                 )}
 
@@ -1240,11 +1183,26 @@ const App = () => {
                 {view === 'diary' && (
                     <motion.div variants={simpleContainer} initial="hidden" animate="show" className="space-y-6">
                         <div className={`flex items-center justify-between px-2 pb-4 ${fonts.ui}`}>
-                            <h2 className={`text-3xl font-semibold tracking-tight opacity-90 drop-shadow-sm ${theme.text}`}>Amen</h2>
-                            <button onClick={() => { triggerHaptic(); setShowInlineCreate(true); }} className={`p-3 rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
+                            <div className={theme.text}>
+                              <p className={`mb-1 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-50 ${fonts.ui}`}>Только для тебя</p>
+                              <h2 className={`font-serif text-3xl font-normal tracking-tight ${fonts.content}`}>Мой дневник</h2>
+                            </div>
+                            <button onClick={() => { triggerHaptic(); setFocusPrayerPublic(false); setNewPrayerCategory('Личное'); setShowInlineCreate(true); }} aria-label="Новая личная запись" className={`flex min-h-12 min-w-12 items-center justify-center rounded-full ${theme.button} backdrop-blur-xl transition hover:scale-105 active:scale-95`}>
                                 <PenLine size={20} />
                             </button>
                         </div>
+
+                        <label className={`flex min-h-12 items-center gap-3 rounded-2xl border border-current/10 px-4 ${theme.text} ${theme.containerBg}`}>
+                          <List size={16} className="opacity-45" />
+                          <input
+                            value={prayerSearch}
+                            onChange={(event) => setPrayerSearch(event.target.value)}
+                            placeholder="Найти запись или тему"
+                            aria-label="Поиск по дневнику"
+                            className={`w-full bg-transparent py-3 text-sm outline-none ${theme.placeholderColor} ${fonts.ui}`}
+                          />
+                          {prayerSearch && <button onClick={() => setPrayerSearch('')} aria-label="Очистить поиск" className="p-1 opacity-60 hover:opacity-100"><X size={15} /></button>}
+                        </label>
 
                         <div className={`flex p-1 rounded-full mb-6 relative z-0 ${theme.containerBg} ${fonts.ui}`}>
                             <div className={`absolute top-1 bottom-1 w-1/2 bg-white/80 shadow-sm rounded-full transition-all duration-300 pointer-events-none ${diaryTab === 'active' ? 'left-1' : 'left-[49%]'}`} />
@@ -1253,16 +1211,22 @@ const App = () => {
                         </div>
 
                         <div className="space-y-4">
-                            {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').length === 0 && (
-                                <div className={`text-center opacity-60 py-10 text-lg ${fonts.content}`}>
-                                    {diaryTab === 'active' ? "Дневник чист..." : "Пока нет записанных ответов..."}
-                                </div>
+                            {visiblePrayers.length === 0 && (
+                                <Card theme={theme} className="!rounded-[1.75rem] !px-7 !py-9 text-center">
+                                  <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${theme.containerBg} ${theme.iconColor}`}><BookOpen size={20} strokeWidth={1.5} /></div>
+                                  <h3 className={`mb-2 font-serif text-xl font-normal ${theme.text} ${fonts.content}`}>{prayerSearch ? 'Ничего не нашлось' : diaryTab === 'active' ? 'Здесь может начаться запись' : 'Ответы придут в своё время'}</h3>
+                                  <p className={`mx-auto max-w-xs text-sm leading-6 opacity-65 ${theme.text} ${fonts.ui}`}>{prayerSearch ? 'Попробуй другое слово или тему.' : diaryTab === 'active' ? 'Это личное пространство. Запиши молитву, благодарность или то, что хочется сохранить.' : 'Отмечай ответы на молитвы, когда будешь готов.'}</p>
+                                  {!prayerSearch && diaryTab === 'active' && <button onClick={() => { setFocusPrayerPublic(false); setNewPrayerCategory('Личное'); setShowInlineCreate(true); }} className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-full px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] ${theme.activeButton} ${fonts.ui}`}><PenLine size={14} />Начать запись</button>}
+                                </Card>
                             )}
 
-                            {myPrayers.filter(p => diaryTab === 'answered' ? p.status === 'answered' : p.status !== 'answered').map(p => (
+                            {visiblePrayers.map(p => (
                                 <Card key={p.id} theme={theme}>
                                     <div className={`flex justify-between items-start mb-3 ${fonts.ui}`}>
-                                        <span className="text-xs font-normal opacity-70">{p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : 'Только что'}</span>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <span className="text-xs font-normal opacity-60">{p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString('ru-RU') : 'Только что'}</span>
+                                          {p.category && <span className={`rounded-full border border-current/10 px-2.5 py-1 text-[9px] font-medium opacity-70 ${theme.text}`}>{p.category}</span>}
+                                        </div>
                                         {p.status === 'answered' ? (
                                             <span className={`${theme.iconColor} text-xs font-medium flex items-center gap-1`}><CheckCircle2 size={12}/> Ответ</span>
                                         ) : (
@@ -1274,6 +1238,9 @@ const App = () => {
                                         <div className={`mb-4 space-y-2 ${fonts.ui}`}>
                                             <input value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-30 py-2 outline-none text-lg font-medium`} />
                                             <textarea value={editForm.text} onChange={e => setEditForm({...editForm, text: e.target.value})} className={`w-full bg-transparent border-b border-current border-opacity-30 py-2 outline-none text-sm h-20 resize-none ${fonts.content}`} />
+                                            <select value={editForm.category || 'Личное'} onChange={(event) => setEditForm({ ...editForm, category: event.target.value })} aria-label="Тема записи" className={`w-full rounded-xl border border-current/10 bg-transparent px-3 py-3 text-sm outline-none ${theme.text}`}>
+                                              {JOURNAL_CATEGORIES.map((category) => <option key={category} value={category} className="text-stone-900">{category}</option>)}
+                                            </select>
                                             <div className="flex justify-end gap-3 pt-2">
                                                 <button onClick={() => setEditingId(null)} className="text-xs opacity-60">Отмена</button>
                                                 <button onClick={saveEdit} className="text-xs font-medium">Сохранить</button>
@@ -1294,16 +1261,11 @@ const App = () => {
                                     )}
                                     
                                     <div className={`pt-4 border-t border-current border-opacity-10 flex justify-between items-center ${fonts.ui}`}>
-                                        <button onClick={() => deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id))} className="text-xs opacity-50 hover:opacity-100 transition">Удалить</button>
+                                        <button onClick={() => { if (confirm('Удалить эту запись? Это действие нельзя отменить.')) deleteDoc(doc(db, 'artifacts', dbCollectionId, 'users', user.uid, 'prayers', p.id)); }} className="min-h-10 rounded-lg px-2 text-xs opacity-50 hover:opacity-100 transition">Удалить</button>
                                         {p.status !== 'answered' ? (
-                                            <div className="flex items-center gap-4">
-                                                <button onClick={() => incrementPrayerCount(p.id, p.prayerCount)} className={`text-xs font-medium opacity-80 hover:opacity-100 flex items-center gap-2 transition ${theme.text}`}>
-                                                    <Hand size={14}/> {p.prayerCount || 1}
-                                                </button>
-                                                <button onClick={() => openAnswerModal(p.id)} className="flex items-center gap-2 text-xs font-medium opacity-80 hover:opacity-100 transition">
-                                                    <CheckCircle2 size={14}/> Есть ответ
-                                                </button>
-                                            </div>
+                                            <button onClick={() => openAnswerModal(p.id)} className="flex min-h-10 items-center gap-2 rounded-full px-3 text-xs font-medium opacity-75 transition hover:bg-white/20 hover:opacity-100">
+                                                <CheckCircle2 size={14}/>Отметить ответ
+                                            </button>
                                         ) : null}
                                     </div>
                                 </Card>
@@ -1346,39 +1308,11 @@ const App = () => {
                                                  <div className="text-[10px] opacity-50 font-mono">
                                                      {safeEmail || u.id.substring(0, 8) + '...'}
                                                  </div>
-                                             </div>
-                                             {u.isAngel ? (
-                                                 <span className="text-[10px] font-bold uppercase text-amber-400 border border-amber-400/30 px-2 py-1 rounded-full">Ангел</span>
-                                             ) : (
-                                                 <span className="text-[10px] font-bold uppercase opacity-40">Пилигрим</span>
-                                             )}
                                          </div>
-                                         
-                                         <div className="flex items-center gap-2 mt-2">
-                                             <select 
-                                                 className="bg-black/20 border border-white/10 rounded-lg px-2 py-2 text-xs outline-none flex-1 text-white"
-                                                 value={selectedThemeForUser[u.id] || u.angelTheme || premiumThemes[0].id}
-                                                 onChange={(e) => setSelectedThemeForUser({...selectedThemeForUser, [u.id]: e.target.value})}
-                                             >
-                                                 {premiumThemes.map(t => <option key={t.id} value={t.id} className="text-black">{t.label}</option>)}
-                                             </select>
-                                             
-                                             {u.isAngel ? (
-                                                 <button onClick={() => toggleUserAngel(u.id, false)} className="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-xs font-bold active:scale-95 transition">Забрать</button>
-                                             ) : (
-                                                 <button onClick={() => toggleUserAngel(u.id, true, selectedThemeForUser[u.id] || premiumThemes[0].id)} className="px-3 py-2 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-bold active:scale-95 transition">Дать фон</button>
-                                             )}
                                          </div>
                                      </div>
                                  );
                              })}
-                         </div>
-
-                         <div className="flex flex-col gap-4">
-                             <h3 className={`text-[10px] font-bold uppercase tracking-widest opacity-50 ${theme.text} ${fonts.ui}`}>Система</h3>
-                             <button onClick={resetAllAngels} className={`w-full py-5 border border-red-500/30 text-red-400 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-red-500/10 transition active:scale-95 ${fonts.ui}`}>
-                                 Сбросить все статусы
-                             </button>
                          </div>
 
                          {/* БЛОК ОТВЕТОВ НА ОТЗЫВЫ */}
@@ -1447,7 +1381,6 @@ const App = () => {
                                 <div className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl font-light shadow-2xl ${theme.activeButton} ${fonts.content}`}>
                                     {user.displayName?.[0] || "A"}
                                 </div>
-                                {isAngel && <Feather size={24} className={`${theme.iconColor} opacity-90 pb-2`} />}
                             </div>
 
                             <div className="relative mb-8 px-8 group">
@@ -1460,7 +1393,7 @@ const App = () => {
                                 />
                             </div>
                             
-                            <DivineSeed stage={seedStage} fruits={seedFruits} theme={theme} />
+                            <DivineSeed stage={seedStage} theme={theme} />
 
                             <div className={`${theme.containerBg} rounded-[2.5rem] p-8 mb-8 text-left shadow-sm backdrop-blur-md transition-all`}>
                                 <button 
@@ -1501,12 +1434,7 @@ const App = () => {
                                                 <div className="w-12 h-px bg-current opacity-20"></div>
                                                 <div>
                                                     <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Sprout size={16} className="opacity-60"/> Сад веры</h5>
-                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Дисциплина растит семя. Заходите в приложение каждый день, чтобы древо крепло и приносило плоды. Без внимания оно увядает.</p>
-                                                </div>
-                                                <div className="w-12 h-px bg-current opacity-20"></div>
-                                                <div>
-                                                    <h5 className={`text-sm font-semibold mb-1 flex items-center gap-2 ${fonts.ui} ${theme.text}`}><Feather size={16} className="opacity-60"/> Ангел проекта</h5>
-                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Статус Ангела (в меню) выдается за поддержку проекта. Он дает специальный значок и открывает 1 живой видеофон на выбор на весь месяц.</p>
+                                                    <p className={`text-[15px] leading-relaxed opacity-90 ${fonts.content}`}>Сад растёт в твоём ритме. Возвращайся, когда будет удобно: здесь тебя ждёт тишина, даже после долгой паузы.</p>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -1545,18 +1473,23 @@ const App = () => {
                                          {availableThemes.find(t => t.id === (previewThemeId || currentThemeId))?.label || 'Классика'}
                                      </span>
                                 </div>
-                                <div className="flex gap-4 overflow-x-auto pt-4 px-2 pb-4 no-scrollbar snap-x">
+                                <div className="flex snap-x gap-3 overflow-x-auto px-2 pb-4 pt-3 no-scrollbar">
                                     {availableThemes.map(t => (
                                         <button 
                                             key={t.id}
                                             onClick={() => { triggerHaptic(); setCurrentThemeId(t.id); setPreviewThemeId(null); }} 
-                                            className={`relative w-16 h-16 rounded-full shrink-0 snap-center overflow-hidden transition-all duration-300 ${(previewThemeId || currentThemeId) === t.id ? 'ring-2 ring-offset-2 ring-current scale-110 shadow-lg' : 'opacity-60 hover:opacity-100'}`}
+                                            aria-label={`Выбрать фон «${t.label}»`}
+                                            aria-pressed={(previewThemeId || currentThemeId) === t.id}
+                                            className={`relative flex h-28 w-24 shrink-0 snap-center flex-col justify-end overflow-hidden rounded-2xl border text-left shadow-sm transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current ${(previewThemeId || currentThemeId) === t.id ? 'scale-[1.03] border-current ring-2 ring-current ring-offset-2 ring-offset-stone-900/10' : 'border-current/10 opacity-75 hover:opacity-100'}`}
                                         >
                                             {t.type === 'video' ? (
-                                                <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
+                                                <div className="absolute inset-0" style={{ background: `radial-gradient(circle at 50% 35%, ${t.fallbackColor} 0%, #171b1a 100%)` }} />
                                             ) : (
-                                                <img src={t.bgImage} className="absolute inset-0 w-full h-full object-cover pointer-events-none" alt={t.label} />
+                                                <img src={t.bgImage} className="absolute inset-0 h-full w-full object-cover" alt="" loading="lazy" />
                                             )}
+                                            <span className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/5" />
+                                            {t.type === 'video' && <span className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white"><Play size={12} fill="currentColor" /></span>}
+                                            <span className="relative z-10 px-3 pb-3 text-[10px] font-semibold tracking-wide text-white">{t.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -1594,46 +1527,71 @@ const App = () => {
                     animate={{ opacity: 1 }} 
                     exit={{ opacity: 0 }} 
                     transition={{ duration: 0.3 }}
-                    className="fixed inset-0 z-50 flex flex-col pt-28 px-6 backdrop-blur-3xl bg-black/10"
+                    className="fixed inset-0 z-50 flex flex-col px-6 pb-[env(safe-area-inset-bottom)] pt-24 backdrop-blur-3xl bg-black/10"
                     style={{ height: lockedHeight }} 
                 >
                      <div className="fixed top-12 left-6 z-[60]">
-                        <button onClick={() => setShowInlineCreate(false)} className={`text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}>
-                            Закрыть
+                        <button onClick={() => { setFocusPrayerPublic(false); setShowInlineCreate(false); }} className={`min-h-11 text-sm font-medium px-5 py-2.5 rounded-full backdrop-blur-xl ${theme.text} bg-white/10 hover:bg-white/20 transition shadow-sm`}>
+                            Назад
                         </button>
                     </div>
 
-                    <div className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-40 no-scrollbar"> 
+                    <div className="w-full max-w-sm mx-auto flex flex-col gap-4 overflow-y-auto pb-32 no-scrollbar">
+                        <div className={`mb-2 ${theme.text}`}>
+                          <p className={`mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] opacity-55 ${fonts.ui}`}>{focusPrayerPublic ? 'Общая молитва' : 'Личное пространство'}</p>
+                          <h2 className={`font-serif text-3xl font-normal ${fonts.content}`}>{focusPrayerPublic ? 'Поделиться просьбой' : 'Запись для себя'}</h2>
+                          <p className={`mt-2 text-sm leading-6 opacity-65 ${fonts.ui}`}>Можно писать коротко. Здесь не нужны красивые слова.</p>
+                        </div>
                         <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.1}} className={`rounded-2xl p-4 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
                             <input 
                                 value={newPrayerTitle} 
                                 onChange={(e) => setNewPrayerTitle(e.target.value)} 
-                                placeholder="Тема..." 
+                                placeholder="О чём хочется помолиться?"
+                                aria-label="Тема молитвы"
                                 className={`w-full bg-transparent text-lg font-medium outline-none ${theme.text} ${theme.placeholderColor} text-center`} 
                                 autoFocus 
                             />
                         </motion.div>
+
+                        <div className={`rounded-2xl border border-current/10 p-4 ${theme.containerBg}`}>
+                          <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] opacity-55 ${theme.text} ${fonts.ui}`}>Тема записи</p>
+                          <div className="flex flex-wrap gap-2" role="group" aria-label="Тема записи">
+                            {JOURNAL_CATEGORIES.map((category) => (
+                              <button
+                                key={category}
+                                type="button"
+                                onClick={() => setNewPrayerCategory(category)}
+                                aria-pressed={newPrayerCategory === category}
+                                className={`min-h-10 rounded-full border px-3 py-2 text-[10px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/50 ${newPrayerCategory === category ? 'border-current/25 bg-white/55 opacity-100' : 'border-current/10 opacity-55 hover:opacity-90'} ${theme.text} ${fonts.ui}`}
+                              >{category}</button>
+                            ))}
+                          </div>
+                        </div>
                         
                         <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.2}} className={`rounded-2xl p-4 flex-1 h-48 ${theme.containerBg} backdrop-blur-md transition-all focus-within:scale-[1.01]`}>
                             <textarea 
                                 value={newPrayerText} 
                                 onChange={(e) => setNewPrayerText(e.target.value)} 
-                                placeholder={placeholderText} 
+                                placeholder="Напиши своими словами — можно и одним предложением."
+                                aria-label="Текст молитвы или размышления"
                                 className={`w-full h-full bg-transparent text-base leading-relaxed resize-none outline-none ${theme.text} ${theme.placeholderColor} ${fonts.content}`} 
                             />
                         </motion.div>
                         
-                        <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.3}} className="flex gap-4 mt-2">
-                            <div onClick={() => setFocusPrayerPublic(!focusPrayerPublic)} className={`flex-1 py-4 rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition active:scale-95 ${theme.containerBg} backdrop-blur-md`}>
-                                <div className={`w-2 h-2 rounded-full ${focusPrayerPublic ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]' : 'bg-current opacity-40'}`} />
-                                <span className={`text-[10px] font-bold uppercase tracking-widest ${theme.text} opacity-80`}>{focusPrayerPublic ? "Все" : "Личное"}</span>
-                            </div>
+                        <motion.div variants={itemAnim} initial="hidden" animate="show" transition={{delay: 0.3}} className="mt-2 space-y-3">
+                            <label className={`flex cursor-pointer items-start gap-3 rounded-2xl border border-current/10 p-4 ${theme.containerBg} ${theme.text}`}>
+                              <input type="checkbox" checked={focusPrayerPublic} onChange={(event) => setFocusPrayerPublic(event.target.checked)} className="mt-1 h-4 w-4 accent-stone-700" />
+                              <span>
+                                <span className={`block text-xs font-semibold ${fonts.ui}`}>Поделиться в Единстве</span>
+                                <span className={`mt-1 block text-[11px] leading-5 opacity-65 ${fonts.ui}`}>{focusPrayerPublic ? 'Эту просьбу увидят другие участники. Не добавляй контакты и личные данные.' : 'По умолчанию запись видна только тебе.'}</span>
+                              </span>
+                            </label>
                             <button 
                                 onClick={handleAmen} 
                                 disabled={isAmenAnimating} 
-                                className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui} disabled:opacity-50`}
+                                className={`min-h-14 w-full py-4 text-xs font-bold uppercase tracking-widest rounded-2xl transition transform active:scale-95 ${theme.activeButton} shadow-lg ${fonts.ui} disabled:opacity-50`}
                             >
-                                {isAmenAnimating ? "..." : "Amen"}
+                                {isAmenAnimating ? 'Сохраняем…' : focusPrayerPublic ? 'Сохранить и поделиться' : 'Сохранить в дневник'}
                             </button>
                         </motion.div>
                     </div>
@@ -1653,125 +1611,11 @@ const App = () => {
         />
       </div>
 
-      {/* --- МОДАЛКИ --- */}
-      
-      {/* ОКНО АНГЕЛА (СО ВСТРОЕННЫМ ВИДЖЕТОМ ЮКАССЫ) */}
       <AnimatePresence>
-          {showSupportModal && (
-              <motion.div 
-                  key="angel-modal-bg" 
-                  initial={{opacity:0}} 
-                  animate={{opacity:1}} 
-                  exit={{opacity:0}} 
-                  className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm" 
-                  onClick={closeSupportModal}
-              />
-          )}
-          {showSupportModal && (
-              <motion.div 
-                  key="angel-modal-content" 
-                  variants={modalAnim} 
-                  initial="hidden" 
-                  animate="visible" 
-                  exit="exit" 
-                  className={`fixed top-[5%] bottom-[5%] left-6 right-6 z-[100] rounded-[2.5rem] p-8 shadow-2xl bg-black/40 backdrop-blur-md border border-white/20 text-white overflow-y-auto no-scrollbar flex flex-col`}
-              >
-                  <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                      <div className="flex items-center gap-3">
-                          <Feather className="text-amber-400" size={24} />
-                          <h3 className={`text-2xl font-medium ${fonts.ui}`}>Ангел проекта</h3>
-                      </div>
-                      <button onClick={closeSupportModal} className="opacity-50 hover:opacity-100 transition-opacity"><X size={24}/></button>
-                  </div>
-
-                  {showPaymentWidget ? (
-                      <div className="flex-1 flex flex-col items-center justify-center">
-                          <p className={`mb-4 text-sm opacity-60 text-center ${fonts.ui}`}>Безопасная оплата</p>
-                          <div id="payment-form" className="w-full bg-white rounded-2xl overflow-hidden shadow-2xl min-h-[400px]"></div>
-                      </div>
-                  ) : (
-                      <>
-                          <div className={`p-6 rounded-3xl mb-8 flex-shrink-0 bg-white/10 shadow-inner space-y-4`}>
-                              <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>
-                                  Amen — это бесплатное пространство тишины. Мы принципиально не добавляем рекламу и никогда не используем инвесторов, чтобы сохранить чистоту проекта.
-                              </p>
-                              <p className={`text-[17px] leading-relaxed opacity-90 ${fonts.content}`}>
-                                  Вы можете помочь развитию и поддержанию проекта. В знак благодарности за ваше добровольное пожертвование ваш аккаунт на 1 месяц получает статус Ангела (перо) и <strong>открывает 1 эксклюзивный живой видео-фон на выбор.</strong>
-                              </p>
-                              <p className={`text-xs opacity-50 italic mt-2 ${fonts.content}`}>
-                                  * Переводы являются добровольными пожертвованиями.
-                              </p>
-                          </div>
-
-                          {isAngel ? (
-                              <div className="flex flex-col items-center mt-auto flex-shrink-0">
-                                  <div className={`w-full py-4 rounded-2xl text-center text-xs font-bold uppercase tracking-widest bg-white/10 opacity-60 mb-4`}>
-                                      Услуга активна
-                                  </div>
-                                  {angelTheme && (
-                                      <div className={`text-sm opacity-80 text-center ${fonts.ui}`}>
-                                          Выбранный фон: <strong className="font-semibold text-amber-400">{premiumThemes.find(t => t.id === angelTheme)?.label || 'Установлен'}</strong>
-                                      </div>
-                                  )}
-                              </div>
-                          ) : (
-                              <>
-                                  <div className="mb-6 w-full flex-shrink-0">
-                                      <div className="flex items-center mb-4 px-2">
-                                          <h4 className={`text-[10px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-2 ${fonts.ui}`}>
-                                              <Sparkles size={14}/> Выберите фон
-                                          </h4>
-                                      </div>
-                                      <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x">
-                                          {premiumThemes.map(t => (
-                                              <div 
-                                                  key={t.id}
-                                                  onClick={() => { triggerHaptic(); setSelectedAngelTheme(t.id); setPreviewThemeId(t.id); }} 
-                                                  className={`relative w-24 h-36 rounded-2xl overflow-hidden shrink-0 snap-center shadow-lg border transition-all duration-300 cursor-pointer ${selectedAngelTheme === t.id ? 'border-amber-400 ring-2 ring-amber-400 scale-105' : 'border-white/20 opacity-60 hover:opacity-100'} bg-black/50 active:scale-95`}
-                                              >
-                                                  <video src={t.bgVideo} className="absolute inset-0 w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline WebkitPlaysInline />
-                                                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
-                                                  <div className="absolute bottom-3 left-0 right-0 text-center z-10">
-                                                      <span className={`text-[10px] font-bold uppercase tracking-widest text-white shadow-sm ${fonts.ui}`}>{t.label}</span>
-                                                  </div>
-                                                  {selectedAngelTheme === t.id && (
-                                                      <div className="absolute top-2 right-2 bg-amber-400 text-stone-900 rounded-full p-1 shadow-md">
-                                                          <Check size={12} strokeWidth={3} />
-                                                      </div>
-                                                  )}
-                                              </div>
-                                          ))}
-                                      </div>
-                                  </div>
-
-                                  <div className="mt-auto flex-shrink-0">
-                                      <div className="mb-6">
-                                          <label className={`text-[10px] font-bold opacity-70 uppercase tracking-widest mb-3 block text-center ${fonts.ui}`}>Добровольное пожертвование (от 100 ₽)</label>
-                                          <input 
-                                              type="number" 
-                                              min="100"
-                                              value={donateAmount}
-                                              onChange={(e) => setDonateAmount(e.target.value)}
-                                              placeholder="Сумма"
-                                              className={`w-full bg-transparent border-b border-white/30 py-3 text-center text-3xl font-medium outline-none transition focus:border-white placeholder:opacity-40 text-white ${fonts.ui}`}
-                                          />
-                                      </div>
-
-                                      <button 
-                                          onClick={becomeAngel} 
-                                          disabled={isAuthLoading || Number(donateAmount) < 100 || !selectedAngelTheme} 
-                                          className={`w-full py-5 rounded-2xl text-xs font-bold uppercase tracking-widest bg-white text-stone-900 shadow-lg hover:bg-white/90 active:scale-95 transition flex justify-center items-center gap-2 ${fonts.ui} disabled:opacity-50 disabled:active:scale-100`}
-                                      >
-                                          {isAuthLoading ? "Загрузка..." : (!selectedAngelTheme ? "Сначала выберите фон" : `Оплатить и получить фон`)}
-                                      </button>
-                                  </div>
-                              </>
-                          )}
-                      </>
-                  )}
-              </motion.div>
-          )}
+        {showPrayerPause && <PrayerPause reading={dailyVerse} onClose={() => setShowPrayerPause(false)} />}
       </AnimatePresence>
+
+      {/* --- МОДАЛКИ --- */}
 
       <AnimatePresence>
           {showAnswerModal && (
